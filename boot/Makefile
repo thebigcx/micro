@@ -1,26 +1,41 @@
-SRC = 
-ASM = src/bootsect.S
+SRC =
+ASM = stage2/entry.S
 OBJ = $(patsubst %.c, %.o, $(SRC)) $(patsubst %.S, %.o, $(ASM))
-BIN = boot.bin
-TARG = boot.img
+LOADER = loader.bin
 
 CFLAGS = -ffreestanding
 LDFLAGS = -Tlinker.ld --oformat binary
 
-$(TARG): $(BIN)
-	@echo "building boot image..."
-	tools/mkbootsect $<
-	@rm $<
+.DEFAULT_GOAL := all
 
-$(BIN): $(OBJ)
+.PHONY: stage1 stage2 clean all
+
+bootsect.bin: stage1/bootsect.S
+	@echo "    AS stage1/bootsect.o"
+	@gcc $(CFLAGS) -c stage1/bootsect.S -o stage1/bootsect.o
 	@echo "    LD $@"
-	@ld $(LDFLAGS) -o $@ $^
+	@ld $(LDFLAGS) -o bootsect.bin stage1/bootsect.o
+
+stage1: bootsect.bin
+
+stage2: $(OBJ)
+	@echo "    LD loader.bin"
+	@ld $(LDFLAGS) -o loader.bin $^
 
 %.o: %.S
-	@echo "    CC $@"
-	@gcc $(CFLAGS) -c $< -o $@
+	@echo "    AS $@"
+	@gcc $(CFLAGS) -o $@ -c $<
 
-.PHONY:
+%.o: %.c
+	@echo "    CC $@"
+	@gcc $(CFLAGS) -o $@ -c $<
+
+all: 
+	@$(MAKE) -s stage1
+	@$(MAKE) -s stage2
+	@echo "building boot image..."
+	@tools/mkbootsect bootsect.bin > /dev/null 2>&1
+
 clean:
-	@echo "    RM $(TARG)"
-	@rm $(TARG) $(OBJ)
+	@echo "cleaning..."
+	@rm -f boot.img bootsect.bin stage1/bootsect.o $(OBJ) $(LOADER)
