@@ -1,8 +1,13 @@
 #include <boot/protocols.h>
 #include <types.h>
 #include <debug/syslog.h>
+#include <descs.h>
+#include <init.h>
 
 static uint8_t stack[4096];
+
+static union gdtent s_gdt[7];
+static struct tss s_tss;
 
 static struct st2_header_fb fbtag =
 {
@@ -28,6 +33,7 @@ static struct st2header header =
 void kmain_st2(struct st2struct* st2)
 {
     dbgln("entry");
+
     struct st2_tag* tag = st2->tags;
     while (tag != NULL)
     {
@@ -43,6 +49,9 @@ void kmain_st2(struct st2struct* st2)
 
         tag = tag->next;
     }
+
+    gdt_init(s_gdt, &s_tss);
+    kmain();
 
     for (;;); 
 }
