@@ -6,10 +6,14 @@
 .skip 0x3a
 
 _start:
+    mov     $0x7c00, %sp
+    
     mov     $0x42, %ah
     mov     $0x80, %dl
     mov     $dap, %si
     int     $0x13
+
+
 
 loop:
     jmp     loop

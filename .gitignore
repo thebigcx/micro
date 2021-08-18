@@ -2,3 +2,7 @@
 *.img
 *.bin
 boot/tools/mkbootsect
+build/iso
+build/dist
+build/limine
+kernel/dist
