@@ -20,9 +20,9 @@ xorriso -as mkisofs -b limine-cd.bin \
 ./limine/limine-install dist/image.iso
 qemu-system-x86_64                              \
     dist/image.iso                              \
-    --enable-kvm                                \
     -serial stdio                               \
     -m 512                                      \
     -smp 1                                      \
-    -s -d guest_errors                          \
-    -no-reboot -no-shutdown
+    -s -d int,guest_errors                          \
+    -no-reboot -no-shutdown                     \
+    #--enable-kvm

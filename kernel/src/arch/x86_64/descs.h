@@ -31,7 +31,7 @@ struct __attribute__((packed)) idtent
 };
 
 // Descriptor record
-struct descptr
+struct __attribute__((packed)) descptr
 {
     uint16_t lim;
     uint64_t base;
@@ -75,8 +75,10 @@ struct __attribute__((packed)) tss
     uint16_t iomap;
 };
 
+struct cpu_info;
+
 // gdt.c
-void gdt_init();
+void gdt_init(struct cpu_info* cpu);
 
 // idt.c
-void idt_init();
+void idt_init(struct cpu_info* cpu);

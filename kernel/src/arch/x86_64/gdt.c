@@ -1,4 +1,6 @@
 #include <descs.h>
+#include <stdlib.h>
+#include <cpu.h>
 
 #define TYPE_DATA_W 0x2 // Writable Data
 #define TYPE_CODE_X 0x8 // Executable Code
@@ -37,12 +39,7 @@ static void setlim(union gdtent* ent, uint32_t lim)
     ent->limhi = (lim >> 16) & 0xf;
 }
 
-extern void lgdt(struct descptr*);
-extern void ltr(uint16_t);
-
-// TODO: add struct cpu_info and link this together, so that
-// support for multiple CPUs is baked into the kernel
-void gdt_init(union gdtent* gdt, struct tss* tss)
+static void mkgdt(union gdtent* gdt, struct tss* tss)
 {
     gdt[0] = (union gdtent) { .low = 0, .high = 0 };
     gdt[1] = mkentry(TYPE_CODE_X, 0);
@@ -62,10 +59,18 @@ void gdt_init(union gdtent* gdt, struct tss* tss)
 
     memset(tss, 0, sizeof(struct tss));
     tss->iomap = sizeof(struct tss);
+}
+
+extern void lgdt(struct descptr*);
+extern void ltr(uint16_t);
+
+void gdt_init(struct cpu_info* cpu)
+{
+    mkgdt(cpu->gdt, &cpu->tss);
 
     struct descptr gdtr;
-    gdtr.lim = 7 * sizeof(union gdtent);
-    gdtr.base = (uintptr_t)gdt;
+    gdtr.lim = 7 * sizeof(union gdtent) - 1;
+    gdtr.base = (uintptr_t)cpu->gdt;
 
     lgdt(&gdtr);
     ltr(GDT_TSS | 3);

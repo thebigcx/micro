@@ -3,11 +3,9 @@
 #include <debug/syslog.h>
 #include <descs.h>
 #include <init.h>
+#include <cpu.h>
 
 static uint8_t stack[4096];
-
-static union gdtent s_gdt[7];
-static struct tss s_tss;
 
 static struct st2_header_fb fbtag =
 {
@@ -34,23 +32,23 @@ void kmain_st2(struct st2struct* st2)
 {
     dbgln("entry");
 
-    struct st2_tag* tag = st2->tags;
+    struct st2_tag* tag = (struct st2_tag*)st2->tags;
     while (tag != NULL)
     {
         switch (tag->id)
         {
             case ST2_TAG_FB_ID:
-            {
-                struct st2_fbinfo* info = (struct st2_fbinfo*)tag;
-                *((uint32_t*)info->addr) = 0xffffffff;
                 break;
-            }
         }
 
-        tag = tag->next;
+        tag = (struct st2_tag*)tag->next;
     }
+    
+    // TEST
+    struct cpu_info bsp;
+    gdt_init(&bsp);
 
-    gdt_init(s_gdt, &s_tss);
+    dbgln("loaded gdt");
     kmain();
 
     for (;;); 
