@@ -9,10 +9,13 @@
 #define GDT_TSS     0x28
 #define GDT_TSS2    0x30
 
+// TODO: do the same with GDT and TSS
+#define lidt(idt) asm volatile ("lidt %0" :: "m"(idt))
+
 // Interrupt Descriptor Table entry
 struct __attribute__((packed)) idtent
 {
-    uint16_t off_lo;
+    uint16_t offlo;
     uint16_t select;
     uint8_t  ist;
     
@@ -25,8 +28,8 @@ struct __attribute__((packed)) idtent
         uint8_t present : 1;
     } type_attr;
 
-    uint16_t off_mid;
-    uint32_t off_hi;
+    uint16_t offmid;
+    uint32_t offhi;
     uint32_t zero;
 };
 
@@ -78,7 +81,8 @@ struct __attribute__((packed)) tss
 struct cpu_info;
 
 // gdt.c
-void gdt_init(struct cpu_info* cpu);
+void gdt_init_cpu(struct cpu_info* cpu);
 
 // idt.c
-void idt_init(struct cpu_info* cpu);
+void idt_init();
+void idt_init_cpu(struct cpu_info* cpu);

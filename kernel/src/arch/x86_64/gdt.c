@@ -64,7 +64,7 @@ static void mkgdt(union gdtent* gdt, struct tss* tss)
 extern void lgdt(struct descptr*);
 extern void ltr(uint16_t);
 
-void gdt_init(struct cpu_info* cpu)
+void gdt_init_cpu(struct cpu_info* cpu)
 {
     mkgdt(cpu->gdt, &cpu->tss);
 

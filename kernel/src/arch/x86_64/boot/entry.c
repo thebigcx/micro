@@ -46,7 +46,9 @@ void kmain_st2(struct st2struct* st2)
     
     // TEST
     struct cpu_info bsp;
-    gdt_init(&bsp);
+    gdt_init_cpu(&bsp);
+    idt_init();
+    idt_init_cpu(&bsp);
 
     dbgln("loaded gdt");
     kmain();
