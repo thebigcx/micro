@@ -6,25 +6,16 @@
 #define TYPE_CODE_X 0x8 // Executable Code
 #define TYPE_TSS    0x9 // TSS segment
 
-static union gdtent mkentry(unsigned int type, int user)
+static union gdtent s_gdt[] =
 {
-    return (union gdtent)
-    {
-        .limlo     = 0xffff,
-        .baselo    = 0,
-        .basemid   = 0,
-        .type      = (uint32_t)type,
-        .dtype     = 1,
-        .dpl       = user ? 3 : 0,
-        .present   = 1,
-        .limhi     = 0xf,
-        .avail     = 0,
-        .size64    = 1,
-        .size32    = 0,
-        .gran      = 1,
-        .basehi    = 0
-    };
-}
+    { .low = 0, .high = 0 },
+    { .low = 0xffff, .high = 0xaf9800 },
+    { .low = 0xffff, .high = 0xaf9300 },
+    { .low = 0xffff, .high = 0xaff800 },
+    { .low = 0xffff, .high = 0xaff200 },
+    { .low = 0, .high = 0xe900 }, // TSS
+    { .low = 0, .high = 0 }  // TSS Extended
+};
 
 static void setbase(union gdtent* ent, uint32_t base)
 {
@@ -41,18 +32,10 @@ static void setlim(union gdtent* ent, uint32_t lim)
 
 static void mkgdt(union gdtent* gdt, struct tss* tss)
 {
-    gdt[0] = (union gdtent) { .low = 0, .high = 0 };
-    gdt[1] = mkentry(TYPE_CODE_X, 0);
-    gdt[2] = mkentry(TYPE_DATA_W, 0);
-    gdt[3] = mkentry(TYPE_CODE_X, 1);
-    gdt[4] = mkentry(TYPE_DATA_W, 1);
-
+    memcpy(gdt, s_gdt, sizeof(union gdtent) * 7);
+    
     setbase(&gdt[5], (uintptr_t)tss & 0xffffffff);
     setlim(&gdt[5], sizeof(struct tss) - 1);
-
-    gdt[5].type = TYPE_TSS;
-    gdt[5].present = 1;
-    gdt[5].dpl = 3;
 
     gdt[6].low = (uintptr_t)tss >> 32;
     gdt[6].high = 0;
