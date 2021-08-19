@@ -4,9 +4,9 @@
 #define REGISTER_ISR(i) mkintr(i, isr##i, 0)
 #define REGISTER_IRQ(i) mkintr(i + 32, irq##i, 0)
 
-#define FOLD8(x, i) x(i+0);x(i+1);x(i+2);x(i+3);x(i+4);x(i+5);x(i+6);x(i+7);
-#define FOLD16(x, i) FOLD8(x,i);FOLD8(x,i+8);
-#define FOLD32(x, i) FOLD8(x,i);FOLD8(x,i+8);FOLD8(x,i+16);FOLD8(x,i+24);
+#define FOLD8(X, i) X(i+0);X(i+1);X(i+2);X(i+3);X(i+4);X(i+5);X(i+6);X(i+7);
+#define FOLD16(X, i) FOLD8(X,i);FOLD8(X,i+8);
+#define FOLD32(X, i) FOLD8(X,i);FOLD8(X,i+8);FOLD8(X,i+16);FOLD8(X,i+24);
 
 #define TYPE_INTR 0xe
 #define TYPE_TRAP 0xf
@@ -49,12 +49,11 @@ void idt_init()
     FOLD16(REGISTER_IRQ, 0);
 
     mkintr(0x80, irq0x80, 1); // syscall()
-
-    REGISTER_IRQ(0xfd);
-    REGISTER_IRQ(0xfe);
+    mkintr(0xfd, irq0xfd, 0); // schedule()
+    mkintr(0xfe, irq0xfe, 0); // halt()
 }
 
-void idt_init_cpu(struct cpu_info* cpu)
+void idt_init_cpu(struct cpu_info*)
 {
     struct descptr idtr;
     idtr.lim = sizeof(s_idt) - 1;
