@@ -1,5 +1,6 @@
 #include <descs.h>
 #include <intr_stubs.h>
+#include <cpu.h>
 
 #define REGISTER_ISR(i) mkintr(i, isr##i, 0)
 #define REGISTER_IRQ(i) mkintr(i + 32, irq##i, 0)
@@ -33,14 +34,14 @@ static void mkintr(unsigned int num, void (*handler)(), int user)
     };
 }
 
-void isr_handler()
+void isr_handler(uintptr_t n, struct regs* r, uint32_t e)
 {
-
+//    eoi();        
 }
 
-void irq_handler()
+void irq_handler(uintptr_t n, struct regs* r)
 {
-
+//    eoi();
 }
 
 void idt_init()

@@ -1,10 +1,12 @@
 SRC = src/arch/x86_64/boot/entry.c     	\
 	  src/arch/x86_64/gdt.c             \
 	  src/arch/x86_64/idt.c             \
+	  src/arch/x86_64/mmu.c             \
       src/debug/serial.c                \
 	  src/debug/ubsan.c	                \
 	  src/util/stdlib.c                 \
-	  src/init.c
+	  src/init.c                        \
+	  src/acpi.c
 
 ASM = src/arch/x86_64/asm.S             \
 	  src/arch/x86_64/intr_asm.S

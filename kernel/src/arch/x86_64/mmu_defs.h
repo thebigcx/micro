@@ -1,5 +1,7 @@
 #pragma once
 
+#include <types.h>
+
 #define PAGE4K 0x1000
 #define PAGE2M 0x200000
 #define PAGE1G 0x40000000
@@ -14,7 +16,7 @@
 
 typedef uint64_t pmlent_t;
 
-struct __attribute__((aligned(PAGE4K)) pml
+struct __attribute__((aligned(PAGE4K))) pml
 {
     pmlent_t entries[512];
 };
