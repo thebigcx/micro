@@ -5,7 +5,8 @@ SRC = src/arch/x86_64/boot/entry.c     	\
 	  src/util/stdlib.c                 \
 	  src/init.c
 
-ASM = src/arch/x86_64/gdt-asm.S
+ASM = src/arch/x86_64/gdt_asm.S         \
+	  src/arch/x86_64/idt_asm.S
 
 OBJ = $(patsubst %.c, %.o, $(SRC)) $(patsubst %.S, %.o, $(ASM))
 TARG = dist/vmkernel

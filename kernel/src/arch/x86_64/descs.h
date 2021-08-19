@@ -11,6 +11,8 @@
 
 // TODO: do the same with GDT and TSS
 #define lidt(idt) asm volatile ("lidt %0" :: "m"(idt))
+//#define lgdt(gdt) asm volatile ("lgdt %0" :: "m"(gdt))
+//#define ltr(tr) asm volatile ("ltr %0" :: "m"(tr))
 
 // Interrupt Descriptor Table entry
 struct __attribute__((packed)) idtent
