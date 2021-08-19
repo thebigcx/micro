@@ -61,9 +61,6 @@ static void mkgdt(union gdtent* gdt, struct tss* tss)
     tss->iomap = sizeof(struct tss);
 }
 
-extern void lgdt(struct descptr*);
-extern void ltr(uint16_t);
-
 void gdt_init_cpu(struct cpu_info* cpu)
 {
     mkgdt(cpu->gdt, &cpu->tss);
@@ -73,5 +70,6 @@ void gdt_init_cpu(struct cpu_info* cpu)
     gdtr.base = (uintptr_t)cpu->gdt;
 
     lgdt(&gdtr);
+    rel_segs(GDT_CODE0, GDT_DATA0);
     ltr(GDT_TSS | 3);
 }

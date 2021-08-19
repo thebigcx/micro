@@ -2,23 +2,33 @@
  *  GDT and TSS flushing assembly
  */
 
+.global rel_segs
 .global lgdt
+.global lidt
+.global ltr
 
-lgdt:
-    lgdt    (%rdi)
-    mov     $0x10, %ax
+// void rel_segs(uint16_t, uint16_t)
+rel_segs:
+    mov     %si, %ax  // Data
     mov     %ax, %ds
     mov     %ax, %es
     mov     %ax, %fs
     mov     %ax, %gs
     mov     %ax, %ss
-    pop     %rdi
-    mov     $0x08, %rax
+    mov     %rdi, %rax // Code
     pushq   %rax
     pushq   %rdi
     retfq
 
-.global ltr
+// void lgdt(struct descptr*)
+lgdt:
+    lgdt    (%rdi)
+    ret
+
+lidt:
+    lidt    (%rdi)
+    ret
+
 ltr:
     mov     %rdi, %rax
     ltr     %ax

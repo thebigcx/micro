@@ -1,5 +1,5 @@
 #include <descs.h>
-#include <idt_stubs.h>
+#include <intr_stubs.h>
 
 #define REGISTER_ISR(i) mkintr(i, isr##i, 0)
 #define REGISTER_IRQ(i) mkintr(i + 32, irq##i, 0)
@@ -60,5 +60,5 @@ void idt_init_cpu(struct cpu_info* cpu)
     idtr.lim = sizeof(s_idt) - 1;
     idtr.base = (uintptr_t)s_idt;
 
-    lidt(idtr);
+    lidt(&idtr);
 }
