@@ -1,19 +1,30 @@
 #include <mmu.h>
 #include <mmu_defs.h>
+#include <stdlib.h>
 
 #define KBASE      (0xffffffff80000000)
+#define HEAPBASE   (0xffffffffc0000000)
 #define PAGE_FRAME (0xFFFFffffFFFFf000)
 #define MMIO_BASE  (KBASE - 0x100000000)
 
 #define ENTCNT 512
 
-// Kernel: 2M pages located in pml4[511], pdpt[511]
-static pml_t kpml4 __attribute__((aligned(PAGE4K)));
-static pml_t kpdpt __attribute__((aligned(PAGE4K)));
-static pml_t kpd __attribute__((aligned(PAGE4K)));
+// Indices of page structures
+#define PML4_IDX(vaddr) ((((uint64_t)vaddr) >> 39) & 0x1ff)
+#define PDPT_IDX(vaddr) ((((uint64_t)vaddr) >> 30) & 0x1ff)
+#define PD_IDX(vaddr)   ((((uint64_t)vaddr) >> 21) & 0x1ff)
+#define PT_IDX(vaddr)   ((((uint64_t)vaddr) >> 12) & 0x1ff)
 
-static pml_t kheap_dir __attribute__((aligned(PAGE4K)));
-static pml_t kheap_tbls[512] __attribute__((aligned(PAGE4K)));
+#define _pagealign __attribute__((aligned(PAGE4K)))
+
+// Kernel: 2M pages located in pml4[511], pdpt[510]
+static pml_t kpml4 _pagealign;
+static pml_t kpdpt _pagealign;
+static pml_t kpd _pagealign;
+
+// Heap: 2M pages located in pml4[511], pdpt[511]
+static pml_t kheap_dir _pagealign;
+static pml_t kheap_tbls[512] _pagealign;
 
 void mmu_init()
 {
@@ -29,23 +40,41 @@ void mmu_init()
 
     kpdpt[0] = kpdpt[510];
 
+    kpdpt[511] = ((uintptr_t)&kheap_dir - KBASE) | PAGE_PR | PAGE_RW;
+    for (int i = 0; i < ENTCNT; i++)
+        memset(&(kheap_tbls[i]), 0, sizeof(page_t) * ENTCNT);
+
     uintptr_t cr3 = (uintptr_t)&kpml4 - KBASE;
     asm ("mov %0, %%cr3" :: "r"(cr3));
 }
 
-void mmu_kalloc(page_t* p, unsigned int flags)
+uintptr_t mmu_kalloc()
 {
+    static uintptr_t heap_base = HEAPBASE;
 
+    unsigned int pdidx = PD_IDX(heap_base);
+    unsigned int ptidx = PT_IDX(heap_base);
+
+    if (!(kheap_dir[pdidx] & PAGE_PR))
+    {
+        kheap_dir[pdidx] = ((uintptr_t)&kheap_tbls[pdidx] - KBASE) | PAGE_PR | PAGE_RW;
+    }
+
+    kheap_tbls[pdidx][ptidx] = PAGE_PR | PAGE_RW;
+
+    heap_base += PAGE4K;
+    return heap_base - PAGE4K;
 }
 
-void mmu_kfree(page_t* p)
+void mmu_kfree(uintptr_t p)
 {
-
+    (void)p;
 }
 
-void mmu_kmap(uintptr_t virt, uintptr_t phys, int cnt)
+void mmu_kmap(uintptr_t virt, uintptr_t phys, unsigned int flags)
 {
-
+    kheap_tbls[PD_IDX(virt)][PT_IDX(virt)] = (phys & PAGE_FRAME) | flags;
+    invlpg(virt);
 }
 
 uintptr_t mmu_map_mmio(uintptr_t mmio)

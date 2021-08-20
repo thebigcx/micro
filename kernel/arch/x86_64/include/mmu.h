@@ -2,12 +2,12 @@
 
 #include <mmu_defs.h>
 
-#define invlpg(a) asm volatile ("invlpg (%0)" :: "m"(a) : "memory")
+#define invlpg(a) asm volatile ("invlpg (%0)" :: "r"(a) : "memory")
 
 void mmu_init();
-void mmu_kalloc(page_t* p, unsigned int flags);
-void mmu_kfree(page_t* p);
-void mmu_kmap(uintptr_t virt, uintptr_t phys, int cnt);
+uintptr_t mmu_kalloc();
+void mmu_kfree(uintptr_t p);
+void mmu_kmap(uintptr_t virt, uintptr_t phys, unsigned int flags);
 
 uintptr_t mmu_map_mmio(uintptr_t mmio);
 

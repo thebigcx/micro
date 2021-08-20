@@ -4,6 +4,7 @@
 #include <descs.h>
 #include <init.h>
 #include <cpu.h>
+#include <mmu.h>
 
 static uint8_t stack[4096];
 
@@ -57,7 +58,16 @@ void kmain_st2(struct st2struct* st2)
     mmu_init();
 
     dbgln("loaded cr3");
-   
+
+    uintptr_t v = mmu_kalloc();
+    dbglnf("vaddr: %x", v);
+
+    uintptr_t p = mmu_alloc_phys(1);
+    dbglnf("paddr: %x", p);
+
+    mmu_kmap(v, p, PAGE_PR | PAGE_RW);
+    *((uint32_t*)v) = 10;
+
     kmain();
 
     for (;;); 
