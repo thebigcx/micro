@@ -14,6 +14,8 @@
 #define PAGE_ACC    (1 << 5) // Accessed (set by CPU)
 #define PAGE_SZ     (1 << 6) // Size
 
+#define PD_2M       (1 << 7) // 2 megabyte pages
+
 typedef uint64_t pmlent_t;
 
 struct __attribute__((aligned(PAGE4K))) pml

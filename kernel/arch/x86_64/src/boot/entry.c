@@ -43,7 +43,9 @@ void kmain_st2(struct st2struct* st2)
 
         tag = (struct st2_tag*)tag->next;
     }
-    
+
+    mmu_alloc_phys_at(0, 0x100);
+
     // TEST
     struct cpu_info bsp;
     gdt_init_cpu(&bsp);
@@ -51,6 +53,11 @@ void kmain_st2(struct st2struct* st2)
     idt_init_cpu(&bsp);
 
     dbgln("loaded gdt");
+
+    mmu_init();
+
+    dbgln("loaded cr3");
+   
     kmain();
 
     for (;;); 

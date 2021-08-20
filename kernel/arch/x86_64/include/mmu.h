@@ -11,5 +11,6 @@ void mmu_kmap(uintptr_t virt, uintptr_t phys, int cnt);
 
 uintptr_t mmu_map_mmio(uintptr_t mmio);
 
+uintptr_t mmu_alloc_phys_at(uintptr_t p, unsigned int cnt);
 uintptr_t mmu_alloc_phys();
-void mmu_free_phys(uintptr_t p);
+void mmu_free_phys(uintptr_t p, unsigned int cnt);
