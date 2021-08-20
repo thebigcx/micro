@@ -2,7 +2,9 @@
 *.img
 *.bin
 boot/tools/mkbootsect
-build/iso
 build/dist
+build/iso
 build/limine
+kernel/build
 kernel/dist
+Makefile

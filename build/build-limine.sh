@@ -1,6 +1,3 @@
-make -C kernel
-make -C boot
-
 cd build
 
 if [ ! -d ./limine ]; then
