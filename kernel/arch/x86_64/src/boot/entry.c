@@ -33,6 +33,8 @@ void kmain_st2(struct st2struct* st2)
 {
     dbgln("entry");
 
+    uintptr_t rsdp;
+
     struct st2_tag* tag = (struct st2_tag*)st2->tags;
     while (tag != NULL)
     {
@@ -40,6 +42,11 @@ void kmain_st2(struct st2struct* st2)
         {
             case ST2_TAG_FB_ID:
                 break;
+            case ST2_TAG_RSDP_ID:
+            {
+                struct st2_tag_rsdp* rsdp_tag = (struct st2_tag_rsdp*)tag;
+                rsdp = rsdp_tag->rsdp;
+            }
         }
 
         tag = (struct st2_tag*)tag->next;
@@ -67,6 +74,8 @@ void kmain_st2(struct st2struct* st2)
 
     mmu_kmap(v, p, PAGE_PR | PAGE_RW);
     *((uint32_t*)v) = 10;
+
+    acpi_init(rsdp);
 
     kmain();
 

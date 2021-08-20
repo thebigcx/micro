@@ -51,5 +51,12 @@ struct __attribute__((__packed__)) st2_fbinfo
     uint8_t  gmask_shft;
     uint8_t  bmask_sz;
     uint8_t  bmask_shft;
+};
 
+#define ST2_TAG_RSDP_ID 0x9e1786930a375e78
+
+struct st2_tag_rsdp
+{
+    struct st2_tag tag;
+    uint64_t rsdp;
 };

@@ -79,7 +79,9 @@ void mmu_kmap(uintptr_t virt, uintptr_t phys, unsigned int flags)
 
 uintptr_t mmu_map_mmio(uintptr_t mmio)
 {
-    // TODO: impl
+    uintptr_t v = mmu_kalloc();
+    mmu_kmap(v, mmio, PAGE_PR | PAGE_RW | PAGE_NOCACHE | PAGE_WTHRU);
+    return v + mmio % PAGE4K;
 }
 
 #define BUF_SZ 15625

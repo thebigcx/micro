@@ -1,5 +1,6 @@
 #include <acpi.h>
 #include <mmu.h>
+#include <debug/syslog.h>
 
 struct __attribute__((packed)) rsdp
 {
@@ -72,5 +73,19 @@ void acpi_init(uintptr_t rsdp)
     {
         struct xsdp* extptr = (struct xsdp*)rsdp;
         xsdt = (struct xsdt*)mmu_map_mmio(extptr->xsdt_addr);
+    }
+
+    struct madt* madt = acpi_find("APIC");
+    dbglnf("%x", madt);
+}
+
+void* acpi_find(const char* sig)
+{
+    int entries = (rsdt->hdr.len - sizeof(rsdt->hdr)) / 4;
+
+    for (int i = 0; i < entries; i++)
+    {
+        struct sdthdr* h = (struct sdthdr*)rsdt->sdts[i];
+        if (!strncmp(h->sig, sig, 4)) return (void*)h;
     }
 }
