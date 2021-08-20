@@ -16,9 +16,5 @@
 
 #define PD_2M       (1 << 7) // 2 megabyte pages
 
-typedef uint64_t pmlent_t;
-
-struct __attribute__((aligned(PAGE4K))) pml
-{
-    pmlent_t entries[512];
-};
+typedef uint64_t page_t;
+typedef page_t pml_t[512];

@@ -7,40 +7,38 @@
 
 #define ENTCNT 512
 
-// TODO: struct pml should just be a typedef of uint64_t[512]
-
 // Kernel: 2M pages located in pml4[511], pdpt[511]
-static struct pml kpml4;
-static struct pml kpdpt;
-static struct pml kpd;
+static pml_t kpml4 __attribute__((aligned(PAGE4K)));
+static pml_t kpdpt __attribute__((aligned(PAGE4K)));
+static pml_t kpd __attribute__((aligned(PAGE4K)));
 
-static struct pml kheap_dir;
-static struct pml kheap_tbls[512];
+static pml_t kheap_dir __attribute__((aligned(PAGE4K)));
+static pml_t kheap_tbls[512] __attribute__((aligned(PAGE4K)));
 
 void mmu_init()
 {
-    memset(&kpml4, 0, sizeof(struct pml));
-    memset(&kpdpt, 0, sizeof(struct pml));
+    memset(&kpml4, 0, sizeof(pml_t));
+    memset(&kpdpt, 0, sizeof(pml_t));
 
-    kpml4.entries[511] = ((uintptr_t)&kpdpt - KBASE) | PAGE_PR | PAGE_RW;
-    kpml4.entries[0] = kpml4.entries[511];
-    kpdpt.entries[510] = ((uintptr_t)&kpd - KBASE) | PAGE_PR | PAGE_RW;
+    kpml4[511] = ((uintptr_t)&kpdpt - KBASE) | PAGE_PR | PAGE_RW;
+    kpml4[0] = kpml4[511];
+    kpdpt[510] = ((uintptr_t)&kpd - KBASE) | PAGE_PR | PAGE_RW;
 
     for (int i = 0; i < ENTCNT; i++)
-        kpd.entries[i] = (PAGE2M * i) | PAGE_PR | PAGE_RW | PD_2M;
+        kpd[i] = (PAGE2M * i) | PAGE_PR | PAGE_RW | PD_2M;
 
-    kpdpt.entries[0] = kpdpt.entries[510];
+    kpdpt[0] = kpdpt[510];
 
     uintptr_t cr3 = (uintptr_t)&kpml4 - KBASE;
     asm ("mov %0, %%cr3" :: "r"(cr3));
 }
 
-void mmu_kalloc(struct pml* p, unsigned int flags)
+void mmu_kalloc(page_t* p, unsigned int flags)
 {
 
 }
 
-void mmu_kfree(struct pml* p)
+void mmu_kfree(page_t* p)
 {
 
 }
