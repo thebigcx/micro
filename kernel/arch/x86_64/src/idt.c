@@ -36,11 +36,13 @@ static void mkintr(unsigned int num, void (*handler)(), int user)
 
 void isr_handler(uintptr_t n, struct regs* r, uint32_t e)
 {
+    (void)n; (void)r; (void)e;
 //    eoi();        
 }
 
 void irq_handler(uintptr_t n, struct regs* r)
 {
+    (void)n; (void)r;
 //    eoi();
 }
 

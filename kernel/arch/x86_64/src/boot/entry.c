@@ -5,6 +5,7 @@
 #include <init.h>
 #include <cpu.h>
 #include <mmu.h>
+#include <acpi.h>
 
 static uint8_t stack[4096];
 
@@ -33,7 +34,7 @@ void kmain_st2(struct st2struct* st2)
 {
     dbgln("entry");
 
-    uintptr_t rsdp;
+    uintptr_t rsdp = 0;
 
     struct st2_tag* tag = (struct st2_tag*)st2->tags;
     while (tag != NULL)

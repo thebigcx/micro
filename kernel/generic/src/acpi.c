@@ -1,6 +1,7 @@
 #include <acpi.h>
 #include <mmu.h>
 #include <debug/syslog.h>
+#include <stdlib.h>
 
 struct __attribute__((packed)) rsdp
 {
@@ -85,7 +86,9 @@ void* acpi_find(const char* sig)
 
     for (int i = 0; i < entries; i++)
     {
-        struct sdthdr* h = (struct sdthdr*)rsdt->sdts[i];
-        if (!strncmp(h->sig, sig, 4)) return (void*)h;
+        struct sdthdr* h = (struct sdthdr*)((uint64_t)rsdt->sdts[i]);
+        if (!strncmp((char*)h->sig, sig, 4)) return (void*)h;
     }
+
+    return NULL;
 }

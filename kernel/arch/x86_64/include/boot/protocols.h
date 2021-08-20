@@ -2,7 +2,7 @@
 
 #include <types.h>
 
-struct __attribute__((__packed__)) st2_tag
+struct __attribute__((packed)) st2_tag
 {
     uint64_t id;
     uint64_t next;
@@ -55,7 +55,7 @@ struct __attribute__((__packed__)) st2_fbinfo
 
 #define ST2_TAG_RSDP_ID 0x9e1786930a375e78
 
-struct st2_tag_rsdp
+struct __attribute__((packed)) st2_tag_rsdp
 {
     struct st2_tag tag;
     uint64_t rsdp;
