@@ -53,10 +53,36 @@ struct __attribute__((packed)) madt
     uint32_t flags;
 };
 
+#define MADT_LAPIC          0
+#define MADT_IOAPIC         1
+#define MADT_IOAPIC_ISO     2
+#define MADT_IOAPIC_NONMASK 3
+#define MADT_LAPIC_NONMASK  4
+#define MADT_LAPIC_ADDR     5
+#define MADT_LAPIC_X2       9
+
 struct __attribute__((packed)) madtent
 {
     uint8_t type;
     uint8_t len;
+};
+
+struct __attribute__((packed)) apiciso
+{
+    struct madtent ent;
+    uint8_t bus;
+    uint8_t irq;  // IRQ interrupt vector
+    uint32_t gsi; // Global interrupt
+    uint16_t flags;
+};
+
+struct __attribute__((packed)) ioapic
+{
+    struct madtent ent;
+    uint8_t id;
+    uint8_t res;
+    uint32_t addr;
+    uint32_t gsib;
 };
 
 static struct rsdt* rsdt;
@@ -75,9 +101,55 @@ void acpi_init(uintptr_t rsdp)
         struct xsdp* extptr = (struct xsdp*)rsdp;
         xsdt = (struct xsdt*)mmu_map_mmio(extptr->xsdt_addr);
     }
+}
 
+// TODO: put this somewhere else
+void acpi_parse_madt()
+{
     struct madt* madt = acpi_find("APIC");
-    dbglnf("%x", madt);
+
+    struct madtent* ent = (struct madtent*)((uintptr_t)madt + sizeof(struct madt));
+    uintptr_t end = (uintptr_t)madt + madt->hdr.len;
+
+    while ((uintptr_t)ent < end)
+    {
+        switch (ent->type)
+        {
+            case MADT_LAPIC:
+            {
+                 
+            }
+            break;
+
+            case MADT_IOAPIC:
+            {
+                struct ioapic* ioapic = (struct ioapic*)ent;
+                if (!ioapic->gsib) ioapic_init(ioapic->addr);
+            }
+            break;
+
+            case MADT_IOAPIC_ISO:
+            {
+                struct apiciso* iso = (struct apiciso*)ent;
+                dbglnf("found iso: %d to %d", iso->irq, iso->gsi);
+            }
+            break;
+
+            case MADT_LAPIC_NONMASK:
+            {
+
+            }
+            break;
+
+            case MADT_LAPIC_ADDR:
+            {
+
+            }
+            break;
+        }
+
+        ent = (struct madtent*)((uintptr_t)ent + ent->len);
+    }
 }
 
 void* acpi_find(const char* sig)

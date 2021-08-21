@@ -6,6 +6,7 @@ set(SOURCES ${SOURCES} ${ARCHSRC}/src/mmu.c
                        ${ARCHSRC}/src/asm.S
                        ${ARCHSRC}/src/lapic.c
                        ${ARCHSRC}/src/ioapic.c
+                       ${ARCHSRC}/src/pic.c
                        PARENT_SCOPE)
 
 message(${ARCHSRC}/include)

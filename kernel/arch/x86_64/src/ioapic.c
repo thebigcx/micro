@@ -1,4 +1,5 @@
 #include <ioapic.h>
+#include <lapic.h>
 
 #define R_REGSEL 0x00
 #define R_IOWIN  0x10
@@ -30,6 +31,8 @@ void write64(uint32_t reg, uint64_t val)
 void ioapic_init(uintptr_t base)
 {
     mmio_base = mmu_map_mmio(base);
+    ioapic_redir(2, 32, DELIV_LOWEST);
+    pic_disable();
 }
 
 void ioapic_redir(uint8_t irq, uint8_t vec, uint32_t deliv)

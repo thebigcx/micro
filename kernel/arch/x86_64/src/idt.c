@@ -1,6 +1,7 @@
 #include <descs.h>
 #include <intr_stubs.h>
 #include <cpu.h>
+#include <debug/syslog.h>
 
 #define REGISTER_ISR(i) mkintr(i, isr##i, 0)
 #define REGISTER_IRQ(i) mkintr(i + 32, irq##i, 0)
@@ -36,14 +37,15 @@ static void mkintr(unsigned int num, void (*handler)(), int user)
 
 void isr_handler(uintptr_t n, struct regs* r, uint32_t e)
 {
+    lapic_eoi();
     (void)n; (void)r; (void)e;
-//    eoi();        
 }
 
 void irq_handler(uintptr_t n, struct regs* r)
 {
+    lapic_eoi();
+    dbglnf("irq %d", n);
     (void)n; (void)r;
-//    eoi();
 }
 
 void idt_init()

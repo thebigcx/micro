@@ -56,6 +56,12 @@ static uint32_t read(uint32_t off)
     return *((volatile uint32_t*)(mmio_base + off));
 }
 
+// Send an End Of Interrupt to the LAPIC
+void lapic_eoi()
+{
+    write(R_EOI, 0);
+}
+
 // Setup LAPIC for the BSP (map the MMIO)
 void lapic_setup()
 {

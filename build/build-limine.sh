@@ -20,6 +20,6 @@ qemu-system-x86_64                              \
     -serial stdio                               \
     -m 512                                      \
     -smp 1                                      \
-    -s -d int,guest_errors                          \
+    -s -d guest_errors                          \
     -no-reboot -no-shutdown                     \
     #--enable-kvm

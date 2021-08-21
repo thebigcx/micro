@@ -77,9 +77,12 @@ void kmain_st2(struct st2struct* st2)
     *((uint32_t*)v) = 10;
 
     acpi_init(rsdp);
+    acpi_parse_madt();
 
     lapic_setup();
-    
+
+    sti();
+
     kmain();
 
     for (;;); 

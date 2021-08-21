@@ -1,6 +1,7 @@
 #include <debug/syslog.h>
 #include <stdlib.h>
 #include <types.h>
+#include <cpu.h>
 
 #if DEBUG
 
@@ -156,18 +157,6 @@ static void __sprintf(const char* format, char* s, size_t n, va_list args)
 }
 
 #define PORT 0x3f8
-
-static void outb(uint16_t port, uint8_t val)
-{
-    asm volatile ("outb %0, %1" :: "a"(val), "Nd"(port));
-}
-
-static uint8_t inb(uint16_t port)
-{
-    uint8_t v;
-    asm volatile ("inb %1, %0" : "=a"(v) : "Nd"(port));
-    return v;
-}
 
 static void serial_putch(char c)
 {
