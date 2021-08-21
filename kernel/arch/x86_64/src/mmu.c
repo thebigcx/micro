@@ -47,22 +47,26 @@ void mmu_init()
     asm ("mov %0, %%cr3" :: "r"(cr3));
 }
 
-uintptr_t mmu_kalloc()
+uintptr_t mmu_kalloc(size_t n)
 {
     static uintptr_t heap_base = HEAPBASE;
 
-    unsigned int pdidx = PD_IDX(heap_base);
-    unsigned int ptidx = PT_IDX(heap_base);
-
-    if (!(kheap_dir[pdidx] & PAGE_PR))
+    for (size_t i = 0; i < n; i++)
     {
-        kheap_dir[pdidx] = ((uintptr_t)&kheap_tbls[pdidx] - KBASE) | PAGE_PR | PAGE_RW;
+        unsigned int pdidx = PD_IDX(heap_base);
+        unsigned int ptidx = PT_IDX(heap_base);
+
+        if (!(kheap_dir[pdidx] & PAGE_PR))
+        {
+            kheap_dir[pdidx] = ((uintptr_t)&kheap_tbls[pdidx] - KBASE) | PAGE_PR | PAGE_RW;
+        }
+
+        kheap_tbls[pdidx][ptidx] = PAGE_PR | PAGE_RW;
+
+        heap_base += PAGE4K;
     }
 
-    kheap_tbls[pdidx][ptidx] = PAGE_PR | PAGE_RW;
-
-    heap_base += PAGE4K;
-    return heap_base - PAGE4K;
+    return heap_base - n * PAGE4K;
 }
 
 void mmu_kfree(uintptr_t p)
@@ -76,9 +80,10 @@ void mmu_kmap(uintptr_t virt, uintptr_t phys, unsigned int flags)
     invlpg(virt);
 }
 
+// TODO: size parameter for MMIO larger than a page
 uintptr_t mmu_map_mmio(uintptr_t mmio)
 {
-    uintptr_t v = mmu_kalloc();
+    uintptr_t v = mmu_kalloc(1);
     mmu_kmap(v, mmio, PAGE_PR | PAGE_RW | PAGE_NOCACHE | PAGE_WTHRU);
     return v + mmio % PAGE4K;
 }

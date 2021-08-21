@@ -8,6 +8,7 @@
 #include <acpi.h>
 #include <lapic.h>
 #include <smp.h>
+#include <heap.h>
 
 static uint8_t stack[4096];
 
@@ -69,7 +70,16 @@ void kmain_st2(struct st2struct* st2)
 
     dbgln("loaded cr3");
 
-    uintptr_t v = mmu_kalloc();
+    heap_init();
+
+    for (int i = 1; i < 1000; i++)
+    {
+        uint8_t* ptr = kmalloc(10);
+        *ptr = 10;
+    }
+    dbglnf("%x", kmalloc(4));
+
+    uintptr_t v = mmu_kalloc(1);
     dbglnf("vaddr: %x", v);
 
     uintptr_t p = mmu_alloc_phys(1);

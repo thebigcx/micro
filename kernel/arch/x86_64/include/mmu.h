@@ -5,7 +5,7 @@
 #define invlpg(a) asm volatile ("invlpg (%0)" :: "r"(a) : "memory")
 
 void mmu_init();
-uintptr_t mmu_kalloc();
+uintptr_t mmu_kalloc(size_t n);
 void mmu_kfree(uintptr_t p);
 void mmu_kmap(uintptr_t virt, uintptr_t phys, unsigned int flags);
 
