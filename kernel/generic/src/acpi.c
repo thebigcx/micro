@@ -3,6 +3,7 @@
 #include <debug/syslog.h>
 #include <stdlib.h>
 #include <ioapic.h>
+#include <list.h>
 
 struct __attribute__((packed)) rsdp
 {
@@ -86,9 +87,22 @@ struct __attribute__((packed)) ioapic
     uint32_t gsib;
 };
 
+struct __attribute__((packed)) lapic
+{
+    struct madtent ent;
+    uint8_t id;
+    uint8_t apic_id;
+    uint32_t flags;
+};
+
+// Enabled, online capable shorthand
+#define LAPIC_USABLE (1 | (1 << 2))
+
 static struct rsdt* rsdt;
 static struct xsdt* xsdt;
 static int rev;
+
+static struct list lapics;
 
 void acpi_init(uintptr_t rsdp)
 {
@@ -102,6 +116,8 @@ void acpi_init(uintptr_t rsdp)
         struct xsdp* extptr = (struct xsdp*)rsdp;
         xsdt = (struct xsdt*)mmu_map_mmio(extptr->xsdt_addr);
     }
+
+    lapics = list_create();
 }
 
 // TODO: put this somewhere else
@@ -118,7 +134,13 @@ void acpi_parse_madt()
         {
             case MADT_LAPIC:
             {
-                 
+                struct lapic* lapic = (struct lapic*)ent;
+                if (lapic->flags & LAPIC_USABLE && lapic->apic_id) // Make sure not BSP
+                {
+                    uint16_t* id = kmalloc(sizeof(uint16_t));
+                    *id = lapic->apic_id;
+                    list_push_back(&lapics, id);
+                }
             }
             break;
 
@@ -164,4 +186,9 @@ void* acpi_find(const char* sig)
     }
 
     return NULL;
+}
+
+struct list* acpi_get_lapics()
+{
+    return &lapics;
 }

@@ -6,6 +6,7 @@
 #include <cpu.h>
 #include <stdlib.h>
 #include <timer.h>
+#include <list.h>
 
 #define TRMP_ENTRY 0x8000
 #define AP_CR3     0x1000
@@ -55,8 +56,12 @@ static void init_cpu(uint16_t id)
     }
 }
 
-void smp_init()
+void smp_init(struct list* ids)
 {
     dbgln("starting cpus");
-    init_cpu(1);
+
+    list_foreach(ids)
+    {
+        init_cpu(*((uint16_t*)node->data));
+    }
 }

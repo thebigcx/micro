@@ -97,7 +97,7 @@ void kmain_st2(struct st2struct* st2)
 
     sti();
     
-    smp_init();
+    smp_init(acpi_get_lapics());
 
     //kmain();
 

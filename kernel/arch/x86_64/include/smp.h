@@ -1,3 +1,5 @@
 #pragma once
 
-void smp_init();
+struct list;
+
+void smp_init(struct list* ids);
