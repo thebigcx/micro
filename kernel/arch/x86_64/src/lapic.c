@@ -32,7 +32,7 @@
 #define R_TIME_CURR   0x390
 #define R_TIME_DIVCFG 0x3e0
 
-volatile uintptr_t mmio_base;
+static volatile uintptr_t mmio_base;
 
 static uintptr_t get_base()
 {
