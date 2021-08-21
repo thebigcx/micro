@@ -4,4 +4,5 @@ set(SOURCES ${SOURCES} ${GENERICSRC}/src/init.c
                        ${GENERICSRC}/src/debug/ubsan.c
                        ${GENERICSRC}/src/debug/serial.c
                        ${GENERICSRC}/src/heap.c
+                       ${GENERICSRC}/src/list.c
                        PARENT_SCOPE)

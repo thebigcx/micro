@@ -48,6 +48,11 @@ static void init_cpu(uint16_t id)
     lapic_send_ipi(id, TRMP_ENTRY >> 12, DELIV_STRT | LVL_ASSRT);
 
     timer_wait(200000);
+
+    if (!_ap_done)
+    {
+        dbgln("error: cannot start cpu");
+    }
 }
 
 void smp_init()
