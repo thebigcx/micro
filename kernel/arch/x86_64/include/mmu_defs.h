@@ -6,6 +6,8 @@
 #define PAGE2M 0x200000
 #define PAGE1G 0x40000000
 
+#define PAGE_FRAME   0xffffFFFFffffF000
+
 #define PAGE_PR      (1 << 0) // Present
 #define PAGE_RW      (1 << 1) // Read/Write
 #define PAGE_USR     (1 << 2) // User accessible

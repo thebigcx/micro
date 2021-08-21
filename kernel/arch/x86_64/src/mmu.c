@@ -4,7 +4,6 @@
 
 #define KBASE      (0xffffffff80000000)
 #define HEAPBASE   (0xffffffffc0000000)
-#define PAGE_FRAME (0xFFFFffffFFFFf000)
 #define MMIO_BASE  (KBASE - 0x100000000)
 
 #define ENTCNT 512

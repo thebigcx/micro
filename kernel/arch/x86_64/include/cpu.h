@@ -1,6 +1,7 @@
 #pragma once
 
 #include <types.h>
+#include <descs.h>
 
 struct regs
 {
@@ -31,5 +32,8 @@ struct cpu_info
     struct tss tss;
     union gdtent gdt[7];
 };
+
+#define rdmsr(msr, l, h) asm volatile ("rdmsr" : "=a"(l), "=d"(h) : "c"(msr))
+#define wrmsr(msr, l, h) asm volatile ("wrmsr" :: "a"(l), "d"(h), "c"(msr))
 
 void eoi();

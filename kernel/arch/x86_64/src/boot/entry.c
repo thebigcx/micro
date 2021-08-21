@@ -78,6 +78,8 @@ void kmain_st2(struct st2struct* st2)
 
     acpi_init(rsdp);
 
+    lapic_setup();
+    
     kmain();
 
     for (;;); 
