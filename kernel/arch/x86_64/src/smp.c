@@ -22,6 +22,8 @@ extern void* _ap_bs_end;
 static void ap_entry(uint16_t id)
 {
     dbgln("another cpu");
+    _ap_done = 1;
+
     for (;;);
 }
 
@@ -36,6 +38,8 @@ static void init_cpu(uint16_t id)
     *((volatile uintptr_t*)AP_CR3)   = cr3;
 
     memcpy((void*)TRMP_ENTRY, &_ap_bs_start, PAGE4K);
+
+    _ap_done = 0;
 
     lapic_send_ipi(id, 0, DELIV_INIT);
 

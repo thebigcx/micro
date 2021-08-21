@@ -1,6 +1,7 @@
 #include <heap.h>
 #include <mmu.h>
 #include <debug/syslog.h>
+#include <lock.h>
 
 struct block
 {
@@ -12,6 +13,7 @@ struct block
 
 static struct block* first;
 static struct block* last;
+static lock_t lock;
 
 // Merge b2 into b1 (both must be free)
 // b1 and b2 are adjacent and in ascending order
@@ -58,6 +60,8 @@ void* kmalloc(size_t n)
 
     if (n % 16 != 0) n += 16 - (n % 16);
 
+    LOCK(lock);
+
     struct block* curr = first;
     while (curr != NULL)
     {
@@ -67,11 +71,13 @@ void* kmalloc(size_t n)
             {
                 struct block* b = split(curr, n);
                 b->used = 1;
+                UNLOCK(lock);
                 return b + 1;
             }
             else if (curr->size == n)
             {
                 curr->used = 1;
+                UNLOCK(lock);
                 return curr + 1;
             }
         }
@@ -80,16 +86,21 @@ void* kmalloc(size_t n)
     }
 
     dbglnf("unable to kmalloc: %x bytes, last block size: %x", n, last->size);
+    UNLOCK(lock);
     return NULL;
 }
 
 void kfree(void* ptr)
 {
+    LOCK(lock);
+
     struct block* block = (struct block*)ptr - 1;
     block->used = 0;
 
     if (block->prev && !block->prev->used) combine(block->prev, block);
     if (block->next && !block->next->used) combine(block, block->next);
+
+    UNLOCK(lock);
 }
 
 void heap_init()
