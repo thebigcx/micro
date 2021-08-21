@@ -6,6 +6,8 @@
 #include <cpu.h>
 #include <mmu.h>
 #include <acpi.h>
+#include <lapic.h>
+#include <smp.h>
 
 static uint8_t stack[4096];
 
@@ -81,7 +83,11 @@ void kmain_st2(struct st2struct* st2)
 
     lapic_setup();
 
+    timer_init();
+
     sti();
+    
+    smp_init();
 
     kmain();
 

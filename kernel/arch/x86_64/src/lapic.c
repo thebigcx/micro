@@ -32,6 +32,11 @@
 #define R_TIME_CURR   0x390
 #define R_TIME_DIVCFG 0x3e0
 
+#define ICR_IDLE      0x0000
+#define ICR_SEND_PEND 0x1000
+
+#define ICR_DST_SHFT  24
+
 static volatile uintptr_t mmio_base;
 
 static uintptr_t get_base()
@@ -54,6 +59,15 @@ static void write(uint32_t off, uint32_t val)
 static uint32_t read(uint32_t off)
 {
     return *((volatile uint32_t*)(mmio_base + off));
+}
+
+// Send an Inter-Processor Interrupt
+void lapic_send_ipi(unsigned int id, uint8_t vec, uint32_t flags)
+{
+    write(R_ICRHI, (uint32_t)id << ICR_DST_SHFT);
+    write(R_ICRLO, vec | flags);
+
+    while (read(R_ICRLO) & ICR_SEND_PEND);
 }
 
 // Send an End Of Interrupt to the LAPIC

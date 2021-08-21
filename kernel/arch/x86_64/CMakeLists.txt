@@ -7,6 +7,9 @@ set(SOURCES ${SOURCES} ${ARCHSRC}/src/mmu.c
                        ${ARCHSRC}/src/lapic.c
                        ${ARCHSRC}/src/ioapic.c
                        ${ARCHSRC}/src/pic.c
+                       ${ARCHSRC}/src/smp.c
+                       ${ARCHSRC}/src/ap_start.S
+                       ${ARCHSRC}/src/timer.c
                        PARENT_SCOPE)
 
 message(${ARCHSRC}/include)

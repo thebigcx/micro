@@ -2,6 +2,7 @@
 #include <mmu.h>
 #include <debug/syslog.h>
 #include <stdlib.h>
+#include <ioapic.h>
 
 struct __attribute__((packed)) rsdp
 {

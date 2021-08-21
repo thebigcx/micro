@@ -74,4 +74,32 @@ inline uint32_t inl(uint16_t port)
     return v;
 }
 
+inline uintptr_t read_cr0()
+{
+    uintptr_t cr0;
+    asm volatile ("mov %%cr0, %0" : "=r"(cr0));
+    return cr0;
+}
+
+inline uintptr_t read_cr2()
+{
+    uintptr_t cr2;
+    asm volatile ("mov %%cr2, %0" : "=r"(cr2));
+    return cr2;
+}
+
+inline uintptr_t read_cr3()
+{
+    uintptr_t cr3;
+    asm volatile ("mov %%cr3, %0" : "=r"(cr3));
+    return cr3;
+}
+
+inline uintptr_t read_cr4()
+{
+    uintptr_t cr4;
+    asm volatile ("mov %%cr4, %0" : "=r"(cr4));
+    return cr4;
+}
+
 void eoi();

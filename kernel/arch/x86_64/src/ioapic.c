@@ -1,5 +1,7 @@
 #include <ioapic.h>
 #include <lapic.h>
+#include <mmu.h>
+#include <pic.h>
 
 #define R_REGSEL 0x00
 #define R_IOWIN  0x10
