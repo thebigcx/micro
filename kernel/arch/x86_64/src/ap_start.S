@@ -64,7 +64,7 @@ smpentry32:
 
 .code64
 smpentry64:
-    movq    $TRMP_STACK, %rsp
+    movq    TRMP_STACK, %rsp
     xorq    %rbp, %rbp
 
     mov     $1, %eax
