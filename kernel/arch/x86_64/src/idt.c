@@ -48,6 +48,7 @@ void irq_handler(uintptr_t n, struct regs* r)
 {
     lapic_eoi();
     if (n == 32) timer_tick(r);
+    else if (n == IPI_SCHED) switch_next(r);
 }
 
 void idt_init()

@@ -99,12 +99,7 @@ void kmain_st2(struct st2struct* st2)
     
     smp_init(acpi_get_lapics());
 
-    for (;;)
-    {
-        uint32_t* ptr = kmalloc(4);
-        *ptr = 10;
-        kfree(ptr);
-    }
+    sched_init();
 
     //kmain();
 

@@ -4,6 +4,6 @@
 
 struct thread
 {
-    int id;
+    unsigned int id;
     struct regs regs;
 };

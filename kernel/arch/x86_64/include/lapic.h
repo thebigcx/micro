@@ -22,6 +22,9 @@
 #define DST_ALL      0x80000
 #define DST_OTHERS   0xc0000
 
+// Software interrupts
+#define IPI_SCHED    0xfe
+
 void lapic_send_ipi(unsigned int id, uint8_t vec, uint32_t flags);
 void lapic_eoi();
 void lapic_setup();

@@ -35,15 +35,7 @@ static void ap_entry(uint16_t id)
 
     dbglnf("%d", id);
 
-    for (;;)
-    {
-        dbgln("cpu");
-        //uint32_t* ptr = kmalloc(4);
-        //dbglnf("%d: %x", id, ptr);
-        //*ptr = 10;
-        //kfree(ptr);
-    }
-
+    sti();
     for (;;);
 }
 

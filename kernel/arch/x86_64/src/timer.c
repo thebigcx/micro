@@ -1,6 +1,7 @@
 #include <timer.h>
 #include <descs.h>
 #include <cpu.h>
+#include <sched.h>
 
 #define FREQ 1193182
 
@@ -34,8 +35,8 @@ static uint64_t freq;
 
 void timer_tick(struct regs* r)
 {
-    (void)r;
     uptime += 1000000000 / freq;
+    sched_tick(r);
 }
 
 void timer_wait(uint64_t ns)
