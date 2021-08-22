@@ -2,10 +2,10 @@
 
 typedef volatile int lock_t;
 
-#define LOCK(n)\
-    while (!__sync_bool_compare_and_swap(&n, 0, 1));\
-    __sync_synchronize();
+#define LOCK(name)\
+	while (__sync_lock_test_and_set(&name, 1)) asm ("pause");
 
-#define UNLOCK(n)\
-    __sync_synchronize();\
-    n = 0;
+#define TEST_LOCK(name) ({ int stat; stat = __sync_lock_test_and_set(&name, 1); stat; })
+
+#define UNLOCK(name)\
+	__sync_lock_release(&name);

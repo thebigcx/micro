@@ -4,6 +4,7 @@
 #include <debug/syslog.h>
 #include <lapic.h>
 #include <timer.h>
+#include <except.h>
 
 #define REGISTER_ISR(i) mkintr(i, isr##i, 0)
 #define REGISTER_IRQ(i) mkintr(i + 32, irq##i, 0)
@@ -40,8 +41,7 @@ static void mkintr(unsigned int num, void (*handler)(), int user)
 void isr_handler(uintptr_t n, struct regs* r, uint32_t e)
 {
     lapic_eoi();
-    dbglnf("isr: %d", n);
-    (void)r; (void)e;
+    except(n, r, e);
 }
 
 void irq_handler(uintptr_t n, struct regs* r)

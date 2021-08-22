@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <types.h>
 #include <cpu.h>
+#include <lock.h>
 
 #if DEBUG
 
@@ -181,10 +182,16 @@ static void serial_putch(char c)
     outb(PORT, c); 
 }
 
+static lock_t lock;
+
 void __sputln(const char* s)
 {
+    LOCK(lock);
+    
     while (*s != 0) serial_putch(*s++);
     serial_putch('\n');
+
+    UNLOCK(lock);
 }
 
 void __sputlnf(const char* s, ...)
@@ -197,6 +204,25 @@ void __sputlnf(const char* s, ...)
     va_end(list);
 
     __sputln(buffer);
+}
+
+// No locking
+void __sputln_crit(const char* s)
+{
+    while (*s != 0) serial_putch(*s++);
+    serial_putch('\n');
+}
+
+void __sputlnf_crit(const char* s, ...)
+{
+    char buffer[200];
+
+    va_list list;
+    va_start(list, s);
+    __sprintf(s, buffer, 200, list);
+    va_end(list);
+
+    __sputln_crit(buffer);
 }
 
 #endif

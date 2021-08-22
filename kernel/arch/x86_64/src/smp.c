@@ -22,8 +22,27 @@ extern void* _ap_bs_end;
 
 static void ap_entry(uint16_t id)
 {
-    dbgln("another cpu");
+    //dbgln("another cpu");
+
+    struct cpu_info* info = kmalloc(sizeof(struct cpu_info));
+    
+    gdt_init_cpu(info);
+    idt_init_cpu(info);
+    
+    lapic_enable(); 
+
     _ap_done = 1;
+
+    dbglnf("%d", id);
+
+    for (;;)
+    {
+        dbgln("cpu");
+        //uint32_t* ptr = kmalloc(4);
+        //dbglnf("%d: %x", id, ptr);
+        //*ptr = 10;
+        //kfree(ptr);
+    }
 
     for (;;);
 }
@@ -48,7 +67,7 @@ static void init_cpu(uint16_t id)
 
     lapic_send_ipi(id, TRMP_ENTRY >> 12, DELIV_STRT | LVL_ASSRT);
 
-    timer_wait(200000);
+    timer_wait(10000000);
 
     if (!_ap_done)
     {

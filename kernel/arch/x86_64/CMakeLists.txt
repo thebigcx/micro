@@ -10,6 +10,7 @@ set(SOURCES ${SOURCES} ${ARCHSRC}/src/mmu.c
                        ${ARCHSRC}/src/smp.c
                        ${ARCHSRC}/src/ap_start.S
                        ${ARCHSRC}/src/timer.c
+                       ${ARCHSRC}/src/except.c
                        PARENT_SCOPE)
 
 message(${ARCHSRC}/include)
