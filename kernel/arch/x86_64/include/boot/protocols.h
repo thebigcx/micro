@@ -2,13 +2,13 @@
 
 #include <types.h>
 
-struct __attribute__((packed)) st2_tag
+struct st2_tag
 {
     uint64_t id;
     uint64_t next;
 };
 
-struct __attribute__((packed)) st2header
+struct st2header
 {
     uint64_t entry;
     uint64_t stack;
@@ -18,7 +18,7 @@ struct __attribute__((packed)) st2header
 
 #define ST2_FB_ID 0x3ecc1bc43d0f7971
 
-struct __attribute__((packed)) st2_header_fb
+struct st2_header_fb
 {
     struct st2_tag tag;
     uint16_t width;
@@ -28,7 +28,7 @@ struct __attribute__((packed)) st2_header_fb
 
 #define ST2_TAG_FB_ID 0x506461d2950408fa
 
-struct __attribute__((packed)) st2struct
+struct st2struct
 {
     char bl_brand[64]; // Bootloader brand
     char bl_vers[64];  // Bootloader version
@@ -36,7 +36,7 @@ struct __attribute__((packed)) st2struct
     uint64_t tags;
 };
 
-struct __attribute__((__packed__)) st2_fbinfo
+struct st2_fbinfo
 {
     struct st2_tag tag;
     uint64_t addr;
@@ -55,7 +55,7 @@ struct __attribute__((__packed__)) st2_fbinfo
 
 #define ST2_TAG_RSDP_ID 0x9e1786930a375e78
 
-struct __attribute__((packed)) st2_tag_rsdp
+struct st2_tag_rsdp
 {
     struct st2_tag tag;
     uint64_t rsdp;
@@ -63,7 +63,7 @@ struct __attribute__((packed)) st2_tag_rsdp
 
 #define ST2_TAG_MODS_ID 0x4b6fe466aade04ce
 
-struct __attribute__((packed)) st2_module
+struct st2_module
 {
     uint64_t begin;
     uint64_t end;
@@ -72,7 +72,7 @@ struct __attribute__((packed)) st2_module
     char string[ST2_MOD_STRSIZE];
 };
 
-struct __attribute__((packed)) st2_tag_mods
+struct st2_tag_mods
 {
     struct st2_tag tag;
     uint64_t module_cnt;
@@ -90,7 +90,7 @@ struct __attribute__((packed)) st2_tag_mods
 #define ST2_MMAP_KMODS                  0x1001
 #define ST2_MMAP_FB                     0x1002
 
-struct __attribute__((packed)) st2_mmap_ent
+struct st2_mmap_ent
 {
     uint64_t base;
     uint64_t length;
@@ -98,7 +98,7 @@ struct __attribute__((packed)) st2_mmap_ent
     uint32_t unused;
 };
 
-struct __attribute__((packed)) st2_tag_mmap
+struct st2_tag_mmap
 {
     struct st2_tag tag;
     uint64_t entries;

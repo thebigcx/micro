@@ -1,6 +1,7 @@
 set(SOURCES ${SOURCES} ${ARCHSRC}/src/mmu.c
                        ${ARCHSRC}/src/idt.c
                        ${ARCHSRC}/src/gdt.c
+                       ${ARCHSRC}/src/cpu.c
                        ${ARCHSRC}/src/boot/entry.c
                        ${ARCHSRC}/src/intr_asm.S
                        ${ARCHSRC}/src/asm.S

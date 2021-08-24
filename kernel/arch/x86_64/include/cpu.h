@@ -41,68 +41,15 @@ struct cpu_info
 #define cli() asm volatile ("cli")
 #define sti() asm volatile ("sti")
 
-inline void outb(uint16_t port, uint8_t val)
-{
-    asm volatile ("outb %0, %1" :: "a"(val), "Nd"(port));
-}
-
-inline void outw(uint16_t port, uint16_t val)
-{
-    asm volatile ("outw %0, %1" :: "a"(val), "Nd"(port));
-}
-
-inline void outl(uint16_t port, uint32_t val)
-{
-    asm volatile ("outl %0, %1" :: "a"(val), "Nd"(port));
-}
-
-inline uint8_t inb(uint16_t port)
-{
-    uint8_t v;
-    asm volatile ("inb %1, %0" : "=a"(v) : "Nd"(port));
-    return v;
-}
-
-inline uint16_t inw(uint16_t port)
-{
-    uint16_t v;
-    asm volatile ("inw %1, %0" : "=a"(v) : "Nd"(port));
-    return v;
-}
-
-inline uint32_t inl(uint16_t port)
-{
-    uint32_t v;
-    asm volatile ("inl %1, %0" : "=a"(v) : "Nd"(port));
-    return v;
-}
-
-inline uintptr_t read_cr0()
-{
-    uintptr_t cr0;
-    asm volatile ("mov %%cr0, %0" : "=r"(cr0));
-    return cr0;
-}
-
-inline uintptr_t read_cr2()
-{
-    uintptr_t cr2;
-    asm volatile ("mov %%cr2, %0" : "=r"(cr2));
-    return cr2;
-}
-
-inline uintptr_t read_cr3()
-{
-    uintptr_t cr3;
-    asm volatile ("mov %%cr3, %0" : "=r"(cr3));
-    return cr3;
-}
-
-inline uintptr_t read_cr4()
-{
-    uintptr_t cr4;
-    asm volatile ("mov %%cr4, %0" : "=r"(cr4));
-    return cr4;
-}
+void outb(uint16_t port, uint8_t val);
+void outw(uint16_t port, uint16_t val);
+void outl(uint16_t port, uint32_t val);
+uint8_t inb(uint16_t port);
+uint16_t inw(uint16_t port);
+uint32_t inl(uint16_t port);
+uintptr_t read_cr0();
+uintptr_t read_cr2();
+uintptr_t read_cr3();
+uintptr_t read_cr4();
 
 void eoi();

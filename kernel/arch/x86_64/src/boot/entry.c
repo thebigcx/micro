@@ -87,11 +87,35 @@ void kmain_st2(struct st2struct* st2)
 
                 break;
             }
+            case ST2_TAG_MODS_ID:
+            {
+                struct st2_tag_mods* modules = (struct st2_tag_mods*)tag;
+                
+                struct st2_module mod = modules->modules[0];
+                
+                for (uint64_t i = 0; i < modules->module_cnt; i++)
+                {
+                    struct st2_module mod = modules->modules[i];
+
+                    uintptr_t vaddr = mmu_kalloc((mod.end - mod.begin + PAGE4K) / PAGE4K);
+                    
+                    for (size_t i = 0; i < (mod.end - mod.begin + PAGE4K) / PAGE4K; i++)
+                        mmu_kmap(vaddr + i * PAGE4K, mod.begin + i * PAGE4K, PAGE_PR | PAGE_RW);
+
+                    //if (strcmp(mod.string, "initrd") == 0)
+                    {
+                        initrd_start = vaddr;
+                        initrd_end = vaddr + (mod.end - mod.begin);
+                    }
+                }
+                
+                break;
+            }
         }
 
         tag = (struct st2_tag*)tag->next;
     }
-   
+ 
     mmu_alloc_phys_at(0, 0x100);
     
     heap_init();
