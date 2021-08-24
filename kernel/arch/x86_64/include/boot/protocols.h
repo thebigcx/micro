@@ -60,3 +60,21 @@ struct __attribute__((packed)) st2_tag_rsdp
     struct st2_tag tag;
     uint64_t rsdp;
 };
+
+#define ST2_TAG_MODS_ID 0x4b6fe466aade04ce
+
+struct __attribute__((packed)) st2_module
+{
+    uint64_t begin;
+    uint64_t end;
+
+#define ST2_MOD_STRSIZE 128
+    char string[ST2_MOD_STRSIZE];
+};
+
+struct __attribute__((packed)) st2_tag_mods
+{
+    struct st2_tag tag;
+    uint64_t module_cnt;
+    struct st2_module modules[];
+};

@@ -37,7 +37,20 @@ void kmain_st2(struct st2struct* st2)
 {
     dbgln("entry");
 
+    // TEST
+    struct cpu_info bsp;
+    gdt_init_cpu(&bsp);
+    idt_init();
+    idt_init_cpu(&bsp);
+
+    dbgln("loaded gdt");
+
+    mmu_init();
+    
+    dbgln("loaded cr3");
+ 
     uintptr_t rsdp = 0;
+    uintptr_t initrd_start = 0, initrd_end = 0;
 
     struct st2_tag* tag = (struct st2_tag*)st2->tags;
     while (tag != NULL)
@@ -50,26 +63,15 @@ void kmain_st2(struct st2struct* st2)
             {
                 struct st2_tag_rsdp* rsdp_tag = (struct st2_tag_rsdp*)tag;
                 rsdp = rsdp_tag->rsdp;
+                break;
             }
         }
 
         tag = (struct st2_tag*)tag->next;
     }
-
+   
     mmu_alloc_phys_at(0, 0x100);
-
-    // TEST
-    struct cpu_info bsp;
-    gdt_init_cpu(&bsp);
-    idt_init();
-    idt_init_cpu(&bsp);
-
-    dbgln("loaded gdt");
-
-    mmu_init();
-
-    dbgln("loaded cr3");
-
+    
     heap_init();
 
     for (int i = 1; i < 1000; i++)

@@ -31,6 +31,9 @@ struct cpu_info
 {
     struct tss tss;
     union gdtent gdt[7];
+    //struct list threads;
+    //struct list ready;
+    //struct thread* current;
 };
 
 #define rdmsr(msr, l, h) asm volatile ("rdmsr" : "=a"(l), "=d"(h) : "c"(msr))

@@ -6,7 +6,7 @@ if [ ! -d ./limine ]; then
 fi
 
 mkdir -p iso
-cp -v ../kernel/dist/vmkernel limine.cfg limine/limine.sys limine/limine-cd.bin limine/limine-eltorito-efi.bin iso
+cp -v ../kernel/dist/vmkernel initrd.img limine.cfg limine/limine.sys limine/limine-cd.bin limine/limine-eltorito-efi.bin iso
 mkdir -p dist
 xorriso -as mkisofs -b limine-cd.bin \
         -no-emul-boot -boot-load-size 4 -boot-info-table \
@@ -22,4 +22,4 @@ qemu-system-x86_64                              \
     -smp 16                                      \
     -s -d guest_errors                          \
     -no-reboot -no-shutdown                     \
-    --enable-kvm
+#    --enable-kvm
