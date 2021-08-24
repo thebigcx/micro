@@ -1,5 +1,7 @@
 #include <cpu.h>
 
+struct cpu_info g_cpus[MAX_CPUS];
+
 void outb(uint16_t port, uint8_t val)
 {
     asm volatile ("outb %0, %1" :: "a"(val), "Nd"(port));
@@ -62,4 +64,11 @@ uintptr_t read_cr4()
     uintptr_t cr4;
     asm volatile ("mov %%cr4, %0" : "=r"(cr4));
     return cr4;
+}
+
+struct cpu_info* cpu_curr()
+{
+    uintptr_t id;
+    asm volatile ("cpuid" : "=b"(id) : "a"(1));
+    return &g_cpus[id >> 24];
 }

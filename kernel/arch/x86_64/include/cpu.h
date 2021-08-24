@@ -2,6 +2,8 @@
 
 #include <types.h>
 #include <descs.h>
+#include <list.h>
+#include <lock.h>
 
 struct regs
 {
@@ -27,14 +29,21 @@ struct regs
     uintptr_t ss;
 };
 
+struct thread;
+
 struct cpu_info
 {
     struct tss tss;
     union gdtent gdt[7];
-    //struct list threads;
-    //struct list ready;
-    //struct thread* current;
+    struct list threads;
+    struct list ready;
+    struct thread* current;
+    lock_t lock;
 };
+
+#define MAX_CPUS 16
+
+extern struct cpu_info g_cpus[MAX_CPUS];
 
 #define rdmsr(msr, l, h) asm volatile ("rdmsr" : "=a"(l), "=d"(h) : "c"(msr))
 #define wrmsr(msr, l, h) asm volatile ("wrmsr" :: "a"(l), "d"(h), "c"(msr))
@@ -51,5 +60,7 @@ uintptr_t read_cr0();
 uintptr_t read_cr2();
 uintptr_t read_cr3();
 uintptr_t read_cr4();
+
+struct cpu_info* cpu_curr();
 
 void eoi();

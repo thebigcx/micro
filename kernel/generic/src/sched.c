@@ -14,6 +14,8 @@ void sched_init()
 void switch_next(struct regs* r)
 {
     dbgln("sched()");
+
+    struct cpu_info* cpu = cpu_curr();
 }
 
 void sched_tick(struct regs* r)

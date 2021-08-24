@@ -38,10 +38,9 @@ void kmain_st2(struct st2struct* st2)
     dbgln("entry");
 
     // TEST
-    struct cpu_info bsp;
-    gdt_init_cpu(&bsp);
+    gdt_init_cpu(&g_cpus[0]);
     idt_init();
-    idt_init_cpu(&bsp);
+    idt_init_cpu(&g_cpus[0]);
 
     dbgln("loaded gdt");
 
@@ -119,22 +118,6 @@ void kmain_st2(struct st2struct* st2)
     mmu_alloc_phys_at(0, 0x100);
     
     heap_init();
-
-    for (int i = 1; i < 1000; i++)
-    {
-        uint8_t* ptr = kmalloc(10);
-        *ptr = 10;
-    }
-    dbglnf("%x", kmalloc(4));
-
-    uintptr_t v = mmu_kalloc(1);
-    dbglnf("vaddr: %x", v);
-
-    uintptr_t p = mmu_alloc_phys(1);
-    dbglnf("paddr: %x", p);
-
-    mmu_kmap(v, p, PAGE_PR | PAGE_RW);
-    *((uint32_t*)v) = 10;
 
     acpi_init(rsdp);
     acpi_parse_madt();
