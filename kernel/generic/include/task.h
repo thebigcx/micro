@@ -11,5 +11,5 @@ struct task
 };
 
 struct task* task_idle();
-struct task* task_creat(const char* file, char* argv[], char* envp[]);
+struct task* task_creat(const void* buffer, char* argv[], char* envp[]);
 struct task* task_kcreat(uintptr_t entry);

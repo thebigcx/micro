@@ -1,6 +1,13 @@
 #include <thread.h>
 #include <mmu.h>
 
+void thread_start(struct thread* thread)
+{
+    // TODO: TEMP
+    list_push_back(&g_cpus[0].threads, thread);
+    list_push_back(&g_cpus[0].ready, thread);
+}
+
 struct thread* thread_creat(struct task* parent, uintptr_t entry, int usr)
 {
     struct thread* thread = kmalloc(sizeof(struct thread));

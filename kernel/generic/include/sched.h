@@ -1,7 +1,9 @@
 #pragma once
 
 struct regs;
+struct task;
 
 void sched_init();
 void sched_tick(struct regs* r);
 void switch_next(struct regs* r);
+void shced_start(struct task* task);

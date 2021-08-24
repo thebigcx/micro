@@ -68,3 +68,11 @@ void sched_tick(struct regs* r)
     lapic_send_ipi(0, IPI_SCHED, DST_OTHERS | DELIV_FIXED);
     switch_next(r);
 }
+
+void sched_start(struct task* task)
+{
+    list_foreach(&task->threads)
+    {
+        thread_start((struct thread*)node->data);
+    }
+}

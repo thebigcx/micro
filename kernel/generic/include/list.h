@@ -16,7 +16,7 @@ struct list
     size_t size;
 };
 
-#define list_foreach(list) for (struct listnode* node = list->head; node != NULL; node = node->next)
+#define list_foreach(list) for (struct listnode* node = (list)->head; node != NULL; node = node->next)
 
 struct list list_create();
 void list_push_back(struct list* list, void* data);

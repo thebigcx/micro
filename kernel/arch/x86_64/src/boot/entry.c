@@ -101,10 +101,9 @@ void kmain_st2(struct st2struct* st2)
                     for (size_t i = 0; i < (mod.end - mod.begin + PAGE4K) / PAGE4K; i++)
                         mmu_kmap(vaddr + i * PAGE4K, mod.begin + i * PAGE4K, PAGE_PR | PAGE_RW);
 
-                    //if (strcmp(mod.string, "initrd") == 0)
+                    if (!strcmp(mod.string, "initrd"))
                     {
-                        initrd_start = vaddr;
-                        initrd_end = vaddr + (mod.end - mod.begin);
+                        initrd_init(vaddr, vaddr + (mod.end - mod.begin));
                     }
                 }
                 
@@ -130,10 +129,14 @@ void kmain_st2(struct st2struct* st2)
     
     smp_init(acpi_get_lapics());
 
+    void* buffer = initrd_read("init");
+    struct task* init = task_creat(buffer, NULL, NULL);
+    sched_start(init);
+
+//    for(;;);
+
     dbgln("starting scheduler");
     sched_init();
-
-    //kmain();
 
     for (;;); 
 }
