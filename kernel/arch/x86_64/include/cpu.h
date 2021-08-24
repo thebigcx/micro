@@ -63,4 +63,5 @@ uintptr_t read_cr4();
 
 struct cpu_info* cpu_curr();
 
+void arch_init_thread(struct thread* thread, int usr);
 void arch_switch_ctx(struct thread* thread);
