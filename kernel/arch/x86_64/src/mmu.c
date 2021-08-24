@@ -25,6 +25,8 @@ static pml_t kpd _pagealign;
 static pml_t kheap_dir _pagealign;
 static pml_t kheap_tbls[512] _pagealign;
 
+void mmu_phys_init();
+
 void mmu_init()
 {
     memset(&kpml4, 0, sizeof(pml_t));
@@ -45,6 +47,8 @@ void mmu_init()
 
     uintptr_t cr3 = (uintptr_t)&kpml4 - KBASE;
     asm ("mov %0, %%cr3" :: "r"(cr3));
+
+    mmu_phys_init();
 }
 
 uintptr_t mmu_kalloc(size_t n)
@@ -88,8 +92,14 @@ uintptr_t mmu_map_mmio(uintptr_t mmio)
     return v + mmio % PAGE4K;
 }
 
-#define BUF_SZ 15625
+#define BUF_SZ 156250
 static uint8_t phys_bmp[BUF_SZ]; // 0 = free, 1 = used
+
+void mmu_phys_init()
+{
+    size_t i = 0;
+    while (i < BUF_SZ) phys_bmp[i++] = 0xff;
+}
 
 uintptr_t mmu_alloc_phys_at(uintptr_t p, unsigned int cnt)
 {

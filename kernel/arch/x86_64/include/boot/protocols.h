@@ -78,3 +78,30 @@ struct __attribute__((packed)) st2_tag_mods
     uint64_t module_cnt;
     struct st2_module modules[];
 };
+
+#define ST2_TAG_MMAP_ID 0x2187f79e8612de07
+
+#define ST2_MMAP_USABLE                 1
+#define ST2_MMAP_RES                    2
+#define ST2_MMAP_ACPI_RECL              3
+#define ST2_MMAP_ACPI_NVS               4
+#define ST2_MMAP_BAD_MEM                5
+#define ST2_MMAP_BOOTLD_RECL            0x1000
+#define ST2_MMAP_KMODS                  0x1001
+#define ST2_MMAP_FB                     0x1002
+
+struct __attribute__((packed)) st2_mmap_ent
+{
+    uint64_t base;
+    uint64_t length;
+    uint32_t type;
+    uint32_t unused;
+};
+
+struct __attribute__((packed)) st2_tag_mmap
+{
+    struct st2_tag tag;
+    uint64_t entries;
+    struct st2_mmap_ent mmap[];
+
+};

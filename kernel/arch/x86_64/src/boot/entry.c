@@ -65,6 +65,28 @@ void kmain_st2(struct st2struct* st2)
                 rsdp = rsdp_tag->rsdp;
                 break;
             }
+            case ST2_TAG_MMAP_ID:
+            {
+                struct st2_tag_mmap* mmaptag = (struct st2_tag_mmap*)tag;
+
+                for (uint32_t i = 0; i < mmaptag->entries; i++)
+                {
+                    struct st2_mmap_ent* ent = &mmaptag->mmap[i];
+                    
+                    switch (ent->type)
+                    {
+                        case ST2_MMAP_USABLE:
+                        case ST2_MMAP_BOOTLD_RECL:
+                            mmu_free_phys(ent->base, ent->length / PAGE4K);
+                            break;
+                        
+                        default:
+                            break;
+                    }
+                }
+
+                break;
+            }
         }
 
         tag = (struct st2_tag*)tag->next;
