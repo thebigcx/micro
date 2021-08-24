@@ -72,3 +72,8 @@ struct cpu_info* cpu_curr()
     asm volatile ("cpuid" : "=b"(id) : "a"(1));
     return &g_cpus[id >> 24];
 }
+
+void arch_switch_ctx(struct thread* thread)
+{
+    // TODO
+}

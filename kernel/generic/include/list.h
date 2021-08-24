@@ -1,5 +1,7 @@
 #pragma once
 
+#include <types.h>
+
 struct listnode
 {
     struct listnode* next;
@@ -11,6 +13,7 @@ struct list
 {
     struct listnode* head;
     struct listnode* tail;
+    size_t size;
 };
 
 #define list_foreach(list) for (struct listnode* node = list->head; node != NULL; node = node->next)

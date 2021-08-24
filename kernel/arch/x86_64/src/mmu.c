@@ -14,8 +14,6 @@
 #define PD_IDX(vaddr)   ((((uint64_t)vaddr) >> 21) & 0x1ff)
 #define PT_IDX(vaddr)   ((((uint64_t)vaddr) >> 12) & 0x1ff)
 
-#define _pagealign __attribute__((aligned(PAGE4K)))
-
 // Kernel: 2M pages located in pml4[511], pdpt[510]
 static pml_t kpml4 _pagealign;
 static pml_t kpdpt _pagealign;
@@ -81,6 +79,21 @@ void mmu_kfree(uintptr_t p)
 void mmu_kmap(uintptr_t virt, uintptr_t phys, unsigned int flags)
 {
     kheap_tbls[PD_IDX(virt)][PT_IDX(virt)] = (phys & PAGE_FRAME) | flags;
+    invlpg(virt);
+}
+
+void mmu_map(uintptr_t virt, uintptr_t phys, unsigned int flags, struct pagedir* dir)
+{
+    unsigned int pdptidx = PDPT_IDX(virt);
+    unsigned int pdidx = PD_IDX(virt);
+    unsigned int ptidx = PT_IDX(virt);
+
+    if (!(dir->pds[pdptidx][pdidx] & PAGE_PR))
+    {
+        // TODO: make table 
+    }
+
+    dir->tbls[pdptidx][pdidx][ptidx] |= phys | flags | PAGE_USR; // Make sure user flag set
     invlpg(virt);
 }
 

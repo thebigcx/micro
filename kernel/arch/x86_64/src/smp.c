@@ -25,7 +25,10 @@ static void ap_entry(uint16_t id)
     //dbgln("another cpu");
 
     struct cpu_info* cpu = &g_cpus[id];
-    
+    cpu->ready = list_create();
+    cpu->threads = list_create();
+    cpu->current = NULL;
+
     gdt_init_cpu(cpu);
     idt_init_cpu(cpu);
     

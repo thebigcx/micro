@@ -4,7 +4,7 @@
 
 struct list list_create()
 {
-    return (struct list) { .head = NULL, .tail = NULL };
+    return (struct list) { .head = NULL, .tail = NULL, .size = 0 };
 }
 
 void list_push_back(struct list* list, void* data)
@@ -23,6 +23,8 @@ void list_push_back(struct list* list, void* data)
 
     // Set the new tail
     list->tail = node;
+
+    list->size++;
 }
 
 void* list_pop_front(struct list* list)
@@ -40,6 +42,8 @@ void* list_pop_front(struct list* list)
         list->head->prev = NULL;
     else
         list->tail = NULL;
+
+    list->size--;
 
     // Clean up and return the data
     void* ret = old->data;
