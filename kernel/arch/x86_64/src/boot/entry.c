@@ -130,6 +130,7 @@ void kmain_st2(struct st2struct* st2)
     
     smp_init(acpi_get_lapics());
 
+    dbgln("starting scheduler");
     sched_init();
 
     //kmain();

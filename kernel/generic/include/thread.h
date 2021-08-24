@@ -15,4 +15,7 @@ struct thread
     int state;
     struct regs regs;
     struct task* parent;
+    uintptr_t kstack;
 };
+
+struct thread* thread_creat(struct task* parent, uintptr_t entry, int usr);

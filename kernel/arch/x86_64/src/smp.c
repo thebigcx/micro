@@ -22,12 +22,13 @@ extern void* _ap_bs_end;
 
 static void ap_entry(uint16_t id)
 {
-    //dbgln("another cpu");
+    g_cpu_cnt++;
 
     struct cpu_info* cpu = &g_cpus[id];
     cpu->ready = list_create();
     cpu->threads = list_create();
     cpu->current = NULL;
+    cpu->lock = 0;
 
     gdt_init_cpu(cpu);
     idt_init_cpu(cpu);
@@ -72,7 +73,7 @@ static void init_cpu(uint16_t id)
 
 void smp_init(struct list* ids)
 {
-    dbgln("starting cpus");
+    dbglnf("starting cpus: %d", ids->size);
 
     list_foreach(ids)
     {

@@ -6,4 +6,6 @@ set(SOURCES ${SOURCES} ${GENERICSRC}/src/init.c
                        ${GENERICSRC}/src/heap.c
                        ${GENERICSRC}/src/list.c
                        ${GENERICSRC}/src/sched.c
+                       ${GENERICSRC}/src/task.c
+                       ${GENERICSRC}/src/thread.c
                        PARENT_SCOPE)

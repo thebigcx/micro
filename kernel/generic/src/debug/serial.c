@@ -182,7 +182,7 @@ static void serial_putch(char c)
     outb(PORT, c); 
 }
 
-static lock_t lock;
+static lock_t lock = 0;
 
 void __sputln(const char* s)
 {

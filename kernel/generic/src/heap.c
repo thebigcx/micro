@@ -13,7 +13,7 @@ struct block
 
 static struct block* first;
 static struct block* last;
-static lock_t lock;
+static lock_t lock = 0;
 
 // Merge b2 into b1 (both must be free)
 // b1 and b2 are adjacent and in ascending order
@@ -107,7 +107,7 @@ void heap_init()
 {
     void* start = mmu_kalloc(100);
     for (int i = 0; i < 100; i++)
-        mmu_kmap(start + i * PAGE4K, mmu_alloc_phys(), 1);
+        mmu_kmap(start + i * PAGE4K, mmu_alloc_phys(), PAGE_PR | PAGE_RW);
 
     first = last = (struct block*)start;
     first->used = 0;

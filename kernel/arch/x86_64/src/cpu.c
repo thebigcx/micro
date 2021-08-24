@@ -2,6 +2,7 @@
 #include <thread.h>
 
 struct cpu_info g_cpus[MAX_CPUS];
+unsigned int g_cpu_cnt = 1;
 
 void outb(uint16_t port, uint8_t val)
 {
@@ -74,9 +75,20 @@ struct cpu_info* cpu_curr()
     return &g_cpus[id >> 24];
 }
 
+void cpu_set_kstack(struct cpu_info* cpu, uintptr_t kstack)
+{
+    cpu->tss.rsp[0] = kstack;
+}
+
+void _switch_ctx(struct regs*, uintptr_t, uint16_t);
+
 void arch_switch_ctx(struct thread* thread)
 {
     // TODO
+    // TEMP
+    uintptr_t cr3;
+    asm ("mov %%cr3, %0" : "=r"(cr3));
+    _switch_ctx(&thread->regs, cr3, thread->regs.ss);
 }
 
 void arch_init_thread(struct thread* thread, int usr)
