@@ -105,13 +105,13 @@ void kfree(void* ptr)
 
 void heap_init()
 {
-    void* start = mmu_kalloc(100);
-    for (int i = 0; i < 100; i++)
+    void* start = mmu_kalloc(10000);
+    for (int i = 0; i < 10000; i++)
         mmu_kmap(start + i * PAGE4K, mmu_alloc_phys(), PAGE_PR | PAGE_RW);
 
     first = last = (struct block*)start;
     first->used = 0;
-    first->size = 100 * PAGE4K;
+    first->size = 10000 * PAGE4K;
     first->next = NULL;
     first->prev = NULL;
 }

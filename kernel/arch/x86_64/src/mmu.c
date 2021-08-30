@@ -82,18 +82,29 @@ void mmu_kmap(uintptr_t virt, uintptr_t phys, unsigned int flags)
     invlpg(virt);
 }
 
-void mmu_map(uintptr_t virt, uintptr_t phys, unsigned int flags, struct pagedir* dir)
+static void mktable(struct vm_map* map, unsigned int pdptidx, unsigned int pdidx)
+{
+    pml_t* table = (pml_t*)mmu_kalloc(1);
+    uintptr_t table_phys = mmu_alloc_phys();
+    mmu_kmap((uintptr_t)table, table_phys, PAGE_PR | PAGE_RW);
+    memset(table, 0, PAGE4K);
+
+    map->pds[pdptidx][pdidx] = table_phys | PAGE_PR | PAGE_RW | PAGE_USR;
+    map->pts[pdptidx][pdidx] = (page_t*)table;
+}
+
+void mmu_map(struct vm_map* map, uintptr_t virt, uintptr_t phys, unsigned int flags)
 {
     unsigned int pdptidx = PDPT_IDX(virt);
     unsigned int pdidx = PD_IDX(virt);
     unsigned int ptidx = PT_IDX(virt);
 
-    if (!(dir->pds[pdptidx][pdidx] & PAGE_PR))
+    if (!(map->pds[pdptidx][pdidx] & PAGE_PR))
     {
-        // TODO: make table 
+        mktable(map, pdptidx, pdidx);
     }
 
-    dir->tbls[pdptidx][pdidx][ptidx] |= phys | flags | PAGE_USR; // Make sure user flag set
+    map->pts[pdptidx][pdidx][ptidx] |= phys | flags | PAGE_USR; // Make sure user flag set
     invlpg(virt);
 }
 
@@ -156,4 +167,41 @@ void mmu_free_phys(uintptr_t p, unsigned int cnt)
 
         phys_bmp[j] &= ~(1 << i); // Unset the bit
     }
+}
+
+struct vm_map* mmu_create_vmmap()
+{
+    struct vm_map* map = kmalloc(sizeof(struct vm_map));
+
+    map->pml4 = (pml_t*)mmu_kalloc(1);
+    map->pml4_phys = mmu_alloc_phys();
+    mmu_kmap((uintptr_t)map->pml4, map->pml4_phys, PAGE_PR | PAGE_RW);
+    memcpy(map->pml4, kpml4, PAGE4K);
+
+    map->pdpt = (pml_t*)mmu_kalloc(1);
+    map->pdpt_phys = mmu_alloc_phys();
+    mmu_kmap((uintptr_t)map->pdpt, map->pdpt_phys, PAGE_PR | PAGE_RW);
+    memset(map->pdpt, 0, PAGE4K);
+
+    (*map->pml4)[0] = map->pdpt_phys | PAGE_PR | PAGE_RW | PAGE_USR;
+
+    map->pds = (page_t**)mmu_kalloc(1);
+    mmu_kmap((uintptr_t)map->pds, mmu_alloc_phys(), PAGE_PR | PAGE_RW);
+    map->pts = (page_t***)mmu_kalloc(1);
+    mmu_kmap((uintptr_t)map->pts, mmu_alloc_phys(), PAGE_PR | PAGE_RW);
+
+    for (unsigned int i = 0; i < ENTCNT; i++)
+    {
+        map->pds[i] = (page_t*)mmu_kalloc(1);
+        map->phys_pds[i] = mmu_alloc_phys();
+        mmu_kmap((uintptr_t)map->pds[i], map->phys_pds[i], PAGE_PR | PAGE_RW);
+        memset(map->pds[i], 0, PAGE4K);
+
+        (*map->pdpt)[i] = map->phys_pds[i] | PAGE_PR | PAGE_RW | PAGE_USR;
+
+        map->pts[i] = (page_t**)kmalloc(4096); // FIXME
+		memset(map->pts[i], 0, PAGE4K);
+    }
+
+    return map;
 }

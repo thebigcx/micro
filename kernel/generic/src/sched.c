@@ -14,10 +14,6 @@ void test_func()
 
 void sched_init()
 {
-    // TEMP
-    //struct task* task = task_kcreat(test_func);
-    //g_cpus[0].current = task->threads.head->data;
-
     for (int i = 0; i < g_cpu_cnt; i++)
     {
         dbgln("creating idle");

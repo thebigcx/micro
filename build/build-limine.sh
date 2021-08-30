@@ -19,7 +19,7 @@ qemu-system-x86_64                              \
     dist/image.iso                              \
     -serial stdio                               \
     -m 512                                      \
-    -smp 16                                      \
+    -smp 1                                      \
     -s -d guest_errors                          \
     -no-reboot -no-shutdown                     \
 #    --enable-kvm

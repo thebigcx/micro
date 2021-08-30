@@ -7,7 +7,7 @@ struct task
 {
     unsigned int id;
     struct list threads; // struct thread*[]
-    struct pagedir pd;
+    struct vm_map* vm_map;
 };
 
 struct task* task_idle();

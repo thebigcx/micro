@@ -22,18 +22,3 @@
 
 typedef uint64_t page_t;
 typedef page_t pml_t[512];
-
-// Process page directory
-struct pagedir
-{
-    pml_t* pml4;
-    uintptr_t pml4_phys;
-
-    pml_t* pdpt;
-    uintptr_t pdpt_phys;
-
-    page_t** pds;
-    uintptr_t pds_phys[512];
-
-    page_t*** tbls;
-};

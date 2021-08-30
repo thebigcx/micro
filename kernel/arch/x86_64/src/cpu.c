@@ -1,5 +1,6 @@
 #include <cpu.h>
 #include <thread.h>
+#include <task.h>
 
 struct cpu_info g_cpus[MAX_CPUS];
 unsigned int g_cpu_cnt = 1;
@@ -84,11 +85,7 @@ void _switch_ctx(struct regs*, uintptr_t, uint16_t);
 
 void arch_switch_ctx(struct thread* thread)
 {
-    // TODO
-    // TEMP
-    uintptr_t cr3;
-    asm ("mov %%cr3, %0" : "=r"(cr3));
-    _switch_ctx(&thread->regs, cr3, thread->regs.ss);
+    _switch_ctx(&thread->regs, thread->parent->vm_map->pml4_phys, thread->regs.ss);
 }
 
 void arch_init_thread(struct thread* thread, int usr)
