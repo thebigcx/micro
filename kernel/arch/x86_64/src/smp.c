@@ -37,7 +37,7 @@ static void ap_entry(uint16_t id)
 
     _ap_done = 1;
 
-    dbglnf("%d", id);
+    printk("%d", id);
 
     sti();
     for (;;);
@@ -67,13 +67,13 @@ static void init_cpu(uint16_t id)
 
     if (!_ap_done)
     {
-        dbgln("error: cannot start cpu");
+        printk("error: cannot start cpu");
     }
 }
 
 void smp_init(struct list* ids)
 {
-    dbglnf("starting cpus: %d", ids->size);
+    printk("starting cpus: %d", ids->size);
 
     list_foreach(ids)
     {

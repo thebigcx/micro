@@ -11,3 +11,4 @@ kernel/tools/mkinitrd
 usr/build
 usr/srv/init/init
 Makefile
+.vscode

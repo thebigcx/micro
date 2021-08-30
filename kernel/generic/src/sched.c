@@ -16,7 +16,7 @@ void sched_init()
 {
     for (int i = 0; i < g_cpu_cnt; i++)
     {
-        dbgln("creating idle");
+        printk("creating idle");
         g_cpus[i].idle = task_idle()->threads.head->data;
     }
     

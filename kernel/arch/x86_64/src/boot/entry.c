@@ -35,18 +35,18 @@ static struct st2header header =
 
 void kmain_st2(struct st2struct* st2)
 {
-    dbgln("entry");
+    printk("entry");
 
     // TEST
     gdt_init_cpu(&g_cpus[0]);
     idt_init();
     idt_init_cpu(&g_cpus[0]);
 
-    dbgln("loaded gdt");
+    printk("loaded gdt");
 
     mmu_init();
     
-    dbgln("loaded cr3");
+    printk("loaded cr3");
  
     uintptr_t rsdp = 0;
     uintptr_t initrd_start = 0, initrd_end = 0;
@@ -135,7 +135,7 @@ void kmain_st2(struct st2struct* st2)
 
 //    for(;;);
 
-    dbgln("starting scheduler");
+    printk("starting scheduler");
     sched_init();
 
     for (;;); 

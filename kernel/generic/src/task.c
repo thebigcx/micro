@@ -17,7 +17,7 @@ static struct task* mktask()
 
 static void idle()
 {
-    for (;;) dbgln("idle");
+    for (;;) printk("idle");
 }
 
 struct task* task_idle()
@@ -45,6 +45,7 @@ struct task* task_kcreat(uintptr_t entry)
     // Top of canonical lower-half
     uintptr_t stack = 0x8000000000;
     mmu_map(task->vm_map, stack - 0x1000, mmu_alloc_phys(), PAGE_PR | PAGE_RW);
+
     main->regs.rsp = stack;
     main->regs.rbp = stack;
 

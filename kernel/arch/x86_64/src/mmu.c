@@ -174,21 +174,22 @@ struct vm_map* mmu_create_vmmap()
     struct vm_map* map = kmalloc(sizeof(struct vm_map));
 
     map->pml4 = (pml_t*)mmu_kalloc(1);
-    map->pml4_phys = mmu_alloc_phys();
-    mmu_kmap((uintptr_t)map->pml4, map->pml4_phys, PAGE_PR | PAGE_RW);
-    memcpy(map->pml4, kpml4, PAGE4K);
-
     map->pdpt = (pml_t*)mmu_kalloc(1);
+    map->pds = (page_t**)mmu_kalloc(1);
+    map->pts = (page_t***)mmu_kalloc(1);
+
+    map->pml4_phys = mmu_alloc_phys();
     map->pdpt_phys = mmu_alloc_phys();
+
+    mmu_kmap((uintptr_t)map->pml4, map->pml4_phys, PAGE_PR | PAGE_RW);
     mmu_kmap((uintptr_t)map->pdpt, map->pdpt_phys, PAGE_PR | PAGE_RW);
+    mmu_kmap((uintptr_t)map->pds, mmu_alloc_phys(), PAGE_PR | PAGE_RW);
+    mmu_kmap((uintptr_t)map->pts, mmu_alloc_phys(), PAGE_PR | PAGE_RW);
+
+    memcpy(map->pml4, kpml4, PAGE4K);
     memset(map->pdpt, 0, PAGE4K);
 
     (*map->pml4)[0] = map->pdpt_phys | PAGE_PR | PAGE_RW | PAGE_USR;
-
-    map->pds = (page_t**)mmu_kalloc(1);
-    mmu_kmap((uintptr_t)map->pds, mmu_alloc_phys(), PAGE_PR | PAGE_RW);
-    map->pts = (page_t***)mmu_kalloc(1);
-    mmu_kmap((uintptr_t)map->pts, mmu_alloc_phys(), PAGE_PR | PAGE_RW);
 
     for (unsigned int i = 0; i < ENTCNT; i++)
     {

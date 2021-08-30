@@ -154,7 +154,7 @@ void acpi_parse_madt()
             case MADT_IOAPIC_ISO:
             {
                 struct apiciso* iso = (struct apiciso*)ent;
-                dbglnf("found iso: %d to %d", iso->irq, iso->gsi);
+                printk("found iso: %d to %d", iso->irq, iso->gsi);
             }
             break;
 
