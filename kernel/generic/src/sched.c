@@ -5,15 +5,12 @@
 #include <lapic.h>
 #include <debug/syslog.h>
 
-static int ready;
-
-void test_func()
-{
-    for (;;);
-}
+static int ready = 0;
 
 void sched_init()
 {
+    idt_set_handler(IPI_SCHED, switch_next);
+
     for (int i = 0; i < g_cpu_cnt; i++)
     {
         printk("creating idle");
@@ -41,8 +38,7 @@ void switch_next(struct regs* r)
 
     if (!cpu->ready.size)
     {
-        cpu->current = cpu->idle;
-        // idle thread
+        cpu->current = cpu->idle; // idle thread
     }
     else
     {

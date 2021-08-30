@@ -47,6 +47,8 @@ void timer_wait(uint64_t ns)
 
 void timer_init()
 {
+    idt_set_handler(32, timer_tick);
+
     freq = 1000;
     uint32_t div = FREQ / freq;
 

@@ -28,3 +28,7 @@ char* strdup(const char* s);
 size_t strspn(const char* str, const char* delim);
 size_t strcspn(const char* str, const char* delim);
 void snprintf(const char* format, char* s, size_t n, va_list args);
+
+extern void __assertion_failed(const char* expr, const char* file, int line);
+
+#define ASSERT(expr) if (!(expr)) __assertion_failed(#expr, __FILE__, __LINE__);

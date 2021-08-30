@@ -8,4 +8,5 @@ set(SOURCES ${SOURCES} ${GENERICSRC}/src/init.c
                        ${GENERICSRC}/src/sched.c
                        ${GENERICSRC}/src/task.c
                        ${GENERICSRC}/src/thread.c
+                       ${GENERICSRC}/src/sys.c
                        PARENT_SCOPE)

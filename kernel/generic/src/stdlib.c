@@ -1,4 +1,6 @@
 #include <stdlib.h>
+#include <debug/syslog.h>
+#include <panic.h>
 
 int abs(int n)
 {
@@ -256,4 +258,10 @@ void snprintf(const char* format, char* s, size_t n, va_list args)
     }
 
     s[stridx] = 0;
+}
+
+void __assertion_failed(const char* expr, const char* file, int line)
+{
+    printk("Assertion failed %s at %s:%d\n", expr, file, line);
+    panic("Unrecoverable error");
 }

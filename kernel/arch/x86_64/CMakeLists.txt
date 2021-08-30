@@ -13,6 +13,7 @@ set(SOURCES ${SOURCES} ${ARCHSRC}/src/mmu.c
                        ${ARCHSRC}/src/context.S
                        ${ARCHSRC}/src/timer.c
                        ${ARCHSRC}/src/except.c
+                       ${ARCHSRC}/src/panic.c
                        PARENT_SCOPE)
 
 message(${ARCHSRC}/include)

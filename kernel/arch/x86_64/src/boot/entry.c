@@ -129,6 +129,8 @@ void kmain_st2(struct st2struct* st2)
     
     smp_init(acpi_get_lapics());
 
+    sys_init();
+
     void* buffer = initrd_read("init");
     struct task* init = task_creat(buffer, NULL, NULL);
     sched_start(init);

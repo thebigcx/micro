@@ -5,6 +5,7 @@
 #include <lapic.h>
 #include <timer.h>
 #include <except.h>
+#include <stdlib.h>
 
 #define REGISTER_ISR(i) mkintr(i, isr##i, 0)
 #define REGISTER_IRQ(i) mkintr(i + 32, irq##i, 0)
@@ -17,6 +18,7 @@
 #define TYPE_TRAP 0xf
 
 static struct idtent s_idt[256];
+static void (*s_handlers[256])(struct regs*);
 
 static void mkintr(unsigned int num, void (*handler)(), int user)
 {
@@ -47,8 +49,13 @@ void isr_handler(uintptr_t n, struct regs* r, uint32_t e)
 void irq_handler(uintptr_t n, struct regs* r)
 {
     lapic_eoi();
-    if (n == 32) timer_tick(r);
-    else if (n == IPI_SCHED) switch_next(r);
+    if (s_handlers[n]) s_handlers[n](r);
+}
+
+void idt_set_handler(unsigned int n, void (*handler)(struct regs*))
+{
+    ASSERT(n < 256);
+    s_handlers[n] = handler;
 }
 
 void idt_init()

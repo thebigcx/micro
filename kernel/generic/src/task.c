@@ -17,7 +17,8 @@ static struct task* mktask()
 
 static void idle()
 {
-    for (;;) printk("idle");
+    asm volatile ("int $0x80");
+    for(;;);
 }
 
 struct task* task_idle()
