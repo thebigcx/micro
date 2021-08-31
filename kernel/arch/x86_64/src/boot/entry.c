@@ -9,6 +9,7 @@
 #include <lapic.h>
 #include <smp.h>
 #include <heap.h>
+#include <cpu_func.h>
 
 static uint8_t stack[4096];
 

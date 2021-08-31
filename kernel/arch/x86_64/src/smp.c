@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <timer.h>
 #include <list.h>
+#include <cpu_func.h>
 
 #define TRMP_ENTRY 0x8000
 #define AP_CR3     0x1000

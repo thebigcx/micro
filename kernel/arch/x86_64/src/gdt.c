@@ -1,6 +1,7 @@
 #include <descs.h>
 #include <stdlib.h>
 #include <cpu.h>
+#include <cpu_func.h>
 
 #define TYPE_DATA_W 0x2 // Writable Data
 #define TYPE_CODE_X 0x8 // Executable Code
@@ -52,7 +53,6 @@ void gdt_init_cpu(struct cpu_info* cpu)
     gdtr.lim = 7 * sizeof(union gdtent) - 1;
     gdtr.base = (uintptr_t)cpu->gdt;
 
-    lgdt(&gdtr);
-    rel_segs(GDT_CODE0, GDT_DATA0);
+    lgdt_full(&gdtr, GDT_CODE0, GDT_DATA0);
     ltr(GDT_TSS | 3);
 }

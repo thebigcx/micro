@@ -23,11 +23,6 @@ struct cpu_info
 extern struct cpu_info g_cpus[MAX_CPUS];
 extern unsigned int g_cpu_cnt;
 
-#define rdmsr(msr, l, h) asm volatile ("rdmsr" : "=a"(l), "=d"(h) : "c"(msr))
-#define wrmsr(msr, l, h) asm volatile ("wrmsr" :: "a"(l), "d"(h), "c"(msr))
-#define cli() asm volatile ("cli")
-#define sti() asm volatile ("sti")
-
 struct cpu_info* cpu_curr();
 
 void cpu_set_kstack(struct cpu_info* cpu, uintptr_t kstack);

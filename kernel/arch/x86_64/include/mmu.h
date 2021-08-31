@@ -2,8 +2,6 @@
 
 #include <mmu_defs.h>
 
-#define invlpg(a) asm volatile ("invlpg (%0)" :: "r"(a) : "memory")
-
 // User Virtual-Memory map
 struct vm_map
 {

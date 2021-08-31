@@ -6,6 +6,7 @@
 #include <timer.h>
 #include <except.h>
 #include <stdlib.h>
+#include <cpu_func.h>
 
 #define REGISTER_ISR(i) mkintr(i, isr##i, 0)
 #define REGISTER_IRQ(i) mkintr(i + 32, irq##i, 0)

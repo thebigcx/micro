@@ -2,6 +2,7 @@
 #include <cpu.h>
 #include <debug/syslog.h>
 #include <mmu.h>
+#include <cpu_func.h>
 
 // Local APIC registers
 #define R_ID          0x020
@@ -41,14 +42,12 @@ static volatile uintptr_t mmio_base;
 
 static uintptr_t get_base()
 {
-    uintptr_t low, high;
-    rdmsr(0x1b, low, high);
-    return (high << 32) | low;
+    return rdmsr(0x1b);
 }
 
 static void set_base(uintptr_t base)
 {
-    wrmsr(0x1b, base & 0xffffffff, base >> 32);
+    wrmsr(0x1b, base);
 }
 
 static void write(uint32_t off, uint32_t val)

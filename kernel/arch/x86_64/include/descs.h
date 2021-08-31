@@ -77,11 +77,6 @@ struct __attribute__((packed)) tss
 
 struct cpu_info;
 
-// gdt_asm.S
-extern void lgdt(struct descptr*);
-extern void ltr(uint16_t);
-extern void lidt(struct descptr*);
-
 // gdt.c
 void gdt_init_cpu(struct cpu_info* cpu);
 extern void rel_segs(uint16_t, uint16_t);

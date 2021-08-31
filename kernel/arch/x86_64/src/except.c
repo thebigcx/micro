@@ -2,11 +2,7 @@
 #include <cpu.h>
 #include <debug/syslog.h>
 #include <reg.h>
-
-static void panic()
-{
-    asm volatile ("hlt");
-}
+#include <cpu_func.h>
 
 static void dump(struct regs* r)
 {

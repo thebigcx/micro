@@ -1,5 +1,6 @@
 #include <mmu.h>
 #include <mmu_defs.h>
+#include <cpu_func.h>
 #include <stdlib.h>
 
 #define KBASE      (0xffffffff80000000)
@@ -43,9 +44,7 @@ void mmu_init()
     for (int i = 0; i < ENTCNT; i++)
         memset(&(kheap_tbls[i]), 0, sizeof(page_t) * ENTCNT);
 
-    uintptr_t cr3 = (uintptr_t)&kpml4 - KBASE;
-    asm ("mov %0, %%cr3" :: "r"(cr3));
-
+    lcr3((uintptr_t)&kpml4 - KBASE);
     mmu_phys_init();
 }
 

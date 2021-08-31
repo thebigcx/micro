@@ -1,5 +1,6 @@
 #include <types.h>
 #include <debug/syslog.h>
+#include <panic.h>
 
 #if DEBUG
 
@@ -177,8 +178,7 @@ uintptr_t __stack_chk_guard = STACK_CHK_GUARD;
 
 void __stack_chk_fail()
 {
-    printk_crit("Stack smashing detected");
-    asm volatile ("1: jmp 1b");
+    panic("Stack smashing detected");
 };
 
 #endif

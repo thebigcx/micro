@@ -2,10 +2,9 @@ set(SOURCES ${SOURCES} ${ARCHSRC}/src/mmu.c
                        ${ARCHSRC}/src/idt.c
                        ${ARCHSRC}/src/gdt.c
                        ${ARCHSRC}/src/cpu.c
-                       ${ARCHSRC}/src/cpu_func.c
                        ${ARCHSRC}/src/boot/entry.c
                        ${ARCHSRC}/src/intr_asm.S
-                       ${ARCHSRC}/src/asm.S
+                       ${ARCHSRC}/src/x86_64.S
                        ${ARCHSRC}/src/lapic.c
                        ${ARCHSRC}/src/ioapic.c
                        ${ARCHSRC}/src/pic.c
