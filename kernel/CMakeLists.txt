@@ -3,11 +3,11 @@ project(vmkernel C ASM)
 set(ARCHSRC ${vmkernel_SOURCE_DIR}/arch/x86_64)
 add_subdirectory(arch/x86_64)
 
-set(GENERICSRC ${vmkernel_SOURCE_DIR}/generic)
-add_subdirectory(generic)
+set(KERNSRC ${vmkernel_SOURCE_DIR}/kern)
+add_subdirectory(kern)
 
 include_directories(arch/x86_64/include)
-include_directories(generic/include)
+include_directories(include/kern)
 
 add_compile_options(-Wall -Wextra -ffreestanding -g -DDEBUG -fno-stack-protector -fno-pic -fpie -mno-red-zone -nostdinc -fsanitize=undefined)
 #add_compile_options(-Wall -Wextra -ffreestanding -g -fno-stack-protector -fno-pic -fpie -mno-red-zone -nostdinc)

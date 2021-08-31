@@ -1,19 +1,19 @@
-set(SOURCES ${SOURCES} ${ARCHSRC}/src/mmu.c
-                       ${ARCHSRC}/src/idt.c
-                       ${ARCHSRC}/src/gdt.c
-                       ${ARCHSRC}/src/cpu.c
-                       ${ARCHSRC}/src/boot/entry.c
-                       ${ARCHSRC}/src/intr_asm.S
-                       ${ARCHSRC}/src/x86_64.S
-                       ${ARCHSRC}/src/lapic.c
-                       ${ARCHSRC}/src/ioapic.c
-                       ${ARCHSRC}/src/pic.c
-                       ${ARCHSRC}/src/smp.c
-                       ${ARCHSRC}/src/ap_start.S
-                       ${ARCHSRC}/src/context.S
-                       ${ARCHSRC}/src/timer.c
-                       ${ARCHSRC}/src/except.c
-                       ${ARCHSRC}/src/panic.c
+set(SOURCES ${SOURCES} ${ARCHSRC}/x86_64/mmu.c
+                       ${ARCHSRC}/x86_64/idt.c
+                       ${ARCHSRC}/x86_64/gdt.c
+                       ${ARCHSRC}/x86_64/cpu.c
+                       ${ARCHSRC}/x86_64/boot/entry.c
+                       ${ARCHSRC}/x86_64/intr_asm.S
+                       ${ARCHSRC}/x86_64/x86_64.S
+                       ${ARCHSRC}/x86_64/lapic.c
+                       ${ARCHSRC}/x86_64/ioapic.c
+                       ${ARCHSRC}/x86_64/pic.c
+                       ${ARCHSRC}/x86_64/smp.c
+                       ${ARCHSRC}/x86_64/ap_start.S
+                       ${ARCHSRC}/x86_64/context.S
+                       ${ARCHSRC}/x86_64/timer.c
+                       ${ARCHSRC}/x86_64/except.c
+                       ${ARCHSRC}/x86_64/panic.c
                        PARENT_SCOPE)
 
 message(${ARCHSRC}/include)
