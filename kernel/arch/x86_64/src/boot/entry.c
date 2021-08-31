@@ -36,6 +36,18 @@ static struct st2header header =
     .tags = (uintptr_t)&fbtag
 };
 
+ssize_t tty_read(struct file* file, void* buf, off_t off, size_t size)
+{
+    memset(buf, '6', size);
+    return 0;
+}
+
+ssize_t tty_write(struct file* file, const void* buf, off_t off, size_t size)
+{
+    printk("%s\n", (char*)buf);
+    return size;
+}
+
 void kmain_st2(struct st2struct* st2)
 {
     printk("entry");
@@ -137,6 +149,8 @@ void kmain_st2(struct st2struct* st2)
     vfs_init();
 
     struct file* file = kmalloc(sizeof(struct file));
+    file->ops.read = tty_read;
+    file->ops.write = tty_write;
     vfs_mount(file, "/dev/tty");
 
     //char* relat;

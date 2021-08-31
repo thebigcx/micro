@@ -17,15 +17,15 @@ struct thread* thread_creat(struct task* parent, uintptr_t entry, int usr)
     thread->parent = parent;
     thread->regs.rip = entry;
 
-    //uintptr_t stack = mmu_kalloc(1);
-    //mmu_kmap(stack, mmu_alloc_phys(), PAGE_PR | PAGE_RW);
-
     uintptr_t kstack = mmu_kalloc(1);
     mmu_kmap(kstack, mmu_alloc_phys(), PAGE_PR | PAGE_RW);
 
-    //thread->regs.rsp = stack + PAGE4K;
-    //thread->regs.rbp = stack + PAGE4K;
     thread->kstack = kstack + PAGE4K;
 
     return thread;
+}
+
+struct thread* thread_curr()
+{
+    return cpu_curr()->current;
 }

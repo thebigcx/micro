@@ -9,15 +9,17 @@ static unsigned int s_id = 0;
 static struct task* mktask()
 {
     struct task* task = kmalloc(sizeof(struct task));
+
     task->threads = list_create();
+    task->fds = list_create();
     task->id = s_id++;
     task->vm_map = mmu_create_vmmap();
+
     return task;
 }
 
 static void idle()
 {
-    asm volatile ("int $0x80");
     for(;;);
 }
 
@@ -53,4 +55,9 @@ struct task* task_kcreat(uintptr_t entry)
     list_push_back(&task->threads, main);
 
     return task;
+}
+
+struct task* task_curr()
+{
+    return thread_curr()->parent;
 }

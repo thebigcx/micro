@@ -55,3 +55,10 @@ void list_clear()
 {
     // TODO: impl
 }
+
+void* list_get(struct list* self, size_t i)
+{
+    struct lnode* node = self->head;
+    while (i && i--) node = node->next; // i=0 will overflow if not checked
+    return node->data;
+}
