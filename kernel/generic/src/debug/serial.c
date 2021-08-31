@@ -3,6 +3,7 @@
 #include <types.h>
 #include <cpu.h>
 #include <lock.h>
+#include <pio.h>
 
 #if DEBUG
 

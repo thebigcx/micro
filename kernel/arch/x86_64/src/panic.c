@@ -1,4 +1,5 @@
 #include <panic.h>
+#include <pio.h>
 
 static void shutdown()
 {

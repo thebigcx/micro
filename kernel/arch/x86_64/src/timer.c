@@ -2,6 +2,7 @@
 #include <descs.h>
 #include <cpu.h>
 #include <sched.h>
+#include <pio.h>
 
 #define FREQ 1193182
 

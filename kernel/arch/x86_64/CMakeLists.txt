@@ -14,7 +14,6 @@ set(SOURCES ${SOURCES} ${ARCHSRC}/src/mmu.c
                        ${ARCHSRC}/src/timer.c
                        ${ARCHSRC}/src/except.c
                        ${ARCHSRC}/src/panic.c
-                       ${ARCHSRC}/src/pio.c
                        PARENT_SCOPE)
 
 message(${ARCHSRC}/include)
