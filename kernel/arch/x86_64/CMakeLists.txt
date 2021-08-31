@@ -2,6 +2,7 @@ set(SOURCES ${SOURCES} ${ARCHSRC}/src/mmu.c
                        ${ARCHSRC}/src/idt.c
                        ${ARCHSRC}/src/gdt.c
                        ${ARCHSRC}/src/cpu.c
+                       ${ARCHSRC}/src/cpu_func.c
                        ${ARCHSRC}/src/boot/entry.c
                        ${ARCHSRC}/src/intr_asm.S
                        ${ARCHSRC}/src/asm.S
@@ -14,6 +15,7 @@ set(SOURCES ${SOURCES} ${ARCHSRC}/src/mmu.c
                        ${ARCHSRC}/src/timer.c
                        ${ARCHSRC}/src/except.c
                        ${ARCHSRC}/src/panic.c
+                       ${ARCHSRC}/src/pio.c
                        PARENT_SCOPE)
 
 message(${ARCHSRC}/include)

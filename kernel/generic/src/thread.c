@@ -1,5 +1,6 @@
 #include <thread.h>
 #include <mmu.h>
+#include <cpu.h>
 
 void thread_start(struct thread* thread)
 {

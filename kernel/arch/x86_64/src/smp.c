@@ -45,7 +45,7 @@ static void ap_entry(uint16_t id)
 
 static void init_cpu(uint16_t id)
 {
-    uintptr_t cr3 = read_cr3();
+    uintptr_t cr3 = rcr3();
     uintptr_t stack = mmu_kalloc(1);
     mmu_kmap(stack, mmu_alloc_phys(), PAGE_PR | PAGE_RW);
     

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cpu.h>
+#include <reg.h>
 
 #define THREAD_RUNNING  0
 #define THREAD_READY    1

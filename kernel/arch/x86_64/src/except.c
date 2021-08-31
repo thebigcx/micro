@@ -1,6 +1,7 @@
 #include <except.h>
 #include <cpu.h>
 #include <debug/syslog.h>
+#include <reg.h>
 
 static void panic()
 {
@@ -32,10 +33,10 @@ static void dump(struct regs* r)
     printk("cs=%x", r->cs);
     printk("ss=%x", r->ss);
     printk("rflags=%x", r->rflags);
-    printk("cr0=%x", read_cr0());
-    printk("cr2=%x", read_cr2());
-    printk("cr3=%x", read_cr3());
-    printk("cr4=%x", read_cr4());
+    printk("cr0=%x", rcr0());
+    printk("cr2=%x", rcr2());
+    printk("cr3=%x", rcr3());
+    printk("cr4=%x", rcr4());
 }
 
 struct frame
