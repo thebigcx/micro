@@ -69,7 +69,7 @@ void idt_init()
     mkintr(0xfe, irq0xfe, 0); // halt()
 }
 
-void idt_init_cpu(struct cpu_info*)
+void idt_init_cpu(struct cpu_info* cpu)
 {
     struct descptr idtr;
     idtr.lim = sizeof(s_idt) - 1;

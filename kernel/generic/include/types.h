@@ -19,6 +19,8 @@ typedef long unsigned int uintmax_t;
 typedef unsigned long size_t;
 typedef long ssize_t;
 
+typedef long off_t;
+
 #define INT8_MAX  0x7F
 #define INT16_MAX 0x7FFF
 #define INT32_MAX 0x7FFFFFFF

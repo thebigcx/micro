@@ -76,7 +76,7 @@ void smp_init(struct list* ids)
 {
     printk("starting cpus: %d", ids->size);
 
-    list_foreach(ids)
+    LIST_FOREACH(ids)
     {
         init_cpu(*((uint16_t*)node->data));
     }

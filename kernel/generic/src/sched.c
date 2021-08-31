@@ -63,7 +63,7 @@ void sched_tick(struct regs* r)
 
 void sched_start(struct task* task)
 {
-    list_foreach(&task->threads)
+    LIST_FOREACH(&task->threads)
     {
         thread_start((struct thread*)node->data);
     }

@@ -10,7 +10,7 @@ struct list list_create()
 void list_push_back(struct list* list, void* data)
 {
     // Initialize new node
-    struct listnode* node = kmalloc(sizeof(struct listnode));
+    struct lnode* node = kmalloc(sizeof(struct lnode));
     node->next = NULL;
     node->prev = list->tail;
     node->data = data;
@@ -32,7 +32,7 @@ void* list_pop_front(struct list* list)
     if (!list->head) return NULL;
 
     // Save the old head to return and free
-    struct listnode* old = list->head;
+    struct lnode* old = list->head;
     
     // Advance the head pointer
     list->head = list->head->next;

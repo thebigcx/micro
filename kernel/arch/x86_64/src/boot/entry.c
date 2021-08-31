@@ -10,6 +10,8 @@
 #include <smp.h>
 #include <heap.h>
 #include <cpu_func.h>
+#include <vfs.h>
+#include <stdlib.h>
 
 static uint8_t stack[4096];
 
@@ -131,6 +133,18 @@ void kmain_st2(struct st2struct* st2)
     smp_init(acpi_get_lapics());
 
     sys_init();
+
+    vfs_init();
+
+    struct file* file = kmalloc(sizeof(struct file));
+    vfs_mount(file, "/dev/tty");
+
+    //char* relat;
+    //struct file* tty = vfs_getmnt("/dev/tty", &relat);
+    //ASSERT(file == tty);
+
+    struct fd* fd = vfs_open("/dev/tty");
+    printk("%x %x\n", fd->filp, file);
 
     void* buffer = initrd_read("init");
     struct task* init = task_creat(buffer, NULL, NULL);

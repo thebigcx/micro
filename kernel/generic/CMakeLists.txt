@@ -9,4 +9,6 @@ set(SOURCES ${SOURCES} ${GENERICSRC}/src/init.c
                        ${GENERICSRC}/src/task.c
                        ${GENERICSRC}/src/thread.c
                        ${GENERICSRC}/src/sys.c
+                       ${GENERICSRC}/src/tree.c
+                       ${GENERICSRC}/src/vfs/vfs.c
                        PARENT_SCOPE)
