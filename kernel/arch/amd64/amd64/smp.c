@@ -8,6 +8,8 @@
 #include <timer.h>
 #include <list.h>
 #include <cpu_func.h>
+#include <acpi.h>
+#include <acpi_defs.h>
 
 #define TRMP_ENTRY 0x8000
 #define AP_CR3     0x1000
@@ -37,8 +39,6 @@ static void ap_entry(uint16_t id)
     lapic_enable(); 
 
     _ap_done = 1;
-
-    printk("%d", id);
 
     sti();
     for (;;);
@@ -72,12 +72,29 @@ static void init_cpu(uint16_t id)
     }
 }
 
-void smp_init(struct list* ids)
+void smp_init()
 {
-    printk("starting cpus: %d", ids->size);
+    struct madt* madt = (struct madt*)acpi_find("APIC");
 
-    LIST_FOREACH(ids)
+    struct madtent* ent = (struct madtent*)(madt + 1);
+    uintptr_t end = (uintptr_t)madt + madt->hdr.len;
+
+    while ((uintptr_t)ent < end)
     {
-        init_cpu(*((uint16_t*)node->data));
+        switch (ent->type)
+        {
+            case MADT_LAPIC:
+            {
+                struct lapic* lapic = (struct lapic*)ent;
+                if (lapic->flags & LAPIC_USABLE && lapic->apic_id) // Make sure not BSP
+                {
+                    printk("starting cpu %d", lapic->apic_id);
+                    init_cpu(lapic->apic_id);
+                }
+            }
+            break;
+        }
+
+        ent = (struct madtent*)((uintptr_t)ent + ent->len);
     }
 }

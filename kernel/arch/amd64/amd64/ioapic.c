@@ -2,6 +2,8 @@
 #include <lapic.h>
 #include <mmu.h>
 #include <pic.h>
+#include <acpi.h>
+#include <acpi_defs.h>
 
 #define R_REGSEL 0x00
 #define R_IOWIN  0x10
@@ -30,11 +32,44 @@ void write64(uint32_t reg, uint64_t val)
     write32(reg + 1, val >> 32);
 }
 
-void ioapic_init(uintptr_t base)
+void ioapic_init()
 {
-    mmio_base = mmu_map_mmio(base);
-    ioapic_redir(2, 32, DELIV_LOWEST);
+    unsigned int iso_cnt = 0;
+    struct apiciso* isos[64];
+
+    struct madt* madt = (struct madt*)acpi_find("APIC");
+
+    struct madtent* ent = (struct madtent*)(madt + 1);
+    uintptr_t end = (uintptr_t)madt + madt->hdr.len;
+
+    while ((uintptr_t)ent < end)
+    {
+        switch (ent->type)
+        {
+            case MADT_IOAPIC:
+            {
+                struct ioapic* ioapic = (struct ioapic*)ent;
+                if (!ioapic->gsib)
+                {
+                    mmio_base = mmu_map_mmio(ioapic->addr);
+                }
+            }
+            break;
+
+            case MADT_IOAPIC_ISO:
+            {
+                isos[iso_cnt++] = (struct apiciso*)ent;
+            }
+            break;
+        }
+
+        ent = (struct madtent*)((uintptr_t)ent + ent->len);
+    }
+
     pic_disable();
+
+    for (unsigned int i = 0; i < iso_cnt; i++)
+        ioapic_redir(isos[i]->gsi, isos[i]->irq + 32, DELIV_LOWEST);
 }
 
 void ioapic_redir(uint8_t irq, uint8_t vec, uint32_t deliv)

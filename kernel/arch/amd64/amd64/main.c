@@ -37,18 +37,21 @@ void main(struct bootparams params)
     printk("initialized heap");
 
     acpi_init(params.rsdp);
-    acpi_parse_madt();
+    //acpi_parse_madt();
     printk("initialized ACPI");
 
     lapic_setup();
     printk("initialized LAPIC");
+
+    ioapic_init();
+    printk("initalized IOAPIC");
 
     timer_init();
     printk("initialized timer");
 
     sti();
     
-    smp_init(acpi_get_lapics());
+    smp_init();
     printk("initialized other CPUs");
 
     generic_init(genparams);
