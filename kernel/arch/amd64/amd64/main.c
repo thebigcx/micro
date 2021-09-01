@@ -31,28 +31,28 @@ void main(struct bootparams params)
     gdt_init_cpu(&g_cpus[0]);
     idt_init();
     idt_init_cpu(&g_cpus[0]);
-    printk("loaded gdt");
+    printk("loaded gdt\n");
     
     heap_init();
-    printk("initialized heap");
+    printk("initialized heap\n");
 
     acpi_init(params.rsdp);
     //acpi_parse_madt();
-    printk("initialized ACPI");
+    printk("initialized ACPI\n");
 
     lapic_setup();
-    printk("initialized LAPIC");
+    printk("initialized LAPIC\n");
 
     ioapic_init();
-    printk("initalized IOAPIC");
+    printk("initalized IOAPIC\n");
 
     timer_init();
-    printk("initialized timer");
+    printk("initialized timer\n");
 
     sti();
     
     smp_init();
-    printk("initialized other CPUs");
+    printk("initialized other CPUs\n");
 
     generic_init(genparams);
 }

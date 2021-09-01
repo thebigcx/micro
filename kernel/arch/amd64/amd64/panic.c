@@ -8,6 +8,6 @@ static void shutdown()
 
 void panic(const char* msg)
 {
-    printk("Kernel panic: %s", msg);
+    printk("Kernel panic: %s\n", msg);
     shutdown();
 }

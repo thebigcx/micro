@@ -36,7 +36,9 @@ static void ap_entry(uint16_t id)
     gdt_init_cpu(cpu);
     idt_init_cpu(cpu);
     
-    lapic_enable(); 
+    lapic_enable();
+
+    printk("done\n");
 
     _ap_done = 1;
 
@@ -68,7 +70,7 @@ static void init_cpu(uint16_t id)
 
     if (!_ap_done)
     {
-        printk("error: cannot start cpu");
+        printk("error: cannot start cpu\n");
     }
 }
 
@@ -88,7 +90,7 @@ void smp_init()
                 struct lapic* lapic = (struct lapic*)ent;
                 if (lapic->flags & LAPIC_USABLE && lapic->apic_id) // Make sure not BSP
                 {
-                    printk("starting cpu %d", lapic->apic_id);
+                    printk("starting cpu %d...", lapic->apic_id);
                     init_cpu(lapic->apic_id);
                 }
             }

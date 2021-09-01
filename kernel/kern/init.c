@@ -59,7 +59,7 @@ void generic_init(struct genbootparams params)
     initrd_init(params.initrd_start, params.initrd_end);
 
     // TODO: FIXME: TESTS
-    
+
     struct file* file = kmalloc(sizeof(struct file));
     file->ops.read = tty_read;
     file->ops.write = tty_write;
@@ -78,7 +78,7 @@ void generic_init(struct genbootparams params)
 
 //    for(;;);
 
-    printk("starting scheduler");
+    printk("starting scheduler\n");
     sched_init();
 
     for (;;); 

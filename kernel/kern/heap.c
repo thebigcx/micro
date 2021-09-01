@@ -87,7 +87,7 @@ void* kmalloc(size_t n)
         curr = curr->next;
     }
 
-    printk("unable to kmalloc: %x bytes, last block size: %x", n, last->size);
+    printk("unable to kmalloc: %x bytes, last block size: %x\n", n, last->size);
     UNLOCK(lock);
     return NULL;
 }

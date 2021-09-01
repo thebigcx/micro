@@ -47,7 +47,6 @@ void printk(const char* s, ...)
     
     char* f = buffer;
     while (*f != 0) serial_putch(*f++);
-    serial_putch('\n');
 
     UNLOCK(lock);
 }
@@ -63,7 +62,6 @@ void printk_crit(const char* s, ...)
 
     char* f = buffer;
     while (*f != 0) serial_putch(*f++);
-    serial_putch('\n');
 }
 
 #else
