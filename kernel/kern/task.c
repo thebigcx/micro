@@ -3,6 +3,7 @@
 #include <cpu.h>
 #include <thread.h>
 #include <debug/syslog.h>
+#include <binfmt.h>
 
 static unsigned int s_id = 0;
 
@@ -33,8 +34,17 @@ struct task* task_creat(const void* buffer, char* argv[], char* envp[])
 {
     struct task* task = mktask();
 
+    uintptr_t entry = elf_load(task, buffer);
+    struct thread* main = thread_creat(task, entry, 1);
     
-    //list_push_back(&task->threads, main);
+    // Top of canonical lower-half
+    uintptr_t stack = 0x8000000000;
+    mmu_map(task->vm_map, stack - 0x1000, mmu_alloc_phys(), PAGE_PR | PAGE_RW);
+
+    main->regs.rsp = stack;
+    main->regs.rbp = stack;
+
+    list_push_back(&task->threads, main);
 
     return task;
 }

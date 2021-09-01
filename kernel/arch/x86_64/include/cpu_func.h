@@ -79,22 +79,22 @@ FORCE_INLINE uintptr_t rcr4()
 
 FORCE_INLINE void lcr0(uintptr_t cr0)
 {
-    asm volatile ("mov %0, %%cr0" : "=r"(cr0));
+    asm volatile ("mov %0, %%cr0" :: "r"(cr0));
 }
 
 FORCE_INLINE void lcr2(uintptr_t cr2)
 {
-    asm volatile ("mov %0, %%cr2" : "=r"(cr2));
+    asm volatile ("mov %0, %%cr2" :: "r"(cr2));
 }
 
 FORCE_INLINE void lcr3(uintptr_t cr3)
 {
-    asm volatile ("mov %0, %%cr3" : "=r"(cr3));
+    asm volatile ("mov %0, %%cr3" :: "r"(cr3));
 }
 
 FORCE_INLINE void lcr4(uintptr_t cr4)
 {
-    asm volatile ("mov %0, %%cr4" : "=r"(cr4));
+    asm volatile ("mov %0, %%cr4" :: "r"(cr4));
 }
 
 FORCE_INLINE void pause()

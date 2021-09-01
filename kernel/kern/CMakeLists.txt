@@ -11,4 +11,5 @@ set(SOURCES ${SOURCES} ${KERNSRC}/init.c
                        ${KERNSRC}/sys.c
                        ${KERNSRC}/tree.c
                        ${KERNSRC}/vfs/vfs.c
+                       ${KERNSRC}/binfmt.c
                        PARENT_SCOPE)

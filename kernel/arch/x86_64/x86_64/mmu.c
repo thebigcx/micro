@@ -2,6 +2,7 @@
 #include <mmu_defs.h>
 #include <cpu_func.h>
 #include <stdlib.h>
+#include <heap.h>
 
 #define KBASE      (0xffffffff80000000)
 #define HEAPBASE   (0xffffffffc0000000)
@@ -103,7 +104,7 @@ void mmu_map(struct vm_map* map, uintptr_t virt, uintptr_t phys, unsigned int fl
         mktable(map, pdptidx, pdidx);
     }
 
-    map->pts[pdptidx][pdidx][ptidx] |= phys | flags | PAGE_USR; // Make sure user flag set
+    map->pts[pdptidx][pdidx][ptidx] = phys | flags | PAGE_USR; // Make sure user flag set
     invlpg(virt);
 }
 

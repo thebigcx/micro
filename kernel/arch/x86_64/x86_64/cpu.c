@@ -27,7 +27,7 @@ void arch_switch_ctx(struct thread* thread)
 
 void arch_init_thread(struct thread* thread, int usr)
 {
-    thread->regs.cs = usr ? GDT_CODE3 : GDT_CODE0;
-    thread->regs.ss = usr ? GDT_DATA3 : GDT_DATA0;
+    thread->regs.cs = usr ? GDT_CODE3 | 3 : GDT_CODE0;
+    thread->regs.ss = usr ? GDT_DATA3 | 3 : GDT_DATA0;
     thread->regs.rflags = 0x202;
 }

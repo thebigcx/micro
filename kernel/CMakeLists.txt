@@ -1,3 +1,4 @@
+cmake_minimum_required(VERSION 3.21)
 project(vmkernel C ASM)
 
 set(ARCHSRC ${vmkernel_SOURCE_DIR}/arch/x86_64)

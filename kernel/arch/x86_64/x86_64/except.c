@@ -74,6 +74,13 @@ static void pf(struct regs* regs, uint32_t e)
 
 void except(uintptr_t n, struct regs* regs, uint32_t e)
 {
+    static int nested = 0;
+    nested++;
+    if (nested > 1)
+    {
+        panic("Nested exceptions");
+    }
+
     switch (n)
     {
         case 13:

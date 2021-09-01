@@ -53,6 +53,8 @@ static syscall_t syscalls[] =
 
 void syscall_handler(struct regs* r)
 {
+    printk("system call");
+    return;
     syscall_t sc = syscalls[arch_syscall_num(r)];
     arch_syscall_ret(r, sc(ARCH_SCARG0(r),
                            ARCH_SCARG1(r),

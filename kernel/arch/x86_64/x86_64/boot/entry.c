@@ -12,6 +12,8 @@
 #include <cpu_func.h>
 #include <vfs.h>
 #include <stdlib.h>
+#include <task.h>
+#include <sched.h>
 
 static uint8_t stack[4096];
 
