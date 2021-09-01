@@ -105,3 +105,10 @@ struct st2_tag_mmap
     struct st2_mmap_ent mmap[];
 
 };
+
+struct bootparams
+{
+    uintptr_t rsdp;
+    uintptr_t initrd_phys_start;
+    uintptr_t initrd_phys_end;
+};

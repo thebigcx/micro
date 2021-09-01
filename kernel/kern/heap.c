@@ -98,6 +98,7 @@ void kfree(void* ptr)
 
     struct block* block = (struct block*)ptr - 1;
     block->used = 0;
+    memset(block + 1, 0xcb, block->size);
 
     if (block->prev && !block->prev->used) combine(block->prev, block);
     if (block->next && !block->next->used) combine(block, block->next);

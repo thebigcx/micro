@@ -46,7 +46,6 @@ void mmu_init()
         memset(&(kheap_tbls[i]), 0, sizeof(page_t) * ENTCNT);
 
     lcr3((uintptr_t)&kpml4 - KBASE);
-    mmu_phys_init();
 }
 
 static uintptr_t heap_base = HEAPBASE;
