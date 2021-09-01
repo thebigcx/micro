@@ -25,6 +25,12 @@ struct thread* thread_creat(struct task* parent, uintptr_t entry, int usr)
     return thread;
 }
 
+// TODO: impl
+struct thread* thread_clone(struct task* parent, struct thread* src)
+{
+    return src;
+}
+
 struct thread* thread_curr()
 {
     return cpu_curr()->current;

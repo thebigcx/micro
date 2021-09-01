@@ -31,3 +31,4 @@ uintptr_t mmu_alloc_phys();
 void mmu_free_phys(uintptr_t p, unsigned int cnt);
 
 struct vm_map* mmu_create_vmmap();
+struct vm_map* mmu_clone_vmmap(const struct vm_map* src);

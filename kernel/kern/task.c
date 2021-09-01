@@ -4,6 +4,7 @@
 #include <thread.h>
 #include <debug/syslog.h>
 #include <binfmt.h>
+#include <vfs.h>
 
 static unsigned int s_id = 0;
 
@@ -63,6 +64,25 @@ struct task* task_kcreat(uintptr_t entry)
     main->regs.rbp = stack;
 
     list_push_back(&task->threads, main);
+
+    return task;
+}
+
+struct task* task_clone(const struct task* src, struct thread* calling)
+{
+    struct task* task = kmalloc(sizeof(struct task));
+
+    task->id = 0;
+    task->vm_map = mmu_clone_vmmap(src->vm_map);
+
+    struct thread* main = thread_clone(task, calling);
+    list_push_back(&task->threads, main);
+
+    LIST_FOREACH(&src->fds)
+    {
+        struct fd* fd = node->data;
+        list_push_back(&task->fds, vfs_open(fd->filp));
+    }
 
     return task;
 }

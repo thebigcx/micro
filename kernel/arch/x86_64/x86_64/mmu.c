@@ -206,3 +206,9 @@ struct vm_map* mmu_create_vmmap()
 
     return map;
 }
+
+// TODO: deep copy
+struct vm_map* mmu_clone_vmmap(const struct vm_map* src)
+{
+    return src;
+}

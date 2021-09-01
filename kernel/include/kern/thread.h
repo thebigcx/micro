@@ -20,4 +20,5 @@ struct thread
 
 void thread_start(struct thread* thread);
 struct thread* thread_creat(struct task* parent, uintptr_t entry, int usr);
+struct thread* thread_clone(struct task* parent, struct thread* src);
 struct thread* thread_curr();

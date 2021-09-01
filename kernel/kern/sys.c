@@ -10,7 +10,7 @@
 static int sys_open(const char* path, uint32_t flags, mode_t mode)
 {
     struct task* task = task_curr();
-    list_push_back(&task->fds, vfs_open(path));
+    list_push_back(&task->fds, vfs_open(vfs_resolve(path))); // TODO: canonicalize the path first
     return task->fds.size - 1;
 }
 
@@ -41,6 +41,12 @@ static ssize_t sys_write(int fdno, const void* buf, size_t size)
     return ret;
 }
 
+// TODO: impl
+static int sys_fork()
+{
+    return 0;
+}
+
 typedef uintptr_t (*syscall_t)();
 
 static syscall_t syscalls[] =
@@ -48,7 +54,8 @@ static syscall_t syscalls[] =
     sys_open,
     sys_close,
     sys_read,
-    sys_write
+    sys_write,
+    sys_fork
 };
 
 void syscall_handler(struct regs* r)

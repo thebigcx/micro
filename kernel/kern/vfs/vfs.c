@@ -143,10 +143,10 @@ struct file* vfs_resolve(const char* path)
     return file;
 }
 
-struct fd* vfs_open(const char* path)
+struct fd* vfs_open(struct file* file)
 {
     struct fd* fd = kmalloc(sizeof(struct fd));
-    fd->filp = vfs_resolve(path);
+    fd->filp = file;
     fd->off = 0;
     return fd;
 }

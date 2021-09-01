@@ -159,7 +159,7 @@ void kmain_st2(struct st2struct* st2)
     //struct file* tty = vfs_getmnt("/dev/tty", &relat);
     //ASSERT(file == tty);
 
-    struct fd* fd = vfs_open("/dev/tty");
+    struct fd* fd = vfs_open(vfs_resolve("/dev/tty"));
     printk("%x %x\n", fd->filp, file);
 
     void* buffer = initrd_read("init");

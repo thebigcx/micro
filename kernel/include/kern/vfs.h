@@ -46,7 +46,7 @@ ssize_t vfs_write(struct file* file, void* buf, off_t off, size_t size);
 int vfs_mount(struct file* file, const char* path);
 struct file* vfs_getmnt(const char* path, char** relat);
 
-struct fd* vfs_open(const char* path);
+struct fd* vfs_open(struct file* file);
 void vfs_close(struct fd* fd);
 
 struct file* vfs_resolve(const char* path);
