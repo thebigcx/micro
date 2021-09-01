@@ -5,8 +5,14 @@ extern unsigned long syscall2(unsigned long, ...);
 
 void _start(int argc, char** argv)
 {
-    syscall(4);
-    syscall(3, 1, "Task", 4);
+    if (syscall(4) == 0)
+    {
+        syscall(3, 1, "Child", 5);
+    }
+    else
+    {
+        syscall(3, 1, "Parent", 6);
+    }
     //syscall2(4);
     for (;;);
 }

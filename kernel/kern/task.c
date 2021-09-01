@@ -6,9 +6,9 @@
 #include <binfmt.h>
 #include <vfs.h>
 
-static unsigned int s_id = 0;
+static unsigned int s_id = 1;
 
-static struct task* mktask()
+static struct task* mktask(struct task* parent)
 {
     struct task* task = kmalloc(sizeof(struct task));
 
@@ -16,6 +16,8 @@ static struct task* mktask()
     task->fds = list_create();
     task->id = s_id++;
     task->vm_map = mmu_create_vmmap();
+    task->children = list_create();
+    task->parent = parent;
 
     return task;
 }
@@ -27,13 +29,13 @@ static void idle()
 
 struct task* task_idle()
 {
-    return task_kcreat(idle);
+    return task_kcreat(NULL, idle);
 }
 
 // TODO: elf loading
-struct task* task_creat(const void* buffer, char* argv[], char* envp[])
+struct task* task_creat(struct task* parent, const void* buffer, char* argv[], char* envp[])
 {
-    struct task* task = mktask();
+    struct task* task = mktask(parent);
 
     uintptr_t entry = elf_load(task, buffer);
     struct thread* main = thread_creat(task, entry, 1);
@@ -53,9 +55,9 @@ struct task* task_creat(const void* buffer, char* argv[], char* envp[])
     return task;
 }
 
-struct task* task_kcreat(uintptr_t entry)
+struct task* task_kcreat(struct task* parent, uintptr_t entry)
 {
-    struct task* task = mktask();
+    struct task* task = mktask(parent);
 
     struct thread* main = thread_creat(task, entry, 0);
 
@@ -75,10 +77,12 @@ struct task* task_clone(const struct task* src, struct thread* calling)
 {
     struct task* task = kmalloc(sizeof(struct task));
 
-    task->id = 0;
+    task->id = s_id++;
     task->vm_map = mmu_clone_vmmap(src->vm_map);
     task->threads = list_create();
     task->fds = list_create();
+    task->children = list_create();
+    task->parent = src;
 
     struct thread* main = thread_clone(task, calling);
     list_push_back(&task->threads, main);

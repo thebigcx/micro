@@ -163,7 +163,7 @@ void kmain_st2(struct st2struct* st2)
     printk("%x %x\n", fd->filp, file);
 
     void* buffer = initrd_read("init");
-    struct task* init = task_creat(buffer, NULL, NULL);
+    struct task* init = task_creat(NULL, buffer, NULL, NULL);
     sched_start(init);
 
 //    for(;;);

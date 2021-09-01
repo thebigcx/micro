@@ -49,10 +49,11 @@ void mmu_init()
     mmu_phys_init();
 }
 
+static uintptr_t heap_base = HEAPBASE;
+
+// TODO: rename to 'ksbrk' to reflect what actually happens
 uintptr_t mmu_kalloc(size_t n)
 {
-    static uintptr_t heap_base = HEAPBASE;
-
     for (size_t i = 0; i < n; i++)
     {
         unsigned int pdidx = PD_IDX(heap_base);
@@ -71,9 +72,9 @@ uintptr_t mmu_kalloc(size_t n)
     return heap_base - n * PAGE4K;
 }
 
-void mmu_kfree(uintptr_t p)
+void mmu_kfree(size_t n)
 {
-    (void)p;
+    heap_base -= n * PAGE4K;
 }
 
 void mmu_kmap(uintptr_t virt, uintptr_t phys, unsigned int flags)
@@ -215,12 +216,39 @@ struct vm_map* mmu_clone_vmmap(const struct vm_map* src)
     for (unsigned int i = 0; i < ENTCNT; i++)
     for (unsigned int j = 0; j < ENTCNT; j++)
     {
-        page_t* srcpage = src->pts[i][j];
+        page_t* srcpt = src->pts[i][j];
 
-        if (srcpage)
+        if (srcpt)
         {
+            // TODO: COPY THE DATA OVER!!!
             mktable(map, i, j);
-            memcpy(map->pts[i][j], srcpage, PAGE4K);
+
+            for (unsigned int k = 0; k < ENTCNT; k++)
+            {
+                if (srcpt[k] & PAGE_PR)
+                {
+                    if (srcpt[k] & PAGE_USR)
+                    {
+                        uintptr_t virt1 = mmu_kalloc(1);
+                        uintptr_t phys1 = srcpt[k] & PAGE_FRAME;
+
+                        uintptr_t virt2 = mmu_kalloc(1);
+                        uintptr_t phys2 = mmu_alloc_phys();
+
+                        mmu_kmap(virt1, phys1, PAGE_PR | PAGE_RW);
+                        mmu_kmap(virt2, phys2, PAGE_PR | PAGE_RW);
+
+                        memcpy(virt2, virt1, PAGE4K);
+                        // TODO: free the kernel allocated page
+
+                        map->pts[i][j][k] = (~PAGE_FRAME & srcpt[k]) | phys2;
+                    }
+                    else
+                    {
+                        srcpt[k] = srcpt[k];
+                    }
+                }
+            }
         }
         else
         {

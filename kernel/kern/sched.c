@@ -51,7 +51,6 @@ void switch_next(struct regs* r)
 
     UNLOCK(cpu->lock);
 
-    printk("%x %x", cpu->current, cpu->current->regs.rip);
     arch_switch_ctx(cpu->current);
 }
 
