@@ -4,6 +4,7 @@
 #include <vfs.h>
 #include <reg.h>
 #include <cpu.h>
+#include <thread.h>
 
 // TODO: API folder
 
@@ -41,10 +42,21 @@ static ssize_t sys_write(int fdno, const void* buf, size_t size)
     return ret;
 }
 
-// TODO: impl
 static int sys_fork()
 {
-    return 0;
+    struct thread* calling = thread_curr();
+
+    //calling->regs = calling->syscall_regs; // Take this oppurtunity to save the new registers
+    struct task* child = task_clone(task_curr(), calling);
+
+    memcpy(&((struct thread*)child->threads.head->data)->regs, &calling->syscall_regs, sizeof(struct regs));
+    ((struct thread*)child->threads.head->data)->regs.rax = 0; // return 0 to the child task
+
+    printk("%x %x %x\n", ((struct thread*)child->threads.head->data)->regs.rip, child->threads.head->data, calling);
+
+    sched_start(child);
+
+    return child->id;
 }
 
 typedef uintptr_t (*syscall_t)();
@@ -60,8 +72,7 @@ static syscall_t syscalls[] =
 
 void syscall_handler(struct regs* r)
 {
-    printk("system call");
-    return;
+    thread_curr()->syscall_regs = *r;
     syscall_t sc = syscalls[arch_syscall_num(r)];
     arch_syscall_ret(r, sc(ARCH_SCARG0(r),
                            ARCH_SCARG1(r),

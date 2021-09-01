@@ -200,15 +200,34 @@ struct vm_map* mmu_create_vmmap()
 
         (*map->pdpt)[i] = map->phys_pds[i] | PAGE_PR | PAGE_RW | PAGE_USR;
 
-        map->pts[i] = (page_t**)kmalloc(4096); // FIXME
+        map->pts[i] = (page_t**)kmalloc(4096); // FIXME: rely on page faults to allocate only what is needed
 		memset(map->pts[i], 0, PAGE4K);
     }
 
     return map;
 }
 
-// TODO: deep copy
 struct vm_map* mmu_clone_vmmap(const struct vm_map* src)
 {
-    return src;
+    struct vm_map* map = mmu_create_vmmap();
+
+    // Copy over the pages if marked as user, or reference them if they are kernel
+    for (unsigned int i = 0; i < ENTCNT; i++)
+    for (unsigned int j = 0; j < ENTCNT; j++)
+    {
+        page_t* srcpage = src->pts[i][j];
+
+        if (srcpage)
+        {
+            mktable(map, i, j);
+            memcpy(map->pts[i][j], srcpage, PAGE4K);
+        }
+        else
+        {
+            map->pds[i][j] = 0;
+            map->pts[i][j] = NULL;
+        }
+    }
+
+    return map;
 }

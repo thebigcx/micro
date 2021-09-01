@@ -46,7 +46,7 @@ ssize_t tty_read(struct file* file, void* buf, off_t off, size_t size)
 
 ssize_t tty_write(struct file* file, const void* buf, off_t off, size_t size)
 {
-    printk("%s\n", (char*)buf);
+    printk("%s", (char*)buf);
     return size;
 }
 

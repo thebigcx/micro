@@ -12,3 +12,6 @@ usr/build
 usr/srv/init/init
 Makefile
 .vscode
+root
+*.a
+*.so

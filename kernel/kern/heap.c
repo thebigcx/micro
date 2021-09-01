@@ -72,12 +72,14 @@ void* kmalloc(size_t n)
                 struct block* b = split(curr, n);
                 b->used = 1;
                 UNLOCK(lock);
+                memset((void*)(curr + 1), 0xcb, curr->size);
                 return b + 1;
             }
             else if (curr->size == n)
             {
                 curr->used = 1;
                 UNLOCK(lock);
+                memset((void*)(curr + 1), 0xcb, curr->size);
                 return curr + 1;
             }
         }

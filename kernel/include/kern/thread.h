@@ -16,6 +16,8 @@ struct thread
     struct regs regs;
     struct task* parent;
     uintptr_t kstack;
+
+    struct regs syscall_regs;
 };
 
 void thread_start(struct thread* thread);

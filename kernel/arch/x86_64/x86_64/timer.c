@@ -50,7 +50,7 @@ void timer_init()
 {
     idt_set_handler(32, timer_tick);
 
-    freq = 1000;
+    freq = 100;
     uint32_t div = FREQ / freq;
 
     outb(CMD, CMD_BIN | CMD_MODE3 | CMD_RW_BOTH | CMD_CHAN0);

@@ -33,7 +33,7 @@ ssize_t vfs_read(struct file* file, void* buf, off_t off, size_t size)
 
 ssize_t vfs_write(struct file* file, void* buf, off_t off, size_t size)
 {
-    if (file->ops.read) return file->ops.read(file, buf, off, size);
+    if (file->ops.write) return file->ops.write(file, buf, off, size);
     return 0;
 }
 

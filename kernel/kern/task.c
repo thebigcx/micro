@@ -47,12 +47,15 @@ struct task* task_creat(const void* buffer, char* argv[], char* envp[])
 
     list_push_back(&task->threads, main);
 
+    list_push_back(&task->fds, vfs_open(vfs_resolve("/dev/tty")));
+    list_push_back(&task->fds, vfs_open(vfs_resolve("/dev/tty")));
+
     return task;
 }
 
 struct task* task_kcreat(uintptr_t entry)
 {
-    struct task* task = mktask(); 
+    struct task* task = mktask();
 
     struct thread* main = thread_creat(task, entry, 0);
 
@@ -74,6 +77,8 @@ struct task* task_clone(const struct task* src, struct thread* calling)
 
     task->id = 0;
     task->vm_map = mmu_clone_vmmap(src->vm_map);
+    task->threads = list_create();
+    task->fds = list_create();
 
     struct thread* main = thread_clone(task, calling);
     list_push_back(&task->threads, main);
