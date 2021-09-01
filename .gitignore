@@ -5,12 +5,10 @@ boot/tools/mkbootsect
 build/dist
 build/iso
 build/limine
-kernel/build
 kernel/dist
 kernel/tools/mkinitrd
 usr/build
 usr/srv/init/init
-Makefile
 .vscode
 root
 *.a
