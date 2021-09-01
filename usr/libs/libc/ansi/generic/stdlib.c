@@ -8,10 +8,10 @@ int abs(int n)
     return n;
 }
 
-void abort()
+/*void abort()
 {
     raise(SIGABRT);
-}
+}*/
 
 void exit(int status)
 {

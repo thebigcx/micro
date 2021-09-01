@@ -34,6 +34,7 @@ struct file
     uint64_t inode;
     void* device;
     uint32_t flags;
+    size_t size;
 
     struct file_ops ops;
 };

@@ -59,7 +59,7 @@ ssize_t write(int fd, const void* buf, size_t count)
 	return bytes_written;
 }
 
-int chdir(const char* path)
+/*int chdir(const char* path)
 {
 	int e = sys_chdir(path);
 	if (e != 0)
@@ -126,3 +126,4 @@ int ioctl(int fd, unsigned long request, void* argp)
     
     return ret; // Some ioctl's return non-negative outputs
 }
+*/

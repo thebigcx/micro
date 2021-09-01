@@ -56,6 +56,20 @@ static int sys_fork()
     return child->id;
 }
 
+static int sys_execve(const char* path, const char* argv[], const char* envp[])
+{
+    task_execve(task_curr(), path, argv, envp);
+    sched_yield();
+    return -1;
+}
+
+static int sys_exit(int stat)
+{
+    task_destroy(task_curr());
+    sched_yield();
+    return -1;
+}
+
 typedef uintptr_t (*syscall_t)();
 
 static syscall_t syscalls[] =
@@ -64,7 +78,9 @@ static syscall_t syscalls[] =
     sys_close,
     sys_read,
     sys_write,
-    sys_fork
+    sys_fork,
+    sys_execve,
+    sys_exit
 };
 
 void syscall_handler(struct regs* r)

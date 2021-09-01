@@ -68,3 +68,8 @@ void sched_start(struct task* task)
         thread_start((struct thread*)node->data);
     }
 }
+
+void sched_yield()
+{
+    asm volatile ("int $0xfe");
+}

@@ -96,6 +96,31 @@ struct task* task_clone(const struct task* src, struct thread* calling)
     return task;
 }
 
+void task_execve(struct task* task, const char* path, const char* argv[], const char* envp[])
+{
+    struct task* parent = task->parent;
+    int id = task->id;
+    task_destroy(task);
+
+    struct file* file = vfs_resolve(path);
+    void* data = kmalloc(file->size);
+    vfs_read(file, data, 0, file->size);
+
+    struct task* new = task_creat(parent, data, argv, envp);
+    memcpy(task, new, sizeof(struct task));
+    sched_start(task);
+}
+
+void task_destroy(struct task* task)
+{
+    // TODO: implement properly
+    LIST_FOREACH(&task->threads)
+    {
+        struct thread* thread = node->data;
+        thread->state = THREAD_DEAD;
+    }
+}
+
 struct task* task_curr()
 {
     return thread_curr()->parent;

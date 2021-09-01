@@ -2,7 +2,7 @@
 #include <unistd.h>
 #include <libc/sysdeps-internal.h>
 
-int kill(pid_t pid, int sig)
+/*int kill(pid_t pid, int sig)
 {
 	return sys_kill(pid, sig);
 }
@@ -10,7 +10,7 @@ int kill(pid_t pid, int sig)
 int raise(int sig)
 {
     return kill((int)getpid(), sig);
-}
+}*/
 
 /*int sigaction(int signum, const struct sigaction* act, struct sigaction* old)
 {

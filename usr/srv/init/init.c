@@ -11,6 +11,7 @@ void _start(int argc, char** argv)
     }
     else
     {
+        exit(1);
         syscall(3, 1, "Parent", 6);
     }
     //syscall2(4);
