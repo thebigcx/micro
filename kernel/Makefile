@@ -1,7 +1,7 @@
 LDFLAGS = -Tkernel.ld -nostdlib
 CFLAGS = -Wall -Wextra -ffreestanding -g -DDEBUG -fno-stack-protector -fno-pic -fpie -mno-red-zone -nostdinc -fsanitize=undefined -Iinclude/kern
 
-include arch/x86_64/x86_64.mk
+include arch/amd64/amd64.mk
 include kern/kern.mk
 
 OBJ = $(patsubst %.c, %.o, $(SRC)) $(patsubst %.S, %.o, $(ASM))
