@@ -130,6 +130,7 @@ void heap_init()
 // effectively as often as possibly or between critical code
 void heap_check()
 {
+    return;
 #ifdef DEBUG
     struct block* curr = first;
     while (curr != NULL)

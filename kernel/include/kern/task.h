@@ -34,4 +34,5 @@ void task_send(struct task* task, signal_t signal);
 
 void task_execve(struct task* task, const char* path, const char* argv[], const char* envp[]);
 
-void task_destroy(struct task* task);
+//void task_destroy(struct task* task);
+void task_exit(int val);

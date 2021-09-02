@@ -9,7 +9,7 @@ static int ready = 0;
 
 void sched_init()
 {
-    idt_set_handler(IPI_SCHED, switch_next);
+    idt_set_handler(IPI_SCHED, switch_task);
 
     for (int i = 0; i < g_cpu_cnt; i++)
     {
@@ -21,28 +21,19 @@ void sched_init()
     for(;;);
 }
 
-void switch_next(struct regs* r)
+void switch_next()
 {
     struct cpu_info* cpu = cpu_curr();
     if (TEST_LOCK(cpu->lock)) return;
-
-    if (cpu->current)
-    {
-        cpu->current->regs = *r;
-        if (cpu->current->state == THREAD_RUNNING)
-            cpu->current->state = THREAD_READY;
-    }
 
     cpu->current = cpu_next_ready(cpu);
     if (cpu->current == cpu->current->parent->main)
     {
         if (cpu->current->parent->sigqueue.size)
         {
-            //signal_t* sigptr = list_dequeue(&cpu->current->parent->sigqueue);
-            //signal_t sig = *sigptr;
-            //kfree(sigptr);
-
+            UNLOCK(cpu->lock); // In case of task switch
             thread_handle_signals(cpu->current);
+            LOCK(cpu->lock);
         }
     }
 
@@ -54,11 +45,28 @@ void switch_next(struct regs* r)
     arch_switch_ctx(cpu->current);
 }
 
+void switch_task(struct regs* r)
+{
+    struct cpu_info* cpu = cpu_curr();
+    if (TEST_LOCK(cpu->lock)) return;
+
+    if (cpu->current)
+    {
+        cpu->current->regs = *r;
+        if (cpu->current->state == THREAD_RUNNING)
+            cpu->current->state = THREAD_READY;
+    }
+
+    UNLOCK(cpu->lock);
+
+    switch_next();
+}
+
 void sched_tick(struct regs* r)
 {
     if (!ready) return;
     lapic_send_ipi(0, IPI_SCHED, DST_OTHERS | DELIV_FIXED);
-    switch_next(r);
+    switch_task(r);
 }
 
 void sched_start(struct task* task)

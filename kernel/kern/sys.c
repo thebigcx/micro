@@ -65,9 +65,8 @@ static int sys_execve(const char* path, const char* argv[], const char* envp[])
 
 static int sys_exit(int stat)
 {
-    task_destroy(task_curr());
-    sched_yield();
-    return -1;
+    task_exit(stat);
+    return -1; // Should be unreachable
 }
 
 static int sys_kill(int pid, int sig)

@@ -104,6 +104,7 @@ void thread_handle_signals(struct thread* thread)
         {
             case SIGDEF_TERM:
                 printk("Terminating from signal %d\n", sig);
+                task_exit(sig + 128);
                 //thread->state = THREAD_DEAD;
                 //task_destroy(thread->parent);
                 //sched_yield();

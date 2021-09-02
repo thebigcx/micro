@@ -146,9 +146,10 @@ void task_execve(struct task* task, const char* path, const char* argv[], const 
     sched_start(task); // Start the new main thread
 }
 
-void task_destroy(struct task* task)
+void task_exit(int status)
 {
-    // TODO: implement properly this probably does not work
+    struct task* task = task_curr();
+
     LIST_FOREACH(&task->threads)
     {
         struct thread* thread = node->data;
@@ -166,6 +167,8 @@ void task_destroy(struct task* task)
     mmu_destroy_vmmap(task->vm_map);
 
     kfree(task);
+
+    switch_next();
 }
 
 void task_send(struct task* task, signal_t signal)
