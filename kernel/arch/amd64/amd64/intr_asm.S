@@ -43,14 +43,14 @@
 .extern ipi_handler
 .extern syscall_handler
 
-.macro ISR_NOERR n
+.macro ISR_NOERR num
 
-.global isr\n
+.global isr\num
 
-isr\n:
+isr\num:
     cli
     pushaq
-    movq    $\n, %rdi
+    movq    $\num, %rdi
     movq    %rsp, %rsi
     xorq    %rdx, %rdx
     xorq    %rbp, %rbp
@@ -60,11 +60,11 @@ isr\n:
 
 .endm
 
-.macro ISR_ERR n
+.macro ISR_ERR num
 
-.global isr\n
+.global isr\num
 
-isr\n:
+isr\num:
     cli
     pushq   40(%rsp) # SS
     pushq   40(%rsp) # RSP
@@ -72,7 +72,7 @@ isr\n:
     pushq   40(%rsp) # CS
     pushq   40(%rsp) # RIP
     pushaq
-    movq    $\n, %rdi
+    movq    $\num, %rdi
     movq    %rsp, %rsi
     movq    160(%rsp), %rdx
     xor     %rbp, %rbp

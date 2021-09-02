@@ -1,6 +1,6 @@
 #pragma once
 
-#include <types.h>
+#include <micro/types.h>
 
 void* kmalloc(size_t n);
 void kfree(void* ptr);

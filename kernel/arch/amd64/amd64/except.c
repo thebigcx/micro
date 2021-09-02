@@ -1,8 +1,9 @@
-#include <except.h>
-#include <cpu.h>
-#include <debug/syslog.h>
-#include <reg.h>
-#include <cpu_func.h>
+#include <arch/except.h>
+#include <arch/cpu.h>
+#include <micro/debug.h>
+#include <arch/reg.h>
+#include <arch/cpu_func.h>
+#include <micro/task.h>
 
 static void dump(struct regs* r)
 {
@@ -56,8 +57,85 @@ static void backtrace(uintptr_t rip, uintptr_t rbp, uint32_t maxframes)
     }
 }
 
+void unrecoverable(const char* msg, struct regs* regs)
+{
+    printk("%s\n", msg);
+    dump(regs);
+    backtrace(regs->rip, regs->rbp, 32);
+    panic();
+}
+
+#define UNRECOVER(n, msg)\
+    void exception##n(struct regs* regs)\
+    {\
+        unrecoverable(msg, regs);\
+    }
+
+static void divbyzero(struct regs* regs)
+{
+    if (regs->cs & 3)
+    {
+        task_send(task_curr(), SIGFPE);
+        sched_yield();
+    }
+
+    printk("Divide by zero\n");
+    dump(regs);
+    backtrace(regs->rip, regs->rbp, 32);
+    panic();
+}
+
+static void debug(struct regs* regs)
+{
+
+}
+
+static void nonmask(struct regs* regs)
+{
+
+}
+
+static void breakpoint(struct regs* regs)
+{
+
+}
+
+static void overflow(struct regs* regs)
+{
+
+}
+
+UNRECOVER(5, "Bound range exceeded")
+
+static void invalid_opcode(struct regs* regs)
+{
+    if (regs->cs & 3)
+    {
+        task_send(task_curr(), SIGILL);
+        sched_yield();
+    }
+
+    printk("Invalid opcode\n");
+    dump(regs);
+    backtrace(regs->rip, regs->rbp, 32);
+    panic();
+}
+
+UNRECOVER(7, "Device not available")
+UNRECOVER(8, "Double fault")
+UNRECOVER(9, "Segment overrun")
+UNRECOVER(10, "Invalid TSS")
+UNRECOVER(11, "Segment not present")
+UNRECOVER(12, "Stack-segment fault")
+
 static void gp(struct regs* regs, uint32_t e)
 {
+    if (regs->cs & 3)
+    {
+        task_send(task_curr(), SIGSEGV);
+        sched_yield();
+    }
+
     printk("General protection fault\n");
     dump(regs);
     backtrace(regs->rip, regs->rbp, 32);
@@ -66,11 +144,69 @@ static void gp(struct regs* regs, uint32_t e)
 
 static void pf(struct regs* regs, uint32_t e)
 {
+    if (regs->cs & 3)
+    {
+        task_send(task_curr(), SIGSEGV);
+        sched_yield();
+    }
+
     printk("Page fault\n");
     dump(regs);
     backtrace(regs->rip, regs->rbp, 32);
     panic();
 }
+
+static void x87_error(struct regs* regs)
+{
+    if (regs->cs & 3)
+    {
+        task_send(task_curr(), SIGFPE);
+        sched_yield();
+    }
+}
+
+UNRECOVER(17, "Alignment check")
+UNRECOVER(18, "Machine check")
+
+static void simd_error(struct regs* regs)
+{
+    if (regs->cs & 3)
+    {
+        task_send(task_curr(), SIGFPE);
+        sched_yield();
+    }
+}
+
+static void virt_except(struct regs* regs)
+{
+
+}
+
+static void (*handlers[])() =
+{
+    divbyzero,
+    debug,
+    nonmask,
+    breakpoint,
+    overflow,
+    exception5,
+    invalid_opcode,
+    exception7,
+    exception8,
+    exception9,
+    exception10,
+    exception11,
+    exception12,
+    gp,
+    pf,
+    NULL,
+    x87_error,
+    exception17,
+    exception18,
+    simd_error,
+    virt_except,
+    
+};
 
 void except(uintptr_t n, struct regs* regs, uint32_t e)
 {
@@ -81,19 +217,5 @@ void except(uintptr_t n, struct regs* regs, uint32_t e)
         panic("Nested exceptions");
     }
 
-    switch (n)
-    {
-        case 13:
-            gp(regs, e);
-            break;
-        case 14:
-            pf(regs, e);
-            break;
-        default:
-            printk("Fatal exception: %d\n", n);
-            dump(regs);
-            backtrace(regs->rip, regs->rbp, 32);
-            panic();
-            break;
-    };
+    handlers[n](regs);
 }

@@ -1,8 +1,8 @@
-#include <mmu.h>
-#include <mmu_defs.h>
-#include <cpu_func.h>
-#include <stdlib.h>
-#include <heap.h>
+#include <arch/mmu.h>
+#include <arch/mmu_defs.h>
+#include <arch/cpu_func.h>
+#include <micro/stdlib.h>
+#include <micro/heap.h>
 
 #define KBASE      (0xffffffff80000000)
 #define HEAPBASE   (0xffffffffc0000000)

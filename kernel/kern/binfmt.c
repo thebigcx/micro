@@ -1,9 +1,9 @@
-#include <binfmt.h>
-#include <elf.h>
-#include <mmu.h>
-#include <task.h>
-#include <stdlib.h>
-#include <cpu_func.h>
+#include <micro/binfmt.h>
+#include <micro/elf.h>
+#include <arch/mmu.h>
+#include <micro/task.h>
+#include <micro/stdlib.h>
+#include <arch/cpu_func.h>
 
 uintptr_t elf_load(struct task* task, void* data)
 {

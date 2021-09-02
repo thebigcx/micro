@@ -1,6 +1,6 @@
 #pragma once
 
-#include <types.h>
+#include <micro/types.h>
 
 struct st2_tag
 {

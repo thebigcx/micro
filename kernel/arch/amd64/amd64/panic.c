@@ -1,5 +1,5 @@
-#include <panic.h>
-#include <pio.h>
+#include <arch/panic.h>
+#include <arch/pio.h>
 
 static void shutdown()
 {

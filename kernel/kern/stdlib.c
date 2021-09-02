@@ -1,6 +1,6 @@
-#include <stdlib.h>
-#include <debug/syslog.h>
-#include <panic.h>
+#include <micro/stdlib.h>
+#include <micro/debug.h>
+#include <arch/panic.h>
 
 int abs(int n)
 {

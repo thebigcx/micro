@@ -1,10 +1,10 @@
-#include <task.h>
-#include <heap.h>
-#include <cpu.h>
-#include <thread.h>
-#include <debug/syslog.h>
-#include <binfmt.h>
-#include <vfs.h>
+#include <micro/task.h>
+#include <micro/heap.h>
+#include <arch/cpu.h>
+#include <micro/thread.h>
+#include <micro/debug.h>
+#include <micro/binfmt.h>
+#include <micro/vfs.h>
 
 // TODO: all of these functions contain repeated code, should refactor
 
@@ -171,9 +171,9 @@ void task_exit(int status)
     switch_next();
 }
 
-void task_send(struct task* task, signal_t signal)
+void task_send(struct task* task, int signal)
 {
-    signal_t* sig = kmalloc(sizeof(signal_t));
+    int* sig = kmalloc(sizeof(int));
     *sig = signal;
     list_push_back(&task->sigqueue, sig);
 }

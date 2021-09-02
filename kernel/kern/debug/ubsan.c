@@ -1,6 +1,6 @@
-#include <types.h>
-#include <debug/syslog.h>
-#include <panic.h>
+#include <micro/types.h>
+#include <micro/debug.h>
+#include <arch/panic.h>
 
 #if DEBUG
 

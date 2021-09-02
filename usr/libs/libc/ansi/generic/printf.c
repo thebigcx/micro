@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include <stdarg.h>
 #include <string.h>
-#include <stdlib.h>
+#include <micro/stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
 

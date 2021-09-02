@@ -1,5 +1,5 @@
-#include <stdlib.h>
-#include <signal.h>
+#include <micro/stdlib.h>
+#include <micro/signal.h>
 #include <libc/sysdeps-internal.h>
 
 int abs(int n)

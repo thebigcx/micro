@@ -1,8 +1,8 @@
-#include <vfs.h>
-#include <types.h>
-#include <stdlib.h>
-#include <tree.h>
-#include <heap.h>
+#include <micro/vfs.h>
+#include <micro/types.h>
+#include <micro/stdlib.h>
+#include <micro/tree.h>
+#include <micro/heap.h>
 
 struct tree root;
 

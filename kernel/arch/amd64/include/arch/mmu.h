@@ -1,6 +1,6 @@
 #pragma once
 
-#include <mmu_defs.h>
+#include <arch/mmu_defs.h>
 
 // User Virtual-Memory map
 struct vm_map

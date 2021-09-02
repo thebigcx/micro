@@ -1,7 +1,7 @@
 #pragma once
 
-#include <reg.h>
-#include <signal.h>
+#include <arch/reg.h>
+#include <micro/signal.h>
 
 #define THREAD_RUNNING  0
 #define THREAD_READY    1

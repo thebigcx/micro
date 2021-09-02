@@ -1,5 +1,5 @@
 #include <libc/libc-internal.h>
-#include <stdlib.h>
+#include <micro/stdlib.h>
 
 extern int main(int, void**);
 

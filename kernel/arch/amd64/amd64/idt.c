@@ -1,12 +1,12 @@
-#include <descs.h>
-#include <intr_stubs.h>
-#include <cpu.h>
-#include <debug/syslog.h>
-#include <lapic.h>
-#include <timer.h>
-#include <except.h>
-#include <stdlib.h>
-#include <cpu_func.h>
+#include <arch/descs.h>
+#include <arch/intr_stubs.h>
+#include <arch/cpu.h>
+#include <micro/debug.h>
+#include <arch/lapic.h>
+#include <arch/timer.h>
+#include <arch/except.h>
+#include <micro/stdlib.h>
+#include <arch/cpu_func.h>
 
 #define REGISTER_ISR(i) mkintr(i, isr##i, 0)
 #define REGISTER_IRQ(i) mkintr(i + 32, irq##i, 0)
@@ -61,8 +61,55 @@ void idt_set_handler(unsigned int n, void (*handler)(struct regs*))
 
 void idt_init()
 {
-    FOLD32(REGISTER_ISR, 0);
-    FOLD16(REGISTER_IRQ, 0);
+    REGISTER_ISR(0);
+    REGISTER_ISR(1);
+    REGISTER_ISR(2);
+    REGISTER_ISR(3);
+    REGISTER_ISR(4);
+    REGISTER_ISR(5);
+    REGISTER_ISR(6);
+    REGISTER_ISR(7);
+    REGISTER_ISR(8);
+    REGISTER_ISR(9);
+    REGISTER_ISR(10);
+    REGISTER_ISR(11);
+    REGISTER_ISR(12);
+    REGISTER_ISR(13);
+    REGISTER_ISR(14);
+    REGISTER_ISR(15);
+    REGISTER_ISR(16);
+    REGISTER_ISR(17);
+    REGISTER_ISR(18);
+    REGISTER_ISR(19);
+    REGISTER_ISR(20);
+    REGISTER_ISR(21);
+    REGISTER_ISR(22);
+    REGISTER_ISR(23);
+    REGISTER_ISR(24);
+    REGISTER_ISR(25);
+    REGISTER_ISR(26);
+    REGISTER_ISR(27);
+    REGISTER_ISR(28);
+    REGISTER_ISR(29);
+    REGISTER_ISR(30);
+    REGISTER_ISR(31);
+    
+    REGISTER_IRQ(0);
+    REGISTER_IRQ(1);
+    REGISTER_IRQ(2);
+    REGISTER_IRQ(3);
+    REGISTER_IRQ(4);
+    REGISTER_IRQ(5);
+    REGISTER_IRQ(6);
+    REGISTER_IRQ(7);
+    REGISTER_IRQ(8);
+    REGISTER_IRQ(9);
+    REGISTER_IRQ(10);
+    REGISTER_IRQ(11);
+    REGISTER_IRQ(12);
+    REGISTER_IRQ(13);
+    REGISTER_IRQ(14);
+    REGISTER_IRQ(15);
 
     mkintr(0x80, irq0x80, 1); // syscall()
     mkintr(0xfd, irq0xfd, 0); // schedule()

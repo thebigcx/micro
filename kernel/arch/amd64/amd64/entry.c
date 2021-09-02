@@ -1,19 +1,19 @@
-#include <boot.h>
-#include <types.h>
-#include <debug/syslog.h>
-#include <descs.h>
-#include <init.h>
-#include <cpu.h>
-#include <mmu.h>
-#include <acpi.h>
-#include <lapic.h>
-#include <smp.h>
-#include <heap.h>
-#include <cpu_func.h>
-#include <vfs.h>
-#include <stdlib.h>
-#include <task.h>
-#include <sched.h>
+#include <arch/boot.h>
+#include <micro/types.h>
+#include <micro/debug.h>
+#include <arch/descs.h>
+#include <micro/init.h>
+#include <arch/cpu.h>
+#include <arch/mmu.h>
+#include <micro/acpi.h>
+#include <arch/lapic.h>
+#include <arch/smp.h>
+#include <micro/heap.h>
+#include <arch/cpu_func.h>
+#include <micro/vfs.h>
+#include <micro/stdlib.h>
+#include <micro/task.h>
+#include <micro/sched.h>
 
 static uint8_t stack[4096];
 

@@ -1,6 +1,6 @@
-#include <tree.h>
-#include <types.h>
-#include <heap.h>
+#include <micro/tree.h>
+#include <micro/types.h>
+#include <micro/heap.h>
 
 struct tree tree_create()
 {

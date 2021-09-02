@@ -1,4 +1,4 @@
-#include <stdlib.h>
+#include <micro/stdlib.h>
 #include <string.h>
 
 char* itoa(int value, char* str, int base)

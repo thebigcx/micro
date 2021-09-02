@@ -1,6 +1,6 @@
 #pragma once
 
-#include <types.h>
+#include <micro/types.h>
 
 #define GDT_CODE0   0x08
 #define GDT_DATA0   0x10

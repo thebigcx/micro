@@ -1,9 +1,9 @@
-#include <ioapic.h>
-#include <lapic.h>
-#include <mmu.h>
-#include <pic.h>
-#include <acpi.h>
-#include <acpi_defs.h>
+#include <arch/ioapic.h>
+#include <arch/lapic.h>
+#include <arch/mmu.h>
+#include <arch/pic.h>
+#include <micro/acpi.h>
+#include <micro/acpi_defs.h>
 
 #define R_REGSEL 0x00
 #define R_IOWIN  0x10

@@ -1,7 +1,7 @@
-#include <cpu.h>
-#include <thread.h>
-#include <task.h>
-#include <reg.h>
+#include <arch/cpu.h>
+#include <micro/thread.h>
+#include <micro/task.h>
+#include <arch/reg.h>
 
 struct cpu_info g_cpus[MAX_CPUS];
 unsigned int g_cpu_cnt = 1;

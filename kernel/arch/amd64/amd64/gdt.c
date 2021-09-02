@@ -1,7 +1,7 @@
-#include <descs.h>
-#include <stdlib.h>
-#include <cpu.h>
-#include <cpu_func.h>
+#include <arch/descs.h>
+#include <micro/stdlib.h>
+#include <arch/cpu.h>
+#include <arch/cpu_func.h>
 
 #define TYPE_DATA_W 0x2 // Writable Data
 #define TYPE_CODE_X 0x8 // Executable Code

@@ -1,8 +1,8 @@
 #pragma once
 
-#include <types.h>
-#include <platform.h>
-#include <descs.h>
+#include <micro/types.h>
+#include <micro/platform.h>
+#include <arch/descs.h>
 
 FORCE_INLINE void lidt(struct descptr* idtr)
 {

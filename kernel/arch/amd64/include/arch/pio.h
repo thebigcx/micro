@@ -1,7 +1,7 @@
 #pragma once
 
-#include <types.h>
-#include <platform.h>
+#include <micro/types.h>
+#include <micro/platform.h>
 
 FORCE_INLINE void outb(uint16_t port, uint8_t val)
 {

@@ -1,11 +1,11 @@
-#include <sys.h>
-#include <types.h>
-#include <task.h>
-#include <vfs.h>
-#include <reg.h>
-#include <cpu.h>
-#include <thread.h>
-#include <sched.h>
+#include <micro/sys.h>
+#include <micro/types.h>
+#include <micro/task.h>
+#include <micro/vfs.h>
+#include <arch/reg.h>
+#include <arch/cpu.h>
+#include <micro/thread.h>
+#include <micro/sched.h>
 
 // TODO: API folder
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cpu_func.h>
+#include <arch/cpu_func.h>
 
 typedef volatile int lock_t;
 

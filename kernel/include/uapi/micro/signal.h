@@ -1,14 +1,5 @@
 #pragma once
 
-typedef int signal_t;
-
-// Default actions
-#define SIGDEF_TERM 0
-#define SIGDEF_IGN  1
-#define SIGDEF_CORE 2
-#define SIGDEF_STOP 3
-#define SIGDEF_CONT 4
-
 #define SIGABRT     0
 #define SIGALRM     1
 #define SIGBUS      2

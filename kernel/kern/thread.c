@@ -1,8 +1,8 @@
-#include <thread.h>
-#include <task.h>
-#include <mmu.h>
-#include <cpu.h>
-#include <stdlib.h>
+#include <micro/thread.h>
+#include <micro/task.h>
+#include <arch/mmu.h>
+#include <arch/cpu.h>
+#include <micro/stdlib.h>
 
 void thread_start(struct thread* thread)
 {
@@ -52,6 +52,13 @@ struct thread* thread_curr()
     return cpu_curr()->current;
 }
 
+// Default actions
+#define SIGDEF_TERM 0
+#define SIGDEF_IGN  1
+#define SIGDEF_CORE 2
+#define SIGDEF_STOP 3
+#define SIGDEF_CONT 4
+
 // Signal Defaults 
 static int defaults[] =
 {
@@ -88,8 +95,8 @@ static int defaults[] =
 
 void thread_handle_signals(struct thread* thread)
 {
-    signal_t* sigptr = list_dequeue(&thread->parent->sigqueue);
-    signal_t sig = *sigptr;
+    int* sigptr = list_dequeue(&thread->parent->sigqueue);
+    int sig = *sigptr;
     kfree(sigptr);
 
     printk("Task %d received signal %d\n", thread->parent->id, sig);

@@ -1,16 +1,16 @@
-#include <boot.h>
-#include <cpu.h>
-#include <mmu.h>
-#include <acpi.h>
-#include <lapic.h>
-#include <smp.h>
-#include <heap.h>
-#include <cpu_func.h>
-#include <vfs.h>
-#include <stdlib.h>
-#include <task.h>
-#include <sched.h>
-#include <init.h>
+#include <arch/boot.h>
+#include <arch/cpu.h>
+#include <arch/mmu.h>
+#include <micro/acpi.h>
+#include <arch/lapic.h>
+#include <arch/smp.h>
+#include <micro/heap.h>
+#include <arch/cpu_func.h>
+#include <micro/vfs.h>
+#include <micro/stdlib.h>
+#include <micro/task.h>
+#include <micro/sched.h>
+#include <micro/init.h>
 
 void main(struct bootparams params)
 {

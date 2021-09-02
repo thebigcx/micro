@@ -1,8 +1,8 @@
-#include <lapic.h>
-#include <cpu.h>
-#include <debug/syslog.h>
-#include <mmu.h>
-#include <cpu_func.h>
+#include <arch/lapic.h>
+#include <arch/cpu.h>
+#include <micro/debug.h>
+#include <arch/mmu.h>
+#include <arch/cpu_func.h>
 
 // Local APIC registers
 #define R_ID          0x020

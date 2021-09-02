@@ -1,6 +1,6 @@
-#include <pic.h>
-#include <cpu.h>
-#include <pio.h>
+#include <arch/pic.h>
+#include <arch/cpu.h>
+#include <arch/pio.h>
 
 #define PIC1_COMMAND    0x20
 #define PIC1_DATA       0x21

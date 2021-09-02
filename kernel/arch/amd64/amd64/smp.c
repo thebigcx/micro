@@ -1,15 +1,15 @@
-#include <smp.h>
-#include <types.h>
-#include <mmu.h>
-#include <debug/syslog.h>
-#include <lapic.h>
-#include <cpu.h>
-#include <stdlib.h>
-#include <timer.h>
-#include <list.h>
-#include <cpu_func.h>
-#include <acpi.h>
-#include <acpi_defs.h>
+#include <arch/smp.h>
+#include <micro/types.h>
+#include <arch/mmu.h>
+#include <micro/debug.h>
+#include <arch/lapic.h>
+#include <arch/cpu.h>
+#include <micro/stdlib.h>
+#include <arch/timer.h>
+#include <micro/list.h>
+#include <arch/cpu_func.h>
+#include <micro/acpi.h>
+#include <micro/acpi_defs.h>
 
 #define TRMP_ENTRY 0x8000
 #define AP_CR3     0x1000

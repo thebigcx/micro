@@ -1,8 +1,8 @@
-#include <init.h>
-#include <debug/syslog.h>
-#include <vfs.h>
-#include <task.h>
-#include <sched.h>
+#include <micro/init.h>
+#include <micro/debug.h>
+#include <micro/vfs.h>
+#include <micro/task.h>
+#include <micro/sched.h>
 
 struct fheader
 {

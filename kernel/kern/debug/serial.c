@@ -1,9 +1,9 @@
-#include <debug/syslog.h>
-#include <stdlib.h>
-#include <types.h>
-#include <cpu.h>
-#include <lock.h>
-#include <pio.h>
+#include <micro/debug.h>
+#include <micro/stdlib.h>
+#include <micro/types.h>
+#include <arch/cpu.h>
+#include <micro/lock.h>
+#include <arch/pio.h>
 
 #if DEBUG
 

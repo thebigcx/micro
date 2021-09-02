@@ -1,6 +1,6 @@
 #pragma once
 
-#include <types.h>
+#include <micro/types.h>
 
 #define PAGE4K 0x1000
 #define PAGE2M 0x200000

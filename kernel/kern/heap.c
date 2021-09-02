@@ -1,7 +1,7 @@
-#include <heap.h>
-#include <mmu.h>
-#include <debug/syslog.h>
-#include <lock.h>
+#include <micro/heap.h>
+#include <arch/mmu.h>
+#include <micro/debug.h>
+#include <micro/lock.h>
 
 struct block
 {

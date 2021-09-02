@@ -1,9 +1,9 @@
-#include <sched.h>
-#include <task.h>
-#include <thread.h>
-#include <cpu.h>
-#include <lapic.h>
-#include <debug/syslog.h>
+#include <micro/sched.h>
+#include <micro/task.h>
+#include <micro/thread.h>
+#include <arch/cpu.h>
+#include <arch/lapic.h>
+#include <micro/debug.h>
 
 static int ready = 0;
 static struct list tasks;

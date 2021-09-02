@@ -1,10 +1,10 @@
 #pragma once
 
-#include <types.h>
-#include <descs.h>
-#include <list.h>
-#include <lock.h>
-#include <reg.h>
+#include <micro/types.h>
+#include <arch/descs.h>
+#include <micro/list.h>
+#include <micro/lock.h>
+#include <arch/reg.h>
 
 struct thread;
 

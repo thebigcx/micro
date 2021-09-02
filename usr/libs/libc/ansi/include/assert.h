@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdio.h>
-#include <stdlib.h>
+#include <micro/stdlib.h>
 
 void __assert_failed(const char* expr)
 {

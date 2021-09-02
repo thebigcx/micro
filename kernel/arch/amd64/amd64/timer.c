@@ -1,8 +1,8 @@
-#include <timer.h>
-#include <descs.h>
-#include <cpu.h>
-#include <sched.h>
-#include <pio.h>
+#include <arch/timer.h>
+#include <arch/descs.h>
+#include <arch/cpu.h>
+#include <micro/sched.h>
+#include <arch/pio.h>
 
 #define FREQ 1193182
 

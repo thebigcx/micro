@@ -4,7 +4,7 @@
 
 #include <stdio.h>
 #include <stdint.h>
-#include <stdlib.h>
+#include <micro/stdlib.h>
 #include <string.h>
 
 typedef struct fheader

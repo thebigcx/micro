@@ -1,5 +1,5 @@
 LDFLAGS = -Tkernel.ld -nostdlib
-CFLAGS = -Wall -Wextra -ffreestanding -g -DDEBUG -fno-stack-protector -fno-pic -fpie -mno-red-zone -nostdinc -fsanitize=undefined -Iinclude/kern
+CFLAGS = -Wall -Wextra -ffreestanding -g -DDEBUG -fno-stack-protector -fno-pic -fpie -mno-red-zone -nostdinc -fsanitize=undefined -Iinclude -Iinclude/uapi
 
 include arch/amd64/amd64.mk
 include kern/kern.mk

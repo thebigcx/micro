@@ -1,10 +1,10 @@
-#include <acpi.h>
-#include <acpi_defs.h>
-#include <mmu.h>
-#include <debug/syslog.h>
-#include <stdlib.h>
-#include <ioapic.h>
-#include <list.h>
+#include <micro/acpi.h>
+#include <micro/acpi_defs.h>
+#include <arch/mmu.h>
+#include <micro/debug.h>
+#include <micro/stdlib.h>
+#include <arch/ioapic.h>
+#include <micro/list.h>
 
 static struct rsdt* rsdt;
 static struct xsdt* xsdt;
