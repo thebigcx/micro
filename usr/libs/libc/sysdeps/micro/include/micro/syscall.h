@@ -9,6 +9,7 @@
 #define SYS_fork            4
 #define SYS_execve          5
 #define SYS_exit            6
+#define SYS_kill            7
 
 /*#define SYS_mmap            7
 #define SYS_munmap          8

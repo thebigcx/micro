@@ -64,14 +64,14 @@ int sys_exit(int status)
 	return 0;
 }
 
-/*pid_t sys_getpid()
-{
-	return (pid_t)syscall(SYS_getpid);
-}
-
 int sys_kill(pid_t pid, int sig)
 {
 	return syscall(SYS_kill, pid, sig);
+}
+
+/*pid_t sys_getpid()
+{
+	return (pid_t)syscall(SYS_getpid);
 }
 
 int sys_sigaction(int signum, const struct sigaction* act, struct sigaction* old)

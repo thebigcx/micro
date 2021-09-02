@@ -34,6 +34,17 @@ void switch_next(struct regs* r)
     }
 
     cpu->current = cpu_next_ready(cpu);
+    if (cpu->current == cpu->current->parent->main)
+    {
+        if (cpu->current->parent->sigqueue.size)
+        {
+            //signal_t* sigptr = list_dequeue(&cpu->current->parent->sigqueue);
+            //signal_t sig = *sigptr;
+            //kfree(sigptr);
+
+            thread_handle_signals(cpu->current);
+        }
+    }
 
     cpu->current->state = THREAD_RUNNING;
     cpu_set_kstack(cpu, cpu->current->kstack);
@@ -60,5 +71,6 @@ void sched_start(struct task* task)
 
 void sched_yield()
 {
+    sti();
     asm volatile ("int $0xfe");
 }

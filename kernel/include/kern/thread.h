@@ -1,6 +1,7 @@
 #pragma once
 
 #include <reg.h>
+#include <signal.h>
 
 #define THREAD_RUNNING  0
 #define THREAD_READY    1
@@ -24,3 +25,4 @@ void thread_start(struct thread* thread);
 struct thread* thread_creat(struct task* parent, uintptr_t entry, int usr);
 struct thread* thread_clone(struct task* parent, struct thread* src);
 struct thread* thread_curr();
+void thread_handle_signals(struct thread* thread);

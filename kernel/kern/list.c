@@ -27,7 +27,7 @@ void list_push_back(struct list* list, void* data)
     list->size++;
 }
 
-void* list_pop_front(struct list* list)
+void* list_dequeue(struct list* list)
 {
     if (!list->head) return NULL;
 
@@ -53,7 +53,7 @@ void* list_pop_front(struct list* list)
 
 void list_clear(struct list* self)
 {
-    while (self->size) list_pop_front(self);
+    while (self->size) list_dequeue(self);
 }
 
 void* list_get(struct list* self, size_t i)

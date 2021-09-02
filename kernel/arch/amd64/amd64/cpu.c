@@ -32,7 +32,7 @@ struct thread* cpu_next_ready(struct cpu_info* cpu)
         }
         else
         {
-            cpu->current = list_pop_front(&cpu->threads);
+            cpu->current = list_dequeue(&cpu->threads);
             list_push_back(&cpu->threads, cpu->current);
             i--;
         }

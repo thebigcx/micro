@@ -70,6 +70,16 @@ static int sys_exit(int stat)
     return -1;
 }
 
+static int sys_kill(int pid, int sig)
+{
+    // TODO: impl proper
+
+    task_send(task_curr(), sig);
+    sched_yield();
+
+    return 0;
+}
+
 typedef uintptr_t (*syscall_t)();
 
 static syscall_t syscalls[] =
@@ -80,7 +90,8 @@ static syscall_t syscalls[] =
     sys_write,
     sys_fork,
     sys_execve,
-    sys_exit
+    sys_exit,
+    sys_kill
 };
 
 void syscall_handler(struct regs* r)

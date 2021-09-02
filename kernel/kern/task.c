@@ -20,6 +20,11 @@ static struct task* mktask(struct task* parent)
     task->vm_map = mmu_create_vmmap();
     task->children = list_create();
     task->parent = parent;
+    task->main = NULL;
+    task->sigmask = 0;
+    task->sigqueue = list_create();
+    
+    memset(task->signals, 0, sizeof(task->signals));
 
     return task;
 }
@@ -40,16 +45,16 @@ struct task* task_creat(struct task* parent, const void* buffer, char* argv[], c
     struct task* task = mktask(parent);
 
     uintptr_t entry = elf_load(task, buffer);
-    struct thread* main = thread_creat(task, entry, 1);
+    task->main = thread_creat(task, entry, 1);
     
     // Top of canonical lower-half
     uintptr_t stack = 0x8000000000;
     mmu_map(task->vm_map, stack - 0x1000, mmu_alloc_phys(), PAGE_PR | PAGE_RW);
 
-    main->regs.rsp = stack;
-    main->regs.rbp = stack;
+    task->main->regs.rsp = stack;
+    task->main->regs.rbp = stack;
 
-    list_push_back(&task->threads, main);
+    list_push_back(&task->threads, task->main);
 
     list_push_back(&task->fds, vfs_open(vfs_resolve("/dev/tty")));
     list_push_back(&task->fds, vfs_open(vfs_resolve("/dev/tty")));
@@ -61,16 +66,16 @@ struct task* task_kcreat(struct task* parent, uintptr_t entry)
 {
     struct task* task = mktask(parent);
 
-    struct thread* main = thread_creat(task, entry, 0);
+    task->main = thread_creat(task, entry, 0);
 
     // Top of canonical lower-half
     uintptr_t stack = 0x8000000000;
     mmu_map(task->vm_map, stack - 0x1000, mmu_alloc_phys(), PAGE_PR | PAGE_RW);
 
-    main->regs.rsp = stack;
-    main->regs.rbp = stack;
+    task->main->regs.rsp = stack;
+    task->main->regs.rbp = stack;
 
-    list_push_back(&task->threads, main);
+    list_push_back(&task->threads, task->main);
 
     return task;
 }
@@ -85,9 +90,12 @@ struct task* task_clone(const struct task* src, struct thread* calling)
     task->fds = list_create();
     task->children = list_create();
     task->parent = src;
+    task->main = thread_clone(task, calling);
+    task->sigmask = 0;
+    task->sigqueue = list_create();
+    memset(task->signals, 0, sizeof(task->signals));
 
-    struct thread* main = thread_clone(task, calling);
-    list_push_back(&task->threads, main);
+    list_push_back(&task->threads, task->main);
 
     LIST_FOREACH(&src->fds)
     {
@@ -121,16 +129,16 @@ void task_execve(struct task* task, const char* path, const char* argv[], const 
     vfs_read(file, data, 0, file->size);
 
     uintptr_t entry = elf_load(task, data);
-    struct thread* main = thread_creat(task, entry, 1);
+    task->main = thread_creat(task, entry, 1);
     
     // Top of canonical lower-half
     uintptr_t stack = 0x8000000000;
     mmu_map(task->vm_map, stack - 0x1000, mmu_alloc_phys(), PAGE_PR | PAGE_RW);
 
-    main->regs.rsp = stack;
-    main->regs.rbp = stack;
+    task->main->regs.rsp = stack;
+    task->main->regs.rbp = stack;
 
-    list_push_back(&task->threads, main);
+    list_push_back(&task->threads, task->main);
 
     list_push_back(&task->fds, vfs_open(vfs_resolve("/dev/tty")));
     list_push_back(&task->fds, vfs_open(vfs_resolve("/dev/tty")));
@@ -140,7 +148,7 @@ void task_execve(struct task* task, const char* path, const char* argv[], const 
 
 void task_destroy(struct task* task)
 {
-    // TODO: implement properly
+    // TODO: implement properly this probably does not work
     LIST_FOREACH(&task->threads)
     {
         struct thread* thread = node->data;
@@ -153,9 +161,18 @@ void task_destroy(struct task* task)
     }
     list_clear(&task->fds);
 
+    task->main = NULL;
+
     mmu_destroy_vmmap(task->vm_map);
 
     kfree(task);
+}
+
+void task_send(struct task* task, signal_t signal)
+{
+    signal_t* sig = kmalloc(sizeof(signal_t));
+    *sig = signal;
+    list_push_back(&task->sigqueue, sig);
 }
 
 struct task* task_curr()
