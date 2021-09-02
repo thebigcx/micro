@@ -4,26 +4,49 @@
 #include <task.h>
 #include <sched.h>
 
-static uintptr_t initrd_start;
-static uintptr_t initrd_end;
-
 struct fheader
 {
     char name[128];
     uint64_t size;
 };
 
-void* initrd_read(const char* file)
+struct initrd
 {
-    struct fheader* curr = (struct fheader*)initrd_start;
+    uintptr_t start, end;
+};
 
-    while ((uintptr_t)curr < initrd_end)
+struct initrd_file
+{
+    uintptr_t start;
+};
+
+ssize_t initrd_read(struct file* file, void* buf, off_t off, size_t size)
+{
+    struct initrd_file* initrd_file = file->device;
+    memcpy(buf, initrd_file->start + off, size);
+    return size;
+}
+
+struct file* initrd_find(struct file* dir, const char* name)
+{
+    struct initrd* initrd = dir->device;
+    struct fheader* curr = (struct fheader*)initrd->start;
+
+    while ((uintptr_t)curr < initrd->end)
     {
-        if (!strcmp(curr->name, file))
+        if (!strcmp(curr->name, name))
         {
-            void* buffer = kmalloc(curr->size);
-            memcpy(buffer, (uintptr_t)curr + sizeof(struct fheader), curr->size);
-            return buffer;
+            struct file* file = kmalloc(sizeof(struct file));
+            file->ops.read = initrd_read;
+            file->flags = FL_FILE;
+
+            struct initrd_file* initrd_file = kmalloc(sizeof(struct initrd_file));
+            initrd_file->start = (uintptr_t)curr + sizeof(struct fheader);
+
+            file->size = curr->size;
+            file->device = initrd_file;
+
+            return file;
         }
 
         curr = (struct fheader*)((uintptr_t)curr + sizeof(struct fheader) + curr->size);
@@ -34,8 +57,16 @@ void* initrd_read(const char* file)
 
 void initrd_init(uintptr_t start, uintptr_t end)
 {
-    initrd_start = start;
-    initrd_end = end;
+    struct initrd* initrd = kmalloc(sizeof(struct initrd));
+    initrd->start = start;
+    initrd->end = end;
+
+    struct file* file = kmalloc(sizeof(struct file));
+    file->ops.find = initrd_find;
+    file->flags = FL_DIR;
+    file->device = initrd;
+
+    vfs_mount(file, "/initrd");
 }
 
 ssize_t tty_read(struct file* file, void* buf, off_t off, size_t size)
@@ -63,6 +94,7 @@ void generic_init(struct genbootparams params)
     struct file* file = kmalloc(sizeof(struct file));
     file->ops.read = tty_read;
     file->ops.write = tty_write;
+    file->flags = FL_CHARDEV;
     vfs_mount(file, "/dev/tty");
 
     //char* relat;
@@ -72,9 +104,15 @@ void generic_init(struct genbootparams params)
     struct fd* fd = vfs_open(vfs_resolve("/dev/tty"));
     printk("%x %x\n", fd->filp, file);
 
-    void* buffer = initrd_read("init");
-    struct task* init = task_creat(NULL, buffer, NULL, NULL);
-    sched_start(init);
+    struct file* init = vfs_resolve("/initrd/init");
+    printk("%x\n", init);
+
+    void* buffer = kmalloc(init->size);
+    vfs_read(init, buffer, 0, init->size);
+
+    //void* buffer = initrd_read("init");
+    struct task* init_task = task_creat(NULL, buffer, NULL, NULL);
+    sched_start(init_task);
 
 //    for(;;);
 

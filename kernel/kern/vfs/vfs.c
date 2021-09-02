@@ -41,7 +41,7 @@ struct file* vfs_find(struct file* dir, const char* name)
 {
     if (dir && (dir->flags & FL_DIR) && dir->ops.find)
     {
-        dir->ops.find(dir, name);
+        return dir->ops.find(dir, name);
     }
 
     return NULL;
@@ -89,7 +89,7 @@ int vfs_mount(struct file* file, const char* path)
             strcpy(nfile->name, old);
 
             tree_push_back(curr, nfile);
-            curr = curr->children.head->data;
+            curr = curr->children.tail->data;
         }
     }
 
