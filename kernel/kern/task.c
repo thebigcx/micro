@@ -100,15 +100,15 @@ void task_execve(struct task* task, const char* path, const char* argv[], const 
 {
     struct task* parent = task->parent;
     int id = task->id;
-    task_destroy(task);
+    //task_destroy(task);
 
     struct file* file = vfs_resolve(path);
     void* data = kmalloc(file->size);
     vfs_read(file, data, 0, file->size);
 
     struct task* new = task_creat(parent, data, argv, envp);
-    memcpy(task, new, sizeof(struct task));
-    sched_start(task);
+    //memcpy(task, new, sizeof(struct task));
+    sched_start(new);
 }
 
 void task_destroy(struct task* task)

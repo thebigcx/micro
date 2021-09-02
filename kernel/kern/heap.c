@@ -33,6 +33,7 @@ static void combine(struct block* b1, struct block* b2)
 static struct block* split(struct block* b, size_t n)
 {
     struct block* new = (struct block*)((uintptr_t)b + sizeof(struct block) + n);
+    memset(new, 0, sizeof(struct block));
    
     // Set the data
     new->used = 0;
@@ -58,7 +59,7 @@ void* kmalloc(size_t n)
 {
     if (n == 0) return NULL;
 
-    if (n % 16 != 0) n += 16 - (n % 16);
+    if (n % 32 != 0) n += 32 - (n % 32);
 
     LOCK(lock);
 
@@ -69,10 +70,13 @@ void* kmalloc(size_t n)
         {
             if (curr->size > n)
             {
+                heap_check();
                 struct block* b = split(curr, n);
                 b->used = 1;
                 UNLOCK(lock);
-                memset((void*)(curr + 1), 0xcb, curr->size);
+                heap_check();
+                memset((void*)(b + 1), 0xcb, b->size);
+                heap_check();
                 return b + 1;
             }
             else if (curr->size == n)
@@ -80,6 +84,7 @@ void* kmalloc(size_t n)
                 curr->used = 1;
                 UNLOCK(lock);
                 memset((void*)(curr + 1), 0xcb, curr->size);
+                heap_check();
                 return curr + 1;
             }
         }
@@ -117,4 +122,30 @@ void heap_init()
     first->size = 10000 * PAGE4K;
     first->next = NULL;
     first->prev = NULL;
+}
+
+// Scan the heap to find corrupted blocks - crazy large sizes, invalid prev and next pointers
+// 'used' flag not a 0 or a 1
+// This is *extremely* helpful for finding heap buffer overflows, though it needs to be run
+// effectively as often as possibly or between critical code
+void heap_check()
+{
+#ifdef DEBUG
+    struct block* curr = first;
+    while (curr != NULL)
+    {
+        if (curr != last && (uintptr_t)curr->next < 0xffffffffc0000000)
+            panic("Heap Check failed\n");
+
+        if (curr != first && (uintptr_t)curr->prev < 0xffffffffc0000000)
+            panic("Heap Check failed\n");
+
+        if ((curr->used != 0 && curr->used != 1) || curr->size > 0x10000000)
+        {
+            panic("Heap Check failed\n");
+        }
+
+        curr = curr->next;
+    }
+#endif
 }

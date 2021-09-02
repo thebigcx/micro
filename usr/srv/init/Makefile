@@ -1,7 +1,6 @@
 SOURCES := init.c
-ASM := syscall.S
 
-OBJS := $(patsubst %.c, %.o, $(SOURCES)) $(patsubst %.S, %.o, $(ASM))
+OBJS := $(patsubst %.c, %.o, $(SOURCES))
 TARG = init
 CFLAGS := -ffreestanding -fno-stack-protector -Wall -Wextra -Wno-unused-parameter -Wno-unused-variable -nostdinc -I$(ROOT)/usr/include
 
@@ -14,10 +13,6 @@ $(TARG): $(OBJS)
 %.o: %.c
 	@echo "    CC      $@"
 	@gcc $(CFLAGS) -c $< -o $@
-
-%.o: %.S
-	@echo "    AS      $@"
-	@gcc -c $< -o $@
 
 .PHONY:
 clean:
