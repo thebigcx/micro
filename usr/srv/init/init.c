@@ -10,5 +10,6 @@ void _start(int argc, char** argv)
     }
     
     write(1, "Parent", 6);
+    exit(0);
     for (;;);
 }

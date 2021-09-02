@@ -258,3 +258,8 @@ struct vm_map* mmu_clone_vmmap(const struct vm_map* src)
 
     return map;
 }
+
+void mmu_destroy_vmmap(struct vm_map* map)
+{
+    // TODO: implement
+}

@@ -13,7 +13,6 @@ struct cpu_info
     struct tss tss;
     union gdtent gdt[7];
     struct list threads;
-    struct list ready;
     struct thread* current;
     struct thread* idle;
     lock_t lock;
@@ -27,6 +26,7 @@ extern unsigned int g_cpu_cnt;
 struct cpu_info* cpu_curr();
 
 void cpu_set_kstack(struct cpu_info* cpu, uintptr_t kstack);
+struct thread* cpu_next_ready(struct cpu_info* cpu);
 
 void arch_init_thread(struct thread* thread, int usr);
 void arch_switch_ctx(struct thread* thread);

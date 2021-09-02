@@ -51,9 +51,9 @@ void* list_pop_front(struct list* list)
     return ret;
 }
 
-void list_clear()
+void list_clear(struct list* self)
 {
-    // TODO: impl
+    while (self->size) list_pop_front(self);
 }
 
 void* list_get(struct list* self, size_t i)

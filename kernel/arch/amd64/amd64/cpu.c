@@ -18,6 +18,30 @@ void cpu_set_kstack(struct cpu_info* cpu, uintptr_t kstack)
     cpu->tss.rsp[0] = kstack;
 }
 
+struct thread* cpu_next_ready(struct cpu_info* cpu)
+{
+    // Make sure we haven't looped back to the start
+    uintptr_t i = cpu->threads.size;
+
+    do
+    {
+        if (!cpu->threads.size || !i)
+        {
+            cpu->current = cpu->idle;
+            break;
+        }
+        else
+        {
+            cpu->current = list_pop_front(&cpu->threads);
+            list_push_back(&cpu->threads, cpu->current);
+            i--;
+        }
+
+    } while (cpu->current->state != THREAD_READY);
+
+    return cpu->current;
+}
+
 void _switch_ctx(struct regs*, uintptr_t, uint16_t);
 
 void arch_switch_ctx(struct thread* thread)

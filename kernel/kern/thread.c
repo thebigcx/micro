@@ -5,9 +5,8 @@
 
 void thread_start(struct thread* thread)
 {
-    // TODO: TEMP
+    // TODO: TEMP SMP
     list_push_back(&g_cpus[0].threads, thread);
-    list_push_back(&g_cpus[0].ready, thread);
     thread->state = THREAD_READY;
 }
 

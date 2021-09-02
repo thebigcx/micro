@@ -6,6 +6,8 @@
 #include <binfmt.h>
 #include <vfs.h>
 
+// TODO: all of these functions contain repeated code, should refactor
+
 static unsigned int s_id = 1;
 
 static struct task* mktask(struct task* parent)
@@ -98,17 +100,42 @@ struct task* task_clone(const struct task* src, struct thread* calling)
 
 void task_execve(struct task* task, const char* path, const char* argv[], const char* envp[])
 {
-    struct task* parent = task->parent;
-    int id = task->id;
-    task_destroy(task);
+    mmu_destroy_vmmap(task->vm_map);
+    task->vm_map = mmu_create_vmmap();
+
+    LIST_FOREACH(&task->threads)
+    {
+        struct thread* thread = node->data;
+        thread->state = THREAD_DEAD;
+    }
+    list_clear(&task->threads);
+
+    LIST_FOREACH(&task->fds)
+    {
+        vfs_close((struct fd*)node->data);
+    }
+    list_clear(&task->fds);
 
     struct file* file = vfs_resolve(path);
     void* data = kmalloc(file->size);
     vfs_read(file, data, 0, file->size);
 
-    struct task* new = task_creat(parent, data, argv, envp);
-    memcpy(task, new, sizeof(struct task));
-    sched_start(new);
+    uintptr_t entry = elf_load(task, data);
+    struct thread* main = thread_creat(task, entry, 1);
+    
+    // Top of canonical lower-half
+    uintptr_t stack = 0x8000000000;
+    mmu_map(task->vm_map, stack - 0x1000, mmu_alloc_phys(), PAGE_PR | PAGE_RW);
+
+    main->regs.rsp = stack;
+    main->regs.rbp = stack;
+
+    list_push_back(&task->threads, main);
+
+    list_push_back(&task->fds, vfs_open(vfs_resolve("/dev/tty")));
+    list_push_back(&task->fds, vfs_open(vfs_resolve("/dev/tty")));
+
+    sched_start(task); // Start the new main thread
 }
 
 void task_destroy(struct task* task)
@@ -119,6 +146,16 @@ void task_destroy(struct task* task)
         struct thread* thread = node->data;
         thread->state = THREAD_DEAD;
     }
+
+    LIST_FOREACH(&task->fds)
+    {
+        vfs_close((struct fd*)node->data);
+    }
+    list_clear(&task->fds);
+
+    mmu_destroy_vmmap(task->vm_map);
+
+    kfree(task);
 }
 
 struct task* task_curr()
