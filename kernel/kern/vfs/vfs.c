@@ -37,6 +37,16 @@ ssize_t vfs_write(struct file* file, void* buf, off_t off, size_t size)
     return 0;
 }
 
+struct file* vfs_find(struct file* dir, const char* name)
+{
+    if (dir && (dir->flags & FL_DIR) && dir->ops.find)
+    {
+        dir->ops.find(dir, name);
+    }
+
+    return NULL;
+}
+
 int vfs_mount(struct file* file, const char* path)
 {
     struct tree* curr = &root;
@@ -138,7 +148,21 @@ struct file* vfs_resolve(const char* path)
     char* relat;
     struct file* file = vfs_getmnt(path, &relat);
 
-    // TODO: find files in mounted filesystem
+    if (!(file->flags & FL_DIR))
+    {
+        return file; // File type
+    }
+
+    char* saveptr;
+    char* token = strtok_r(relat, "/", &saveptr);
+
+    while (token)
+    {
+        file = vfs_find(file, token);
+        if (!file) return NULL;
+
+        token = strtok_r(NULL, "/", &saveptr);
+    }
 
     return file;
 }

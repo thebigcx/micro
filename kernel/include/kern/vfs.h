@@ -6,11 +6,13 @@ struct file;
 
 typedef ssize_t (*read_t)(struct file* file, void* buf, off_t off, size_t size);
 typedef ssize_t (*write_t)(struct file* file, const void* buf, off_t off, size_t size);
+typedef struct file* (*find_t)(struct file* dir, const char* name);
 
 struct file_ops
 {
     read_t read;
     write_t write;
+    find_t find;
 };
 
 #define FL_FILE     1
@@ -43,6 +45,7 @@ void vfs_init();
 
 ssize_t vfs_read(struct file* file, void* buf, off_t off, size_t size);
 ssize_t vfs_write(struct file* file, void* buf, off_t off, size_t size);
+struct file* vfs_find(struct file* dir, const char* name);
 
 int vfs_mount(struct file* file, const char* path);
 struct file* vfs_getmnt(const char* path, char** relat);
