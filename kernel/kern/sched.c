@@ -6,9 +6,12 @@
 #include <debug/syslog.h>
 
 static int ready = 0;
+static struct list tasks;
 
 void sched_init()
 {
+    tasks = list_create();
+
     idt_set_handler(IPI_SCHED, switch_task);
 
     for (int i = 0; i < g_cpu_cnt; i++)
@@ -71,6 +74,7 @@ void sched_tick(struct regs* r)
 
 void sched_start(struct task* task)
 {
+    list_push_back(&tasks, task);
     LIST_FOREACH(&task->threads)
     {
         thread_start((struct thread*)node->data);
@@ -81,4 +85,16 @@ void sched_yield()
 {
     sti();
     asm volatile ("int $0xfe");
+}
+
+struct task* sched_task_fromid(int id)
+{
+    LIST_FOREACH(&tasks)
+    {
+        struct task* task = node->data;
+
+        if (task->id == id) return task;
+    }
+
+    return NULL;
 }

@@ -5,6 +5,7 @@
 #include <reg.h>
 #include <cpu.h>
 #include <thread.h>
+#include <sched.h>
 
 // TODO: API folder
 
@@ -72,11 +73,18 @@ static int sys_exit(int stat)
 static int sys_kill(int pid, int sig)
 {
     // TODO: impl proper
+    struct task* task = sched_task_fromid(pid);
+    //if (!task) return -ESRCH;
+    task_send(task, sig);
 
-    task_send(task_curr(), sig);
-    sched_yield();
+    if (task_curr() == task) sched_yield();
 
     return 0;
+}
+
+static int sys_getpid()
+{
+    return task_curr()->id;
 }
 
 typedef uintptr_t (*syscall_t)();
@@ -90,7 +98,8 @@ static syscall_t syscalls[] =
     sys_fork,
     sys_execve,
     sys_exit,
-    sys_kill
+    sys_kill,
+    sys_getpid
 };
 
 void syscall_handler(struct regs* r)

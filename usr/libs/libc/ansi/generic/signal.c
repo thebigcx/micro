@@ -7,10 +7,10 @@ int kill(pid_t pid, int sig)
 	return sys_kill(pid, sig);
 }
 
-/*int raise(int sig)
+int raise(int sig)
 {
     return kill((int)getpid(), sig);
-}*/
+}
 
 /*int sigaction(int signum, const struct sigaction* act, struct sigaction* old)
 {

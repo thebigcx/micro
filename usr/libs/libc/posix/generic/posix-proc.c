@@ -2,10 +2,10 @@
 #include <libc/sysdeps-internal.h>
 #include <errno.h>
 
-/*pid_t getpid()
+pid_t getpid()
 {
 	return sys_getpid();
-}*/
+}
 
 pid_t fork()
 {

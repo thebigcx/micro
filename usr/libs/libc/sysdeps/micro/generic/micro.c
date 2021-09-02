@@ -69,12 +69,12 @@ int sys_kill(pid_t pid, int sig)
 	return syscall(SYS_kill, pid, sig);
 }
 
-/*pid_t sys_getpid()
+pid_t sys_getpid()
 {
 	return (pid_t)syscall(SYS_getpid);
 }
 
-int sys_sigaction(int signum, const struct sigaction* act, struct sigaction* old)
+/*int sys_sigaction(int signum, const struct sigaction* act, struct sigaction* old)
 {
 	return syscall(SYS_SIGACTION, signum, act, old);
 }

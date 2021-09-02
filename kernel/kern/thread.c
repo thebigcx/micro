@@ -88,8 +88,6 @@ static int defaults[] =
 
 void thread_handle_signals(struct thread* thread)
 {
-    //
-
     signal_t* sigptr = list_dequeue(&thread->parent->sigqueue);
     signal_t sig = *sigptr;
     kfree(sigptr);
@@ -108,9 +106,6 @@ void thread_handle_signals(struct thread* thread)
                 //thread->state = THREAD_DEAD;
                 //task_destroy(thread->parent);
                 //sched_yield();
-                break;
-
-            case SIGDEF_IGN:
                 break;
 
             case SIGDEF_CORE:
