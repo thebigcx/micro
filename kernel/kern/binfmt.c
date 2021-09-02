@@ -33,7 +33,7 @@ uintptr_t elf_load(struct task* task, void* data)
             uintptr_t cr3 = rcr3();
             
             lcr3(task->vm_map->pml4_phys);
-            memcpy((void*)begin, (void*)((uintptr_t)data + phdr->offset + i), size);
+            memcpy((void*)begin, (void*)((uintptr_t)data + phdr->offset), size);
             lcr3(cr3);
         }
     }
