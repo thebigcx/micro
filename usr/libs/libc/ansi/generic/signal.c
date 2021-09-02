@@ -1,4 +1,4 @@
-#include <micro/signal.h>
+#include <signal.h>
 #include <unistd.h>
 #include <libc/sysdeps-internal.h>
 

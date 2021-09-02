@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <unistd.h>
-#include <micro/stdlib.h>
+#include <stdlib.h>
 #include <fcntl.h>
 
 FILE* fopen(const char* path, const char* mode)

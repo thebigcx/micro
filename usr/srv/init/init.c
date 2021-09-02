@@ -9,7 +9,7 @@ void _start(int argc, char** argv)
     read(fd, code, 100);
 
     write(1, code, 100);
-    exit(0);
+    //exit(0);
 
 
     if (fork() == 0)

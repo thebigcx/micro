@@ -1,7 +1,7 @@
 #pragma once
 
 #include <sys/types.h>
-#include <micro/signal.h>
+#include <signal.h>
 #include <dirent.h>
 #include <time.h>
 

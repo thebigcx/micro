@@ -85,11 +85,13 @@ void generic_init(struct genbootparams params)
 {
     sys_init();
 
+    printk("initializing VFS\n");
     vfs_init();
 
+    printk("mounting initial ramdisk\n");
     initrd_init(params.initrd_start, params.initrd_end);
 
-    // TODO: FIXME: TESTS
+    // TODO: temporary
 
     struct file* file = kmalloc(sizeof(struct file));
     file->ops.read = tty_read;
@@ -97,27 +99,8 @@ void generic_init(struct genbootparams params)
     file->flags = FL_CHARDEV;
     vfs_mount(file, "/dev/tty");
 
-    //char* relat;
-    //struct file* tty = vfs_getmnt("/dev/tty", &relat);
-    //ASSERT(file == tty);
-
-    struct fd* fd = vfs_open(vfs_resolve("/dev/tty"));
-    printk("%x %x\n", fd->filp, file);
-
-    struct file* init = vfs_resolve("/initrd/init");
-    printk("%x\n", init);
-
-    void* buffer = kmalloc(init->size);
-    vfs_read(init, buffer, 0, init->size);
-
-    //void* buffer = initrd_read("init");
-    struct task* init_task = task_creat(NULL, buffer, NULL, NULL);
-    sched_start(init_task);
-
-//    for(;;);
+    sched_start(task_init_creat());
 
     printk("starting scheduler\n");
     sched_init();
-
-    for (;;); 
 }

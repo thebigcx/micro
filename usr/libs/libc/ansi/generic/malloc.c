@@ -1,5 +1,5 @@
 #include <libc/libc-internal.h>
-#include <micro/stdlib.h>
+#include <stdlib.h>
 #include <stddef.h>
 #include <unistd.h>
 

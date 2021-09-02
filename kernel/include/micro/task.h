@@ -25,7 +25,7 @@ struct task
 struct thread;
 
 struct task* task_idle();
-struct task* task_creat(struct task* parent, const void* buffer, char* argv[], char* envp[]);
+struct task* task_init_creat();
 struct task* task_kcreat(struct task* parent, uintptr_t entry);
 struct task* task_clone(const struct task* src, struct thread* calling);
 struct task* task_curr();
