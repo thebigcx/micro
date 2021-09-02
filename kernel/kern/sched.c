@@ -33,20 +33,23 @@ void switch_next(struct regs* r)
         {
             // add back
             list_push_back(&cpu->ready, cpu->current);
+            cpu->current->state = THREAD_READY;
         }
     }
 
-    if (!cpu->ready.size)
+    do
     {
-        cpu->current = cpu->idle; // idle thread
-    }
-    else
-    {
-        cpu->current = list_pop_front(&cpu->ready);
-    }
+        if (!cpu->ready.size)
+        {
+            cpu->current = cpu->idle;
+            break;
+        }
+        else
+            cpu->current = list_pop_front(&cpu->ready);
+
+    } while (cpu->current->state != THREAD_READY); // Threads are not ready
 
     cpu->current->state = THREAD_RUNNING;
-
     cpu_set_kstack(cpu, cpu->current->kstack);
 
     UNLOCK(cpu->lock);

@@ -1,4 +1,4 @@
-SUBDIRS = init
+SUBDIRS = init init2
 
 all: $(SUBDIRS)
 $(SUBDIRS):

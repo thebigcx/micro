@@ -26,7 +26,7 @@ void main(struct bootparams params)
         mmu_kmap(vaddr + i, params.initrd_phys_start + i, PAGE_PR | PAGE_RW);
 
     genparams.initrd_start = vaddr;
-    genparams.initrd_end = vaddr + size;
+    genparams.initrd_end = vaddr + size * PAGE4K;
 
     gdt_init_cpu(&g_cpus[0]);
     idt_init();
