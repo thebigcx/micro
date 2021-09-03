@@ -20,4 +20,4 @@ qemu-system-x86_64                              \
     -smp 1                                      \
     -s -d guest_errors                          \
     -no-reboot -no-shutdown                     \
-#    --enable-kvm
+    --enable-kvm

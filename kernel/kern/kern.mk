@@ -10,6 +10,7 @@ SRC += kern/init.c           \
        kern/thread.c         \
        kern/sys.c            \
        kern/tree.c           \
-       kern/vfs/vfs.c        \
+       kern/fs/vfs.c         \
+       kern/fs/ext2.c        \
        kern/binfmt.c         \
        kern/ps2.c
