@@ -6,6 +6,8 @@
 #include <micro/binfmt.h>
 #include <micro/vfs.h>
 
+// TODO: needs WAY more locking
+
 static unsigned int s_id = 1;
 
 static struct task* mktask(struct task* parent, struct vm_map* vm_map)
@@ -27,6 +29,43 @@ static struct task* mktask(struct task* parent, struct vm_map* vm_map)
     return task;
 }
 
+#define PUSH_STR(stack, x) { stack -= strlen(x) + 1; strcpy((char*)stack, x); }
+#define PUSH(stack, type, x) { stack -= sizeof(type); *((type*)stack) = x; }
+
+static void setup_user_stack(struct task* task, const char* path, const char* argv[], const char* envp[])
+{
+    int argc = 0;
+    uintptr_t args[64];
+
+    uintptr_t cr3 = rcr3();
+
+    lcr3(task->vm_map->pml4_phys);
+
+    // Push the raw strings onto the stack
+    while (argv[argc])
+    {
+        PUSH_STR(task->main->regs.rsp, argv[argc]);
+        args[argc] = task->main->regs.rsp;
+        argc++;
+    }
+    
+    argc++; // Name of program
+
+    // Pointer-align the stack for char* argv[]
+    task->main->regs.rsp -= (task->main->regs.rsp % 8);
+
+    // Push pointers in reverse order
+    for (int i = argc - 1; i >= 0; i--)
+    {
+        PUSH(task->main->regs.rsp, uintptr_t, args[i]);
+    }
+
+    lcr3(cr3);
+
+    task->main->regs.rdi = argc;
+    task->main->regs.rsi = task->main->regs.rsp;
+}
+
 static void init_user_task(struct task* task, const char* path, const char* argv[], const char* envp[])
 {
     struct file* file = vfs_resolve(path);
@@ -42,6 +81,8 @@ static void init_user_task(struct task* task, const char* path, const char* argv
 
     task->main->regs.rsp = stack;
     task->main->regs.rbp = stack;
+
+    setup_user_stack(task, path, argv, envp);
 
     list_push_back(&task->threads, task->main);
 

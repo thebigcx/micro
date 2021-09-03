@@ -64,10 +64,22 @@ static int sys_fork()
 
 static int sys_execve(const char* path, const char* argv[], const char* envp[])
 {
+    if (!path || !argv) return -EFAULT;
+
     struct file* file = vfs_resolve(path); // TODO: canonicalize
     if (!file) return -ENOENT;
 
-    task_execve(task_curr(), path, argv, envp);
+    const char* argv_copy[16];
+    size_t argc = 0;
+    while (argv[argc] != NULL)
+    {
+        argv_copy[argc] = kmalloc(strlen(argv[argc]) + 1);
+        strcpy(argv_copy[argc], argv[argc]);
+        argc++;
+    }
+    argv_copy[argc] = NULL;
+
+    task_execve(task_curr(), path, argv_copy, envp);
     sched_yield();
     return -1;
 }
