@@ -2,26 +2,46 @@
 #include <stddef.h>
 #include <stdlib.h>
 
-void _start(int argc, char** argv)
+int main(int argc, char** argv)
 {
-    char code[100];
-    int fd = open("/initrd/init", 0, 0);
-    read(fd, code, 100);
+    int buffer_size = 0;
+    char buffer[100];
 
-    write(1, code, 100);
-    //exit(0);
-
-
-    if (fork() == 0)
+    while (1)
     {
-        //kill(0, 0);
-        //*((unsigned int*)0x10000000000000) = 1000;
-        int i = 100 / 0;
-        //raise(0);
-        execve("/initrd/init2", NULL, NULL);
+        printf("$ ");
+
+        while (1)
+        {
+            char c;
+            if (read(0, &c, 1))
+            {
+                printf("%c", c);
+
+                if (c == '\n')
+                {
+                    buffer[buffer_size] = 0;
+                    if (access(buffer, F_OK) == -1)
+                    {
+                        printf("%s: no such file or directory\n", buffer);
+                        break;
+                    }
+
+                    if (fork() == 0)
+                    {
+                        execve(buffer, NULL, NULL);
+                    }
+
+                    buffer_size = 0;
+                    break;
+                }
+                else
+                {
+                    buffer[buffer_size++] = c;
+                }
+            }
+        }
     }
-    
-    write(1, "Parent", 6);
-    exit(0);
-    for (;;);
+   
+    return 0;
 }

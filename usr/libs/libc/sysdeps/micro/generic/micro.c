@@ -74,6 +74,11 @@ pid_t sys_getpid()
 	return (pid_t)syscall(SYS_getpid);
 }
 
+int sys_access(const char* pathname, int mode)
+{
+	return syscall(SYS_access, pathname, mode);
+}
+
 /*int sys_sigaction(int signum, const struct sigaction* act, struct sigaction* old)
 {
 	return syscall(SYS_SIGACTION, signum, act, old);

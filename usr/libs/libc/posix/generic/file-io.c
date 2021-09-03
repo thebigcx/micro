@@ -59,6 +59,18 @@ ssize_t write(int fd, const void* buf, size_t count)
 	return bytes_written;
 }
 
+int access(const char* pathname, int mode)
+{
+	int err = sys_access(pathname, mode);
+	if (err)
+	{
+		errno = err;
+		return -1;
+	}
+
+	return 0;
+}
+
 /*int chdir(const char* path)
 {
 	int e = sys_chdir(path);

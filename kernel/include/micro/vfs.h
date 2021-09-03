@@ -54,3 +54,5 @@ struct fd* vfs_open(struct file* file);
 void vfs_close(struct fd* fd);
 
 struct file* vfs_resolve(const char* path);
+
+int vfs_access(const char* path, int mode);

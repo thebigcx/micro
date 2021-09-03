@@ -3,7 +3,7 @@
 
 #add_subdirectory(srv)
 
-SUBDIRS = libs srv
+SUBDIRS = libs srv apps
 
 all: $(SUBDIRS)
 $(SUBDIRS):

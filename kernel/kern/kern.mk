@@ -11,4 +11,5 @@ SRC += kern/init.c           \
        kern/sys.c            \
        kern/tree.c           \
        kern/vfs/vfs.c        \
-       kern/binfmt.c
+       kern/binfmt.c         \
+       kern/ps2.c

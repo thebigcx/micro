@@ -6,13 +6,18 @@
 #include <arch/cpu.h>
 #include <micro/thread.h>
 #include <micro/sched.h>
+#include <micro/errno.h>
 
 // TODO: API folder
 
-static int sys_open(const char* path, uint32_t flags, mode_t mode)
+static int sys_open(const char* path, uint32_t flags)
 {
     struct task* task = task_curr();
-    list_push_back(&task->fds, vfs_open(vfs_resolve(path))); // TODO: canonicalize the path first
+
+    struct file* file = vfs_resolve(path); // TODO: canonicalize
+    if (!file) return -ENOENT;
+
+    list_push_back(&task->fds, vfs_open(file));
     return task->fds.size - 1;
 }
 
@@ -24,7 +29,7 @@ static int sys_close(int fd)
 static ssize_t sys_read(int fdno, void* buf, size_t size)
 {
     struct task* task = task_curr();
-    //if (fd < 0 || fd >= task->fds.size) return -EBADF;
+    if (fdno < 0 || fdno >= task->fds.size) return -EBADF;
 
     struct fd* fd = list_get(&task->fds, fdno);
     ssize_t ret = vfs_read(fd->filp, buf, fd->off, size);
@@ -35,7 +40,7 @@ static ssize_t sys_read(int fdno, void* buf, size_t size)
 static ssize_t sys_write(int fdno, const void* buf, size_t size)
 {
     struct task* task = task_curr();
-    //if (fd < 0 || fd >= task->fds.size) return -EBADF;
+    if (fdno < 0 || fdno >= task->fds.size) return -EBADF;
 
     struct fd* fd = list_get(&task->fds, fdno);
     ssize_t ret = vfs_write(fd->filp, buf, fd->off, size);
@@ -59,6 +64,9 @@ static int sys_fork()
 
 static int sys_execve(const char* path, const char* argv[], const char* envp[])
 {
+    struct file* file = vfs_resolve(path); // TODO: canonicalize
+    if (!file) return -ENOENT;
+
     task_execve(task_curr(), path, argv, envp);
     sched_yield();
     return -1;
@@ -72,9 +80,11 @@ static int sys_exit(int stat)
 
 static int sys_kill(int pid, int sig)
 {
+    if (sig < 0 || sig > 32) return -EINVAL;
+
     // TODO: impl proper
     struct task* task = sched_task_fromid(pid);
-    //if (!task) return -ESRCH;
+    if (!task) return -ESRCH;
     task_send(task, sig);
 
     if (task_curr() == task) sched_yield();
@@ -85,6 +95,11 @@ static int sys_kill(int pid, int sig)
 static int sys_getpid()
 {
     return task_curr()->id;
+}
+
+static int sys_access(const char* pathname, int mode)
+{
+    return vfs_access(pathname, mode);
 }
 
 typedef uintptr_t (*syscall_t)();
@@ -99,13 +114,21 @@ static syscall_t syscalls[] =
     sys_execve,
     sys_exit,
     sys_kill,
-    sys_getpid
+    sys_getpid,
+    sys_access
 };
 
 void syscall_handler(struct regs* r)
 {
+    uintptr_t n = arch_syscall_num(r);
+    if (n > sizeof(syscalls) / sizeof(syscall_t))
+    {
+        arch_syscall_ret(r, -ENOSYS);
+        return;
+    }
+
     thread_curr()->syscall_regs = *r;
-    syscall_t sc = syscalls[arch_syscall_num(r)];
+    syscall_t sc = syscalls[n];
     arch_syscall_ret(r, sc(ARCH_SCARG0(r),
                            ARCH_SCARG1(r),
                            ARCH_SCARG2(r),

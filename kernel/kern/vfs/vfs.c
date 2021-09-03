@@ -3,6 +3,7 @@
 #include <micro/stdlib.h>
 #include <micro/tree.h>
 #include <micro/heap.h>
+#include <micro/errno.h>
 
 struct tree root;
 
@@ -178,4 +179,13 @@ struct fd* vfs_open(struct file* file)
 void vfs_close(struct fd* fd)
 {
     // TODO: free memory
+}
+
+int vfs_access(const char* path, int mode)
+{
+    struct file* file = vfs_resolve(path);
+    if (!file) return -ENOENT;
+
+    // TODO: permission checks
+    return 0;
 }

@@ -3,6 +3,7 @@
 #include <micro/vfs.h>
 #include <micro/task.h>
 #include <micro/sched.h>
+#include <micro/ps2.h>
 
 struct fheader
 {
@@ -69,10 +70,48 @@ void initrd_init(uintptr_t start, uintptr_t end)
     vfs_mount(file, "/initrd");
 }
 
+static char ascii[] =
+{
+    'c', '~', '1', '2', '3', '4', '5',
+    '6', '7', '8', '9', '0', '-', '=',
+    '\b', '\t', 'q', 'w', 'e', 'r', 't',
+    'y', 'u', 'i', 'o', 'p', '[', ']',
+    '\n', '~', 'a', 's', 'd', 'f', 'g',
+    'h', 'j', 'k', 'l', ';', '\'', '`',
+    '~', '\\', 'z', 'x', 'c', 'v', 'b',
+    'n', 'm', ',', '.', '/', '~', '*',
+    '~', ' ', '~', 'c', 'c', 'c', 'c',
+    'c', 'c', 'c', 'c', 'c', 'c', 'c',
+    'c', 'c', 'c', 'c', 'c', 'c', 'c',
+    'c', 'c', 'c', 'c', 'c', 'c', 'c',
+    'c', 'c', 'c', 'c', 'c', 'c', 'c',
+    'c', 'c', 'c', 'c', 'c', 'c', 'c',
+    'c', 'c', 'c', 'c', 'c', 'c', 'c',
+    'c', 'c', 'c', 'c', 'c', 'c', 'c',
+    'c', 'c', 'c', 'c', 'c', 'c', 'c',
+    'c', 'c', 'c', 'c', 'c', 'c', 'c'
+};
+
+// FIXME: this is terrible - but at least it works
 ssize_t tty_read(struct file* file, void* buf, off_t off, size_t size)
 {
-    memset(buf, '6', size);
-    return 0;
+    uint8_t* raw = kmalloc(size);
+    ssize_t bytes = kb_read(file, raw, off, size);
+    ssize_t kbsize = 0;
+
+    for (size_t i = 0; i < size; i++)
+    {
+        if (raw[i] < 88)
+        {
+            ((char*)buf)[kbsize++] = ascii[*raw];
+        }
+
+        buf++;
+    }
+
+    kfree(raw);
+
+    return kbsize;
 }
 
 ssize_t tty_write(struct file* file, const void* buf, off_t off, size_t size)
@@ -87,6 +126,8 @@ void generic_init(struct genbootparams params)
 
     printk("initializing VFS\n");
     vfs_init();
+    
+    ps2_init();
 
     printk("mounting initial ramdisk\n");
     initrd_init(params.initrd_start, params.initrd_end);

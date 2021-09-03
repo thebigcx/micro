@@ -29,3 +29,4 @@ int sys_mmap(void* addr, size_t length, int prot, int flags, int fd, off_t offse
 int sys_munmap(void* addr, size_t length);
 int sys_chdir(const char* path);
 int sys_getcwd(char* buf, size_t size, char** ret);
+int sys_access(const char* pathname, int mode);
