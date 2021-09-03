@@ -8,10 +8,20 @@
 #include <micro/sched.h>
 #include <micro/errno.h>
 
+int is_valid_ptr(uintptr_t ptr)
+{
+    if (!ptr || ptr > 0x8000000000) return 0;
+    return mmu_virt2phys(task_curr()->vm_map, ptr); // Returns 0 if a page is non-present
+}
+
+#define PTRVALID(ptr) { if (!is_valid_ptr(ptr)) return -EFAULT; }
+
 // TODO: API folder
 
 static int sys_open(const char* path, uint32_t flags)
 {
+    PTRVALID(path);
+    
     struct task* task = task_curr();
 
     struct file* file = vfs_resolve(path); // TODO: canonicalize
@@ -28,6 +38,8 @@ static int sys_close(int fd)
 
 static ssize_t sys_read(int fdno, void* buf, size_t size)
 {
+    PTRVALID(buf);
+
     struct task* task = task_curr();
     if (fdno < 0 || fdno >= task->fds.size) return -EBADF;
 
@@ -39,6 +51,8 @@ static ssize_t sys_read(int fdno, void* buf, size_t size)
 
 static ssize_t sys_write(int fdno, const void* buf, size_t size)
 {
+    PTRVALID(buf);
+
     struct task* task = task_curr();
     if (fdno < 0 || fdno >= task->fds.size) return -EBADF;
 
@@ -64,7 +78,9 @@ static int sys_fork()
 
 static int sys_execve(const char* path, const char* argv[], const char* envp[])
 {
-    if (!path || !argv) return -EFAULT;
+    PTRVALID(path);
+    PTRVALID(argv);
+    PTRVALID(envp);
 
     struct file* file = vfs_resolve(path); // TODO: canonicalize
     if (!file) return -ENOENT;
@@ -73,6 +89,8 @@ static int sys_execve(const char* path, const char* argv[], const char* envp[])
     size_t argc = 0;
     while (argv[argc] != NULL)
     {
+        PTRVALID(argv[argc]);
+
         argv_copy[argc] = kmalloc(strlen(argv[argc]) + 1);
         strcpy(argv_copy[argc], argv[argc]);
         argc++;
@@ -111,6 +129,8 @@ static int sys_getpid()
 
 static int sys_access(const char* pathname, int mode)
 {
+    PTRVALID(pathname);
+
     return vfs_access(pathname, mode);
 }
 

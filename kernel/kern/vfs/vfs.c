@@ -149,13 +149,14 @@ struct file* vfs_resolve(const char* path)
     char* relat;
     struct file* file = vfs_getmnt(path, &relat);
 
-    if (!(file->flags & FL_DIR))
-    {
-        return file; // File type
-    }
-
     char* saveptr;
     char* token = strtok_r(relat, "/", &saveptr);
+
+    if (!(file->flags & FL_DIR)) // Not a directory
+    {
+        if (relat[0] == 0) return file; // Virtual file
+        else return NULL; // 'path' does not exist in the VFS
+    }
 
     while (token)
     {

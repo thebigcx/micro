@@ -169,6 +169,24 @@ void mmu_free_phys(uintptr_t p, unsigned int cnt)
     }
 }
 
+uintptr_t mmu_virt2phys(struct vm_map* map, uintptr_t virt)
+{
+    // Indices
+    uint32_t pml4i = PML4_IDX(virt);
+    uint32_t pdpti = PDPT_IDX(virt);
+    uint32_t pdi = PD_IDX(virt);
+    uint32_t pti = PT_IDX(virt);
+
+    // User address space
+    if (pml4i == 0)
+    {
+        if (!(map->pds[pdpti][pdi] & PAGE_PR) || !(map->pts[pdpti][pdi])) return 0;
+        return map->pts[pdpti][pdi][pti] & PAGE_FRAME;
+    }
+    else
+        return 0; // Either kernel space or completely invalid
+}
+
 struct vm_map* mmu_create_vmmap()
 {
     struct vm_map* map = kmalloc(sizeof(struct vm_map));

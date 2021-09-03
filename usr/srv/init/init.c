@@ -35,6 +35,7 @@ int main(int argc, char** argv)
                     {
                         *ptr++ = *buf_ptr++;
                     }
+                    *ptr = 0;
 
                     *buf_ptr++;
 
@@ -44,11 +45,13 @@ int main(int argc, char** argv)
                     {
                         *ptr++ = *buf_ptr++;
                     }
+                    *ptr = 0;
 
                     if (access(bin, F_OK) == -1)
                     {
                         printf("%s: no such file or directory\n", bin);
                         buffer_size = 0;
+                        memset(buffer, 0, 100);
                         break;
                     }
 
@@ -56,11 +59,13 @@ int main(int argc, char** argv)
                     {
                         printf("executing %s with arg %s\n", bin, arg1);
                         const char* argv[] = { "/initrd/cat", arg1, NULL };
+                        const char* envp[] = { NULL };
 
                         //const char* argv[] = { "/initrd/cat", "/initrd/cat", NULL };
-                        execve(bin, argv, NULL);
+                        execve(bin, argv, envp);
                     }
 
+                    memset(buffer, 0, 100);
                     buffer_size = 0;
                     break;
                 }

@@ -30,6 +30,8 @@ uintptr_t mmu_alloc_phys_at(uintptr_t p, unsigned int cnt);
 uintptr_t mmu_alloc_phys();
 void mmu_free_phys(uintptr_t p, unsigned int cnt);
 
+uintptr_t mmu_virt2phys(struct vm_map* map, uintptr_t virt);
+
 struct vm_map* mmu_create_vmmap();
 struct vm_map* mmu_clone_vmmap(const struct vm_map* src);
 void mmu_destroy_vmmap(struct vm_map* map);
