@@ -38,5 +38,5 @@ void ps2_init()
     struct file* kb = kmalloc(sizeof(struct file));
     kb->flags = FL_CHARDEV;
     kb->ops.read = kb_read;
-    vfs_mount(kb, "/dev/keyboard");
+    vfs_addnode(kb, "/dev/keyboard");
 }

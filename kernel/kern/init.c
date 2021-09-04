@@ -67,7 +67,7 @@ void initrd_init(uintptr_t start, uintptr_t end)
     file->flags = FL_DIR;
     file->device = initrd;
 
-    vfs_mount(file, "/initrd");
+    vfs_addnode(file, "/initrd");
 }
 
 static char ascii[] =
@@ -141,7 +141,7 @@ void generic_init(struct genbootparams params)
     file->ops.read = tty_read;
     file->ops.write = tty_write;
     file->flags = FL_CHARDEV;
-    vfs_mount(file, "/dev/tty");
+    vfs_addnode(file, "/dev/tty");
 
     sched_start(task_init_creat());
 

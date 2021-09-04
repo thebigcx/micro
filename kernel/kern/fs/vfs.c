@@ -23,7 +23,6 @@ static struct file* file_create(const char* name)
 void vfs_init()
 {
     root = tree_create();
-    root.data = file_create("root");
 }
 
 ssize_t vfs_read(struct file* file, void* buf, off_t off, size_t size)
@@ -48,7 +47,8 @@ struct file* vfs_find(struct file* dir, const char* name)
     return NULL;
 }
 
-int vfs_mount(struct file* file, const char* path)
+// Add a node (or 'struct file') to the VFS
+int vfs_addnode(struct file* file, const char* path)
 {
     struct tree* curr = &root;
 
@@ -94,11 +94,19 @@ int vfs_mount(struct file* file, const char* path)
         }
     }
 
+    if (curr == &root)
+    {
+        // Modify the root node
+        root.data = file;
+    }
+
     kfree(path_cpy);
 
     return 0;
 }
 
+// vfs_getmnt(): returns the mount point of a path
+// *relat: the relative path in the mounted filesystem
 struct file* vfs_getmnt(const char* path, char** relat)
 {
     struct tree* curr = &root;
@@ -152,7 +160,7 @@ struct file* vfs_resolve(const char* path)
     char* saveptr;
     char* token = strtok_r(relat, "/", &saveptr);
 
-    if (!(file->flags & FL_DIR)) // Not a directory
+    if (!file || !(file->flags & FL_DIR)) // Not a directory
     {
         if (relat[0] == 0) return file; // Virtual file
         else return NULL; // 'path' does not exist in the VFS
@@ -189,4 +197,32 @@ int vfs_access(const char* path, int mode)
 
     // TODO: permission checks
     return 0;
+}
+
+static struct fs_type fs_types[64];
+static unsigned int fs_count;
+
+void vfs_mount_fs(const char* dev, const char* mnt, const char* fs)
+{
+    for (unsigned int i = 0; i < fs_count; i++)
+    {
+        if (!strcmp(fs_types[i].name, fs))
+        {
+            struct file* file = fs_types[i].mount(dev);
+            vfs_addnode(file, mnt);
+            return;
+        }
+    }
+
+    printk("could not mount filesystem %s. dev=%s mount=%s", fs, dev, mnt);
+}
+
+// mount: mount callback
+void vfs_register_fs(char* fs, mount_t mount)
+{
+    fs_types[fs_count++] = (struct fs_type)
+    {
+        .name = fs,
+        .mount = mount
+    };
 }

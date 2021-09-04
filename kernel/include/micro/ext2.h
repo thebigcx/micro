@@ -69,4 +69,4 @@ struct ext2_volume
 
 struct file;
 
-struct file* ext2_init(const char* dev);
+void ext2_init();
