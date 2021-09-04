@@ -16,21 +16,33 @@ struct initrd
     uintptr_t start, end;
 };
 
-struct initrd_file
+struct initramfs_file
 {
     uintptr_t start;
 };
 
+struct initramfs
+{
+    struct initrd* device;
+};
+
 ssize_t initrd_read(struct file* file, void* buf, off_t off, size_t size)
 {
-    struct initrd_file* initrd_file = file->device;
-    memcpy(buf, initrd_file->start + off, size);
+    struct initrd* initrd = file->device;
+    memcpy(buf, initrd->start + off, size);
     return size;
 }
 
-struct file* initrd_find(struct file* dir, const char* name)
+ssize_t initramfs_read(struct file* file, void* buf, off_t off, size_t size)
 {
-    struct initrd* initrd = dir->device;
+    struct initramfs_file* fs_file = file->device;
+    memcpy(buf, fs_file->start + off, size);
+    return size;
+}
+
+struct file* initramfs_find(struct file* dir, const char* name)
+{
+    struct initrd* initrd = ((struct initramfs*)dir->device)->device;
     struct fheader* curr = (struct fheader*)initrd->start;
 
     while ((uintptr_t)curr < initrd->end)
@@ -38,14 +50,14 @@ struct file* initrd_find(struct file* dir, const char* name)
         if (!strcmp(curr->name, name))
         {
             struct file* file = kmalloc(sizeof(struct file));
-            file->ops.read = initrd_read;
+            file->ops.read = initramfs_read;
             file->flags = FL_FILE;
 
-            struct initrd_file* initrd_file = kmalloc(sizeof(struct initrd_file));
-            initrd_file->start = (uintptr_t)curr + sizeof(struct fheader);
+            struct initramfs_file* ramfile = kmalloc(sizeof(struct initramfs_file));
+            ramfile->start = (uintptr_t)curr + sizeof(struct fheader);
 
             file->size = curr->size;
-            file->device = initrd_file;
+            file->device = ramfile;
 
             return file;
         }
@@ -58,10 +70,15 @@ struct file* initrd_find(struct file* dir, const char* name)
 
 struct file* initramfs_mount(const char* dev, void* data)
 {
+    struct file* device = vfs_resolve(dev);
+    struct initramfs* ramfs = kmalloc(sizeof(struct initramfs));
+    ramfs->device = device->device;
+    printk("%x\n", device->device);
+
     struct file* file = kmalloc(sizeof(struct file));
-    file->ops.find = initrd_find;
+    file->ops.find = initramfs_find;
     file->flags = FL_MNTPT;
-    file->device = data; // struct initrd*
+    file->device = ramfs;
 
     return file;
 }
@@ -129,23 +146,29 @@ void generic_init(struct genbootparams params)
 
     vfs_register_fs("initramfs", initramfs_mount);
 
+    struct file* file = kmalloc(sizeof(struct file));
     struct initrd* initrd = kmalloc(sizeof(struct initrd));
-
     initrd->start = params.initrd_start;
     initrd->end = params.initrd_end;
 
-    vfs_mount_fs("", "/initrd", "initramfs", initrd);
+    file->ops.read = initrd_read;
+    file->flags = FL_BLOCKDEV;
+    file->device = initrd;
+
+    vfs_addnode(file, "/dev/initrd");    
+
+    vfs_mount_fs("/dev/initrd", "/initrd", "initramfs", NULL);
 
     //module_load("/initrd/test.ko");
     //for (;;);
 
     // TODO: temporary
 
-    struct file* file = kmalloc(sizeof(struct file));
-    file->ops.read = tty_read;
-    file->ops.write = tty_write;
-    file->flags = FL_CHARDEV;
-    vfs_addnode(file, "/dev/tty");
+    struct file* tty = kmalloc(sizeof(struct file));
+    tty->ops.read = tty_read;
+    tty->ops.write = tty_write;
+    tty->flags = FL_CHARDEV;
+    vfs_addnode(tty, "/dev/tty");
 
     sched_start(task_init_creat());
 
