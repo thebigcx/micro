@@ -162,14 +162,6 @@ void generic_init(struct genbootparams params)
     //vfs_mount_fs("/dev/initrd", "/initrd", "initramfs", NULL);
     vfs_mount_fs("/dev/initrd", "/", "fat", NULL);
 
-    struct file* assert = vfs_resolve("/usr/include/assert.h");
-    void* buffer = kmalloc(assert->size);
-    vfs_read(assert, buffer, 0, assert->size);
-
-    for (int i = 0; i < assert->size; i++)
-        printk("%c", ((char*)buffer)[i]);
-    //printk("%s\n", buffer);
-
     //module_load("/initrd/test.ko");
     //for (;;);
 

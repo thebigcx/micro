@@ -91,6 +91,18 @@ int sys_lseek(int fd, off_t off, int whence, off_t* noff)
     return 0;
 }
 
+int sys_wait(int* status, pid_t* pid)
+{
+	pid_t ret = syscall(SYS_wait, status);
+	if (ret < 0)
+	{
+		return ret;
+	}
+
+	*pid = ret;
+	return 0;
+}
+
 /*int sys_sigaction(int signum, const struct sigaction* act, struct sigaction* old)
 {
 	return syscall(SYS_SIGACTION, signum, act, old);

@@ -64,6 +64,11 @@ int main(int argc, char** argv)
                         //const char* argv[] = { "/initrd/cat", "/initrd/cat", NULL };
                         execve(bin, argv, envp);
                     }
+                    else
+                    {
+                        int status;
+                        wait(&status);
+                    }
 
                     memset(buffer, 0, 100);
                     buffer_size = 0;

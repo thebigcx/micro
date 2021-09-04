@@ -158,6 +158,19 @@ static off_t sys_lseek(int fdno, off_t offset, int whence)
     return -EINVAL;
 }
 
+static int sys_wait(int* status)
+{
+    PTRVALID(status);
+
+    struct task* curr = task_curr();
+    if (!curr->children.size) return -ECHILD;
+    curr->waiting = 1;
+
+    sti();
+    while (curr->waiting);
+    return 0;
+}
+
 typedef uintptr_t (*syscall_t)();
 
 static syscall_t syscalls[] =
@@ -172,7 +185,8 @@ static syscall_t syscalls[] =
     sys_kill,
     sys_getpid,
     sys_access,
-    sys_lseek
+    sys_lseek,
+    sys_wait
 };
 
 void syscall_handler(struct regs* r)

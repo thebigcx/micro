@@ -65,7 +65,7 @@ static int defaults[] =
     [SIGABRT  ] = SIGDEF_TERM,
     [SIGALRM  ] = SIGDEF_TERM, 
     [SIGBUS   ] = SIGDEF_TERM,
-    [SIGCHLD  ] = SIGDEF_TERM,
+    [SIGCHLD  ] = SIGDEF_IGN,
     [SIGCONT  ] = SIGDEF_TERM,
     [SIGFPE   ] = SIGDEF_TERM,
     [SIGHUP   ] = SIGDEF_TERM,
@@ -99,7 +99,10 @@ void thread_handle_signals(struct thread* thread)
     int sig = *sigptr;
     kfree(sigptr);
 
-    printk("Task %d received signal %d\n", thread->parent->id, sig);
+    if (sig == SIGCHLD)
+    {
+        thread->parent->waiting = 0;
+    }
 
     uintptr_t handler = thread->parent->signals[sig];
 

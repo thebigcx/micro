@@ -20,6 +20,8 @@ struct task
     struct list sigqueue;  // struct int[]
     uintptr_t signals[32];
     uint32_t sigmask;
+
+    volatile int waiting;
 };
 
 struct thread;

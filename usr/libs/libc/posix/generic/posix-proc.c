@@ -26,3 +26,17 @@ int execve(const char* pathname, char* const argv[], char* const envp[])
 	errno = e;
     return -1;
 }
+
+pid_t wait(int* status)
+{
+	pid_t pid;
+	int e = sys_wait(status, &pid);
+	
+	if (e != 0)
+	{
+		errno = e;
+		return -1;
+	}
+
+	return pid;
+}

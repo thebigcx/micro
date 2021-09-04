@@ -13,3 +13,4 @@
 #define ERANGE          10
 #define ENOSYS          11
 #define ESRCH           12
+#define ECHILD          13

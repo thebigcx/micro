@@ -30,3 +30,4 @@ int sys_munmap(void* addr, size_t length);
 int sys_chdir(const char* path);
 int sys_getcwd(char* buf, size_t size, char** ret);
 int sys_access(const char* pathname, int mode);
+int sys_wait(int* status, pid_t* pid);

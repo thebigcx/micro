@@ -23,8 +23,12 @@ static struct task* mktask(struct task* parent, struct vm_map* vm_map)
     task->main = NULL;
     task->sigmask = 0;
     task->sigqueue = list_create();
+    task->waiting = 0;
     
     memset(task->signals, 0, sizeof(task->signals));
+
+    if (parent)
+        list_push_back(&parent->children, task);
 
     return task;
 }
@@ -191,7 +195,9 @@ void task_exit(int status)
 
     mmu_destroy_vmmap(task->vm_map);
 
-    kfree(task);
+    if (task->parent) task_send(task->parent, SIGCHLD);
+
+    //kfree(task);
 
     switch_next();
 }
