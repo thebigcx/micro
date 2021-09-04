@@ -56,18 +56,14 @@ struct file* initrd_find(struct file* dir, const char* name)
     return NULL;
 }
 
-void initrd_init(uintptr_t start, uintptr_t end)
+struct file* initramfs_mount(const char* dev, void* data)
 {
-    struct initrd* initrd = kmalloc(sizeof(struct initrd));
-    initrd->start = start;
-    initrd->end = end;
-
     struct file* file = kmalloc(sizeof(struct file));
     file->ops.find = initrd_find;
-    file->flags = FL_DIR;
-    file->device = initrd;
+    file->flags = FL_MNTPT;
+    file->device = data; // struct initrd*
 
-    vfs_addnode(file, "/initrd");
+    return file;
 }
 
 static char ascii[] =
@@ -130,7 +126,15 @@ void generic_init(struct genbootparams params)
     ps2_init();
 
     printk("mounting initial ramdisk\n");
-    initrd_init(params.initrd_start, params.initrd_end);
+
+    vfs_register_fs("initramfs", initramfs_mount);
+
+    struct initrd* initrd = kmalloc(sizeof(struct initrd));
+
+    initrd->start = params.initrd_start;
+    initrd->end = params.initrd_end;
+
+    vfs_mount_fs("", "/initrd", "initramfs", initrd);
 
     //module_load("/initrd/test.ko");
     //for (;;);

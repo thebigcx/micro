@@ -39,7 +39,7 @@ ssize_t vfs_write(struct file* file, void* buf, off_t off, size_t size)
 
 struct file* vfs_find(struct file* dir, const char* name)
 {
-    if (dir && (dir->flags & FL_DIR) && dir->ops.find)
+    if (dir && ((dir->flags & FL_DIR) || (dir->flags & FL_MNTPT)) && dir->ops.find)
     {
         return dir->ops.find(dir, name);
     }
@@ -160,9 +160,9 @@ struct file* vfs_resolve(const char* path)
     char* saveptr;
     char* token = strtok_r(relat, "/", &saveptr);
 
-    if (!file || !(file->flags & FL_DIR)) // Not a directory
+    if (!file || !(file->flags & FL_MNTPT)) // Not a mounted filesystem
     {
-        if (relat[0] == 0) return file; // Virtual file
+        if (relat[0] == 0) return file; // Virtual filesystem node
         else return NULL; // 'path' does not exist in the VFS
     }
 
@@ -202,13 +202,13 @@ int vfs_access(const char* path, int mode)
 static struct fs_type fs_types[64];
 static unsigned int fs_count;
 
-void vfs_mount_fs(const char* dev, const char* mnt, const char* fs)
+void vfs_mount_fs(const char* dev, const char* mnt, const char* fs, void* data)
 {
     for (unsigned int i = 0; i < fs_count; i++)
     {
         if (!strcmp(fs_types[i].name, fs))
         {
-            struct file* file = fs_types[i].mount(dev);
+            struct file* file = fs_types[i].mount(dev, data);
             vfs_addnode(file, mnt);
             return;
         }

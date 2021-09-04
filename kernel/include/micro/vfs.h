@@ -51,7 +51,7 @@ struct file* vfs_find(struct file* dir, const char* name);
 int vfs_addnode(struct file* file, const char* path);
 struct file* vfs_getmnt(const char* path, char** relat);
 
-void vfs_mount_fs(const char* dev, const char* mnt, const char* fs);
+void vfs_mount_fs(const char* dev, const char* mnt, const char* fs, void* data);
 
 struct fd* vfs_open(struct file* file);
 void vfs_close(struct fd* fd);
@@ -60,7 +60,7 @@ struct file* vfs_resolve(const char* path);
 
 int vfs_access(const char* path, int mode);
 
-typedef struct file* (*mount_t)(const char*);
+typedef struct file* (*mount_t)(const char*, void* data);
 
 struct fs_type
 {
