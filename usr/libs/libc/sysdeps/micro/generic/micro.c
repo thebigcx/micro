@@ -79,6 +79,18 @@ int sys_access(const char* pathname, int mode)
 	return syscall(SYS_access, pathname, mode);
 }
 
+int sys_lseek(int fd, off_t off, int whence, off_t* noff)
+{
+    off_t ret = syscall(SYS_lseek, fd, off, whence);
+    
+    *noff = ret;
+    
+    if (ret < 0)
+        return ret;
+
+    return 0;
+}
+
 /*int sys_sigaction(int signum, const struct sigaction* act, struct sigaction* old)
 {
 	return syscall(SYS_SIGACTION, signum, act, old);

@@ -10,18 +10,22 @@ int main(int argc, char** argv)
     }
 
     int fd;
-    printf("contents of %s: ", argv[1]);
     if ((fd = open(argv[1], 0, 0)) < 0)
-    //if ((fd = open("/initrd/ini", 0, 0)) < 0)
     {
-        //printf("cat: no such file or directory\n");
         printf("cat: %s: no such file or directory\n", argv[1]);
         return 0;
     }
 
-    char buffer[200];
-    read(fd, buffer, 200);
-    printf("%s\n", buffer);
+    lseek(fd, 0, SEEK_END);
+    size_t len = lseek(fd, 0, SEEK_CUR);
+    lseek(fd, 0, SEEK_SET);
+
+    char buffer[1000];
+    read(fd, buffer, len);
+    for (size_t i = 0; i < len; i++)
+        printf("%c", buffer[i]);
+
+    printf("\n\n");
 
     return 0;
 }

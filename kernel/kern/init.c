@@ -129,7 +129,7 @@ ssize_t tty_read(struct file* file, void* buf, off_t off, size_t size)
 
 ssize_t tty_write(struct file* file, const void* buf, off_t off, size_t size)
 {
-    printk("%s", (char*)buf);
+    while (size && size--) printk("%c", *((char*)buf++));
     return size;
 }
 
@@ -161,6 +161,14 @@ void generic_init(struct genbootparams params)
 
     //vfs_mount_fs("/dev/initrd", "/initrd", "initramfs", NULL);
     vfs_mount_fs("/dev/initrd", "/", "fat", NULL);
+
+    struct file* assert = vfs_resolve("/usr/include/assert.h");
+    void* buffer = kmalloc(assert->size);
+    vfs_read(assert, buffer, 0, assert->size);
+
+    for (int i = 0; i < assert->size; i++)
+        printk("%c", ((char*)buffer)[i]);
+    //printk("%s\n", buffer);
 
     //module_load("/initrd/test.ko");
     //for (;;);

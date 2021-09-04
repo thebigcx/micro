@@ -7,6 +7,7 @@
 #include <micro/thread.h>
 #include <micro/sched.h>
 #include <micro/errno.h>
+#include <micro/fs.h>
 
 int is_valid_ptr(uintptr_t ptr)
 {
@@ -134,6 +135,29 @@ static int sys_access(const char* pathname, int mode)
     return vfs_access(pathname, mode);
 }
 
+static off_t sys_lseek(int fdno, off_t offset, int whence)
+{
+    struct task* task = task_curr();
+    if (fdno < 0 || fdno >= task->fds.size) return -EBADF;
+
+    struct fd* fd = list_get(&task->fds, fdno);
+
+    switch (whence)
+    {
+        case SEEK_SET:
+            fd->off = offset;
+            return fd->off;
+        case SEEK_END:
+            fd->off = fd->filp->size + offset;
+            return fd->off;
+        case SEEK_CUR:
+            fd->off += offset;
+            return fd->off;
+    }
+
+    return -EINVAL;
+}
+
 typedef uintptr_t (*syscall_t)();
 
 static syscall_t syscalls[] =
@@ -147,13 +171,14 @@ static syscall_t syscalls[] =
     sys_exit,
     sys_kill,
     sys_getpid,
-    sys_access
+    sys_access,
+    sys_lseek
 };
 
 void syscall_handler(struct regs* r)
 {
     uintptr_t n = arch_syscall_num(r);
-    if (n > sizeof(syscalls) / sizeof(syscall_t))
+    if (n >= sizeof(syscalls) / sizeof(syscall_t))
     {
         arch_syscall_ret(r, -ENOSYS);
         return;

@@ -147,7 +147,6 @@ struct file* fat_find_impl(struct fat32_volume* vol, unsigned int cluster, const
                     return file;
                 }
             }
-            
         }
 
         next = *((uint32_t*)&fatbuf[fat_off]) & 0x0fffffff;

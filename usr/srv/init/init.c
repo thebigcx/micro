@@ -26,8 +26,9 @@ int main(int argc, char** argv)
                     // TODO: make this better (use strtok())
                     char* buf_ptr = buffer;
 
-                    char bin[32];
-                    char* ptr = bin;
+                    char bin[64];
+                    strcpy(bin, "/usr/bin/");
+                    char* ptr = bin + 9;
 
                     char arg1[32];
                     
@@ -57,7 +58,6 @@ int main(int argc, char** argv)
 
                     if (fork() == 0)
                     {
-                        printf("executing %s with arg %s\n", bin, arg1);
                         const char* argv[] = { "/initrd/cat", arg1, NULL };
                         const char* envp[] = { NULL };
 
@@ -68,6 +68,10 @@ int main(int argc, char** argv)
                     memset(buffer, 0, 100);
                     buffer_size = 0;
                     break;
+                }
+                else if (c == '\b')
+                {
+                    buffer_size--;
                 }
                 else
                 {

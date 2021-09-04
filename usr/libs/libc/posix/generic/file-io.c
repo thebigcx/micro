@@ -71,6 +71,21 @@ int access(const char* pathname, int mode)
 	return 0;
 }
 
+off_t lseek(int fd, off_t off, int whence)
+{
+    off_t npos;
+    int err = sys_lseek(fd, off, whence, &npos);
+    
+    if (err)
+    {
+        errno = err;
+        return -1;
+    }
+
+    return npos;
+}
+
+
 /*int chdir(const char* path)
 {
 	int e = sys_chdir(path);
@@ -112,19 +127,6 @@ int closedir(DIR* dirp)
 	return -1;
 }
 
-off_t lseek(int fd, off_t off, int whence)
-{
-    off_t npos;
-    int err = sys_lseek(fd, off, whence, &npos);
-    
-    if (err)
-    {
-        errno = err;
-        return -1;
-    }
-
-    return npos;
-}
 
 int ioctl(int fd, unsigned long request, void* argp)
 {
