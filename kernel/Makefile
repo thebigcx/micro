@@ -7,12 +7,17 @@ include kern/kern.mk
 OBJ = $(patsubst %.c, %.o, $(SRC)) $(patsubst %.S, %.o, $(ASM))
 TARGET = dist/vmkernel
 
-.PHONY: clean
+all: $(TARGET) dev
+
+.PHONY: clean dev
 
 $(TARGET): $(OBJ)
 	@echo "    LD $@"
 	@mkdir -p dist
 	@gcc $^ -o $@ $(LDFLAGS)
+
+dev:
+	$(MAKE) -C dev
 
 %.o: %.c
 	@echo "    CC $@"

@@ -132,6 +132,9 @@ void generic_init(struct genbootparams params)
     printk("mounting initial ramdisk\n");
     initrd_init(params.initrd_start, params.initrd_end);
 
+    //module_load("/initrd/test.ko");
+    //for (;;);
+
     // TODO: temporary
 
     struct file* file = kmalloc(sizeof(struct file));

@@ -34,5 +34,47 @@ struct elf_phdr
     uint64_t align;
 };
 
+struct elf_shdr
+{
+    uint32_t name;
+    uint32_t type;
+    uint64_t flags;
+    uint64_t addr;
+    uint64_t offset;
+    uint64_t size;
+    uint32_t link;
+    uint32_t info;
+    uint64_t addralign;
+    uint64_t entsize;
+};
+
+// elf_shdr.type values
+#define SHT_NULL	  0
+#define SHT_PROGBITS  1
+#define SHT_SYMTAB	  2
+#define SHT_STRTAB	  3
+#define SHT_RELA	  4
+#define SHT_HASH	  5
+#define SHT_DYNAMIC	  6
+#define SHT_NOTE	  7
+#define SHT_NOBITS	  8
+#define SHT_REL		  9
+#define SHT_SHLIB	  10
+#define SHT_DYNSYM	  11
+
+struct elf_sym
+{
+    uint32_t name;
+    uint8_t info;
+    uint8_t other;
+    uint16_t shndx;
+    uint64_t value;
+    uint64_t size;
+};
+
+#define SHN_UNDEF      0
+#define SHN_LORESERVE  0xff00
+#define SHN_LOPROC     0xff00
+
 #define PT_NULL 0
 #define PT_LOAD 1
