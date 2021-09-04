@@ -14,4 +14,5 @@ SRC += kern/init.c           \
        kern/fs/ext2.c        \
        kern/binfmt.c         \
        kern/ps2.c            \
-       kern/module.c
+       kern/module.c         \
+       kern/fs/fat.c

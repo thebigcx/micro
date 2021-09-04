@@ -157,7 +157,10 @@ void generic_init(struct genbootparams params)
 
     vfs_addnode(file, "/dev/initrd");    
 
-    vfs_mount_fs("/dev/initrd", "/initrd", "initramfs", NULL);
+    fat_init();
+
+    //vfs_mount_fs("/dev/initrd", "/initrd", "initramfs", NULL);
+    vfs_mount_fs("/dev/initrd", "/", "fat", NULL);
 
     //module_load("/initrd/test.ko");
     //for (;;);

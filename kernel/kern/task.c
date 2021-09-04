@@ -104,10 +104,10 @@ struct task* task_init_creat()
 {
     struct task* task = mktask(NULL, mmu_create_vmmap());
 
-    char* argv[] = { "/initrd/init", NULL };
+    char* argv[] = { "/init", NULL };
     char* envp[] = { NULL };
 
-    init_user_task(task, "/initrd/init", argv, envp);
+    init_user_task(task, "/init", argv, envp);
 
     return task;
 }

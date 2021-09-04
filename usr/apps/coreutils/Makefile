@@ -4,7 +4,9 @@ TARGS := $(patsubst %.c, %, $(SRCS))
 LDFLAGS := -Tlinker.ld -static -Bsymbolic -nostdlib -L$(ROOT)/usr/lib -l:libc.a
 CFLAGS := -ffreestanding -fshort-wchar -mno-red-zone -Wall -nostdinc -I$(ROOT)/usr/include -fno-stack-protector
 
-all: cat
+.PHONY: all install
+
+all: cat install
 
 cat: cat.c
 	@echo "    CC     cat.o"
@@ -16,7 +18,10 @@ cat: cat.c
 #	cp cat ../../../base/usr/bin/
 #	cp ls ../../../base/usr/bin/
 
-.PHONY:
+install:
+	@mkdir -p $(ROOT)/usr/bin
+	@cp cat $(ROOT)/usr/bin
+
 clean:
 	@echo "    RM     $(TARGS)"
 	@rm -f $(TARGS) $(OBJS)

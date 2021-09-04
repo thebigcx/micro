@@ -97,7 +97,7 @@ void memcpy(void* dst, const void* src, size_t size)
 {
     char* cdst = (char*)dst;
     const char* csrc = (char*)src;
-    while (size--) *cdst++ = *csrc++;
+    while (size && size--) *cdst++ = *csrc++;
 }
 
 int strncmp(const char* s1, const char* s2, size_t n)
