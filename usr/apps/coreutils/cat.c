@@ -25,7 +25,5 @@ int main(int argc, char** argv)
     for (size_t i = 0; i < len; i++)
         printf("%c", buffer[i]);
 
-    printf("\n");
-
     return 0;
 }

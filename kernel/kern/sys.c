@@ -8,6 +8,7 @@
 #include <micro/sched.h>
 #include <micro/errno.h>
 #include <micro/fs.h>
+#include <micro/mman.h>
 
 int is_valid_ptr(uintptr_t ptr)
 {
@@ -85,6 +86,7 @@ static int sys_execve(const char* path, const char* argv[], const char* envp[])
 
     struct file* file = vfs_resolve(path); // TODO: canonicalize
     if (!file) return -ENOENT;
+    if (file->flags == FL_DIR) return -EISDIR;
 
     const char* argv_copy[16];
     size_t argc = 0;
@@ -168,6 +170,34 @@ static int sys_wait(int* status)
 
     sti();
     while (curr->waiting);
+    return 0;
+}
+
+// TODO: currently only supports fixed anonymous mappings
+static void* mmap(void* addr, size_t length, int prot, int flags, int fd, off_t offset)
+{
+    if (!length) return -EINVAL;
+    if (!(flags & MAP_SHARED) && !(flags & MAP_PRIVATE)) return -EINVAL;
+    // TEMP
+    if (!(flags & MAP_ANONYMOUS) || !(flags & MAP_FIXED)) return -EINVAL;
+
+    unsigned int mmu_flags = PAGE_PR;
+    mmu_flags |= prot & PROT_WRITE ? PAGE_RW : 0;
+
+    for (uintptr_t i = (uintptr_t)addr; i < addr + length; i += PAGE4K)
+    {
+        mmu_map(task_curr()->vm_map, i, mmu_alloc_phys(), mmu_flags);
+    }
+
+    return addr;
+}
+
+static int munmap(void* addr, size_t length)
+{
+    if (!length) return -EINVAL;
+    if ((uintptr_t)addr % PAGE4K != 0) return -EINVAL;
+
+    // TODO: unmap the physical blocks if anonymous
     return 0;
 }
 

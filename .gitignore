@@ -7,7 +7,6 @@ build/iso
 build/limine
 kernel/dist
 kernel/tools/mkinitrd
-usr/build
 usr/srv/init/init
 .vscode
 root
