@@ -96,6 +96,8 @@ int fat_name_cmp(struct fat_dirent* dirent, char* name)
 
     int ret = !strcmp(first, second);
 
+    heap_check();
+
     kfree(first);
     kfree(second);
 
@@ -186,6 +188,7 @@ struct file* fat_mount(const char* dev, void* data)
     kfree(buf);
 
     struct file* file = kmalloc(sizeof(struct file));
+    file->flags = FL_MNTPT;
     file->device = vol;
     file->ops.find = fat_root_find;
     return file;

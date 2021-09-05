@@ -56,6 +56,8 @@ void vfs_mount_fs(const char* dev, const char* mnt, const char* fs, void* data);
 struct fd* vfs_open(struct file* file);
 void vfs_close(struct fd* fd);
 
+char* vfs_mkcanon(const char* path, const char* work);
+
 struct file* vfs_resolve(const char* path);
 
 int vfs_access(const char* path, int mode);

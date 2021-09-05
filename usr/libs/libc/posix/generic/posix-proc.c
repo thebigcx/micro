@@ -40,3 +40,30 @@ pid_t wait(int* status)
 
 	return pid;
 }
+
+int chdir(const char* path)
+{
+	int e = sys_chdir(path);
+
+	if (e != 0)
+	{
+		errno = e;
+		return -1;
+	}
+
+	return 0;
+}
+
+char* getcwd(char* buf, size_t size)
+{
+	char* ret;
+	int e = sys_getcwd(buf, size, &ret);
+
+	if (e != 0)
+	{
+		errno = e;
+		return -1;
+	}
+
+	return ret;
+}

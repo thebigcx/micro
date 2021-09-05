@@ -17,7 +17,7 @@ static lock_t lock = 0;
 
 // Merge b2 into b1 (both must be free)
 // b1 and b2 are adjacent and in ascending order
-static void combine(struct block* b1, struct block* b2)
+static struct block* combine(struct block* b1, struct block* b2)
 {
     // Add the size and adjust 'next' to jump over b2
     b1->size += b2->size + sizeof(struct block);
@@ -28,6 +28,8 @@ static void combine(struct block* b1, struct block* b2)
         b1->next->prev = b1;
     else
         last = b1;
+
+    return b1;
 }
 
 static struct block* split(struct block* b, size_t n)
@@ -101,12 +103,16 @@ void kfree(void* ptr)
 {
     LOCK(lock);
 
+    heap_check();
+
     struct block* block = (struct block*)ptr - 1;
     block->used = 0;
     memset(block + 1, 0xcb, block->size);
 
-    if (block->prev && !block->prev->used) combine(block->prev, block);
-    if (block->next && !block->next->used) combine(block, block->next);
+    if (block->prev && !block->prev->used) block = combine(block->prev, block);
+    if (block->next && !block->next->used) block = combine(block, block->next);
+
+    heap_check();
 
     UNLOCK(lock);
 }
@@ -130,7 +136,7 @@ void heap_init()
 // effectively as often as possibly or between critical code
 void heap_check()
 {
-    return;
+    //return;
 #ifdef DEBUG
     struct block* curr = first;
     while (curr != NULL)

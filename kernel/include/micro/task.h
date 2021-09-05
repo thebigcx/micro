@@ -17,6 +17,8 @@ struct task
 
     struct vm_map* vm_map;
 
+    char workd[64]; // Working directory
+
     struct list sigqueue;  // struct int[]
     uintptr_t signals[32];
     uint32_t sigmask;

@@ -56,11 +56,20 @@ int main(int argc, char** argv)
 
                     argv[argc] = NULL;
 
+                    if (!strncmp(buffer, "cd", 2))
+                    {
+                        if (chdir(argv[1]) != 0)
+                        {
+                            printf("cd: %s: no such file or directory\n", argv[1]);
+                        }
+                        buffer_size = 0;
+                        break;
+                    }
+
                     if (access(bin, F_OK) == -1)
                     {
                         printf("%s: no such file or directory\n", bin);
                         buffer_size = 0;
-                        memset(buffer, 0, 100);
                         break;
                     }
 

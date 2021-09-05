@@ -9,6 +9,7 @@
 #include <micro/errno.h>
 #include <micro/fs.h>
 #include <micro/mman.h>
+#include <micro/stdlib.h>
 
 int is_valid_ptr(uintptr_t ptr)
 {
@@ -26,7 +27,10 @@ static int sys_open(const char* path, uint32_t flags)
     
     struct task* task = task_curr();
 
-    struct file* file = vfs_resolve(path); // TODO: canonicalize
+    char* canon = vfs_mkcanon(path, task->workd);
+    struct file* file = vfs_resolve(canon);
+    kfree(canon);
+
     if (!file) return -ENOENT;
 
     list_push_back(&task->fds, vfs_open(file));
@@ -84,7 +88,10 @@ static int sys_execve(const char* path, const char* argv[], const char* envp[])
     PTRVALID(argv);
     PTRVALID(envp);
 
-    struct file* file = vfs_resolve(path); // TODO: canonicalize
+    char* canon = vfs_mkcanon(path, task_curr()->workd);
+    struct file* file = vfs_resolve(canon);
+    kfree(canon);
+
     if (!file) return -ENOENT;
     if (file->flags == FL_DIR) return -EISDIR;
 
@@ -134,7 +141,11 @@ static int sys_access(const char* pathname, int mode)
 {
     PTRVALID(pathname);
 
-    return vfs_access(pathname, mode);
+    char* canon = vfs_mkcanon(pathname, task_curr()->workd);
+    int ret = vfs_access(canon, mode);
+    kfree(canon);
+
+    return ret;
 }
 
 static off_t sys_lseek(int fdno, off_t offset, int whence)
@@ -201,6 +212,40 @@ static int sys_munmap(void* addr, size_t length)
     return 0;
 }
 
+// TODO: add PATH_MAX macro
+static int sys_chdir(const char* path)
+{
+    PTRVALID(path);
+
+    struct task* task = task_curr();
+    char* new = vfs_mkcanon(path, task->workd);
+
+    struct file* dir = vfs_resolve(new);
+    
+    if (!dir) return -ENOENT;
+    if (dir->flags != FL_DIR && dir->flags != FL_MNTPT) return -ENOTDIR;
+
+    strcpy(task->workd, new);
+
+    kfree(dir);
+    kfree(new);
+
+    return 0;
+}
+
+static char* sys_getcwd(char* buf, size_t size)
+{
+    PTRVALID(buf);
+    if (size == 0) return -EINVAL;
+
+    struct task* task = task_curr();
+    if (size < strlen(task->workd) + 1) return -ERANGE;
+
+    strcpy(buf, task->workd);
+
+    return buf;
+}
+
 typedef uintptr_t (*syscall_t)();
 
 static syscall_t syscalls[] =
@@ -218,7 +263,9 @@ static syscall_t syscalls[] =
     sys_lseek,
     sys_wait,
     sys_mmap,
-    sys_munmap
+    sys_munmap,
+    sys_chdir,
+    sys_getcwd
 };
 
 void syscall_handler(struct regs* r)

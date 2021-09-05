@@ -25,6 +25,8 @@ static struct task* mktask(struct task* parent, struct vm_map* vm_map)
     task->sigqueue = list_create();
     task->waiting = 0;
     
+    strcpy(task->workd, "/");
+    
     memset(task->signals, 0, sizeof(task->signals));
 
     if (parent)
@@ -146,6 +148,8 @@ struct task* task_clone(const struct task* src, struct thread* calling)
         struct fd* fd = node->data;
         list_push_back(&task->fds, vfs_open(fd->filp));
     }
+
+    strcpy(task->workd, src->workd);
 
     return task;
 }

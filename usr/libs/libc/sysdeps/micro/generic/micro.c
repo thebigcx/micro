@@ -117,19 +117,14 @@ int sys_munmap(void* addr, size_t length)
     return syscall(SYS_munmap, addr, length);
 }
 
-/*int sys_sigaction(int signum, const struct sigaction* act, struct sigaction* old)
-{
-	return syscall(SYS_SIGACTION, signum, act, old);
-}
-
 int sys_chdir(const char* path)
 {
-	return syscall(SYS_CHDIR, path);
+	return syscall(SYS_chdir, path);
 }
 
 int sys_getcwd(char* buf, size_t size, char** ret)
 {
-	char* cwd = (char*)syscall(SYS_GETCWD, buf, size);
+	char* cwd = (char*)syscall(SYS_getcwd, buf, size);
 
 	if (!cwd)
 		return -1;
@@ -137,6 +132,13 @@ int sys_getcwd(char* buf, size_t size, char** ret)
 	*ret = cwd;
 	return 0;
 }
+
+/*int sys_sigaction(int signum, const struct sigaction* act, struct sigaction* old)
+{
+	return syscall(SYS_SIGACTION, signum, act, old);
+}
+
+
 
 int sys_readdir(int fd, struct dirent** dirents)
 {

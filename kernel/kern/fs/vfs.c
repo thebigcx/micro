@@ -152,6 +152,65 @@ struct file* vfs_getmnt(const char* path, char** relat)
     return (struct file*)curr->data;
 }
 
+char* vfs_mkcanon(const char* path, const char* work)
+{
+    char* tmp;
+
+    if (!work || path[0] == '/')
+    {
+        tmp = strdup(path);
+    }
+    else
+    {
+        tmp = kmalloc(strlen(path) + 1 + strlen(work) + 1);
+        strcpy(tmp, work);
+        strcpy(tmp + strlen(tmp), "/");
+        strcpy(tmp + strlen(tmp), path);
+    }
+
+    struct list tokens = list_create();
+
+    char* saveptr;
+    char* token = strtok_r(tmp, "/", &saveptr);
+
+    size_t fsize = token ? 0 : 1;
+
+    while (token)
+    {
+        if (token[0] == 0 || !strcmp(token, ".")) {}
+        else if (!strcmp(token, ".."))
+        {
+            if (tokens.size)
+                fsize -= strlen(list_pop_back(&tokens));
+        }
+        else
+        {
+            list_push_back(&tokens, token);
+            fsize += strlen(token) + 1;
+        }
+
+        token = strtok_r(NULL, "/", &saveptr);
+    }
+
+    char* ret = kmalloc(fsize + 1);
+    memset(ret, 0, fsize + 1);
+
+    if (!tokens.size)
+        strcpy(ret, "/");
+
+    LIST_FOREACH(&tokens)
+    {
+        char* token = node->data;
+        strcpy(ret + strlen(ret), "/");
+        strcpy(ret + strlen(ret), token);
+    }
+
+    kfree(tmp);
+    
+    return ret;
+}
+
+// Will always return a file that can be kfree'd
 struct file* vfs_resolve(const char* path)
 {
     char* relat;
@@ -162,8 +221,21 @@ struct file* vfs_resolve(const char* path)
 
     if (!file || !(file->flags & FL_MNTPT)) // Not a mounted filesystem
     {
-        if (relat[0] == 0) return file; // Virtual filesystem node
+        if (relat[0] == 0)
+        {
+            // Make a copy so the caller can free once done without affecting the VFS
+            struct file* ret = kmalloc(sizeof(struct file));
+            memcpy(ret, file, sizeof(struct file));
+            return ret; // Virtual filesystem node
+        }
         else return NULL; // 'path' does not exist in the VFS
+    }
+
+    if (!token) // Return a copy of the mounted filesystem root
+    {
+        struct file* ret = kmalloc(sizeof(struct file));
+        memcpy(ret, file, sizeof(struct file));
+        return ret;
     }
 
     while (token)

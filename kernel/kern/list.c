@@ -51,6 +51,30 @@ void* list_dequeue(struct list* list)
     return ret;
 }
 
+void* list_pop_back(struct list* self)
+{
+    if (!self->tail) return NULL;
+
+    // Save the old tail to return and free
+    struct lnode* old = self->tail;
+    
+    // Decrement the tail pointer
+    self->tail = self->tail->prev;
+    
+    // Try to set the tail's next to NULL, if not than set head to NULL (no items left in list)
+    if (self->tail)
+        self->tail->next = NULL;
+    else
+        self->head = NULL;
+
+    self->size--;
+
+    // Clean up and return the data
+    void* ret = old->data;
+    kfree(old);
+    return ret;
+}
+
 void list_clear(struct list* self)
 {
     while (self->size) list_dequeue(self);
