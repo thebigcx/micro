@@ -174,11 +174,11 @@ static int sys_wait(int* status)
 }
 
 // TODO: currently only supports fixed anonymous mappings
-static void* mmap(void* addr, size_t length, int prot, int flags, int fd, off_t offset)
+static void* sys_mmap(void* addr, size_t length, int prot, int flags, int fd, off_t offset)
 {
     if (!length) return -EINVAL;
     if (!(flags & MAP_SHARED) && !(flags & MAP_PRIVATE)) return -EINVAL;
-    // TEMP
+    // TEMPORARY
     if (!(flags & MAP_ANONYMOUS) || !(flags & MAP_FIXED)) return -EINVAL;
 
     unsigned int mmu_flags = PAGE_PR;
@@ -192,7 +192,7 @@ static void* mmap(void* addr, size_t length, int prot, int flags, int fd, off_t 
     return addr;
 }
 
-static int munmap(void* addr, size_t length)
+static int sys_munmap(void* addr, size_t length)
 {
     if (!length) return -EINVAL;
     if ((uintptr_t)addr % PAGE4K != 0) return -EINVAL;
@@ -216,7 +216,9 @@ static syscall_t syscalls[] =
     sys_getpid,
     sys_access,
     sys_lseek,
-    sys_wait
+    sys_wait,
+    sys_mmap,
+    sys_munmap
 };
 
 void syscall_handler(struct regs* r)

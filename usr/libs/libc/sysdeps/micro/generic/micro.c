@@ -103,6 +103,20 @@ int sys_wait(int* status, pid_t* pid)
 	return 0;
 }
 
+int sys_mmap(void* addr, size_t length, int prot, int flags, int fd, off_t offset, void** ret)
+{
+    void* mapped_addr = (void*)syscall(SYS_mmap, addr, length, prot, flags, fd, offset);
+
+    *ret = mapped_addr;
+
+    return 0;
+}
+
+int sys_munmap(void* addr, size_t length)
+{
+    return syscall(SYS_munmap, addr, length);
+}
+
 /*int sys_sigaction(int signum, const struct sigaction* act, struct sigaction* old)
 {
 	return syscall(SYS_SIGACTION, signum, act, old);

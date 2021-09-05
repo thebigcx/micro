@@ -1,6 +1,5 @@
 #pragma once
 
-#define EINVAL          0
 #define EBADF           1
 #define EFAULT          2
 #define ELOOP           3
@@ -15,3 +14,4 @@
 #define ESRCH           12
 #define ECHILD          13
 #define EISDIR          14
+#define EINVAL          15

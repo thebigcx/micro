@@ -9,8 +9,7 @@
 #define PROT_EXEC  	        0x0004
 
 #define MAP_SHARED          0x0001
-#define MAP_SHARED_VALIDATE 0x0002
-#define MAP_PRIVATE	        0x0003
+#define MAP_PRIVATE	        0x0002
 
 #define MAP_ANONYMOUS       0x0004
 #define MAP_FIXED           0x0008
