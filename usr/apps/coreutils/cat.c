@@ -1,5 +1,6 @@
 #include <unistd.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 int main(int argc, char** argv)
 {
@@ -20,10 +21,13 @@ int main(int argc, char** argv)
     size_t len = lseek(fd, 0, SEEK_CUR);
     lseek(fd, 0, SEEK_SET);
 
-    char buffer[1000];
+    char* buffer = malloc(len);
     read(fd, buffer, len);
+
     for (size_t i = 0; i < len; i++)
         printf("%c", buffer[i]);
+
+    free(buffer);
 
     return 0;
 }

@@ -14,3 +14,7 @@ int strncmp(const char* str1, const char* str2, size_t n);
 char* strcpy(char* dst, const char* src);
 char* strncpy(char* dst, const char* src, uint32_t n);
 char* strsep(char** str, const char* delim);
+char* strtok_r(char* str, const char* delim, char** saveptr);
+char* strdup(const char* s);
+size_t strspn(const char* str, const char* delim);
+size_t strcspn(const char* str, const char* delim);

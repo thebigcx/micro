@@ -20,7 +20,7 @@ pid_t fork()
 	return pid;
 }
 
-int execve(const char* pathname, char* const argv[], char* const envp[])
+int execve(const char* pathname, const char* argv[], const char* envp[])
 {
 	int e = sys_execve(pathname, argv, envp);
 	errno = e;

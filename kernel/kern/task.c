@@ -111,7 +111,7 @@ struct task* task_init_creat()
     char* argv[] = { "/init", NULL };
     char* envp[] = { NULL };
 
-    init_user_task(task, "/init", argv, envp);
+    init_user_task(task, argv[0], argv, envp);
 
     return task;
 }

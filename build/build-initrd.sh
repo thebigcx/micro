@@ -5,5 +5,6 @@ mkdir -p mnt
 sudo mount initrd.img mnt
 sudo cp ../usr/srv/init/init mnt/
 sudo cp -r ../root/* mnt/
+sudo cp ../usr/apps/sh/sh mnt/usr/bin/sh
 sudo umount mnt
 rm -rf mnt

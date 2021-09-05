@@ -1,4 +1,4 @@
-SUBDIRS = coreutils
+SUBDIRS = coreutils sh
 
 all: $(SUBDIRS)
 $(SUBDIRS):

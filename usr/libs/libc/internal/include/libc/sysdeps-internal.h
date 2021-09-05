@@ -16,7 +16,7 @@ int sys_kill(pid_t pid, int sig);
 int sys_sigaction(int signum, const struct sigaction* act, struct sigaction* old);
 pid_t sys_getpid();
 int sys_fork(pid_t* pid);
-int sys_execve(const char* pathname, char* const argv[], char* const envp[]);
+int sys_execve(const char* pathname, const char* argv[], const char* envp[]);
 int sys_chdir(const char* path);
 int sys_getcwd(char* buf, size_t size, char** ret);
 int sys_readdir(int fd, struct dirent** dirents);

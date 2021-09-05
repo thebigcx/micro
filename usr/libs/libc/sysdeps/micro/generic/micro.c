@@ -52,7 +52,7 @@ int sys_fork(pid_t* pid)
 	return 0;
 }
 
-int sys_execve(const char* pathname, char* const argv[], char* const envp[])
+int sys_execve(const char* pathname, const char* argv[], const char* envp[])
 {
 	int e = syscall(SYS_execve, pathname, argv, envp);
 	return e;
