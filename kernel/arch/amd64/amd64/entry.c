@@ -50,7 +50,17 @@ void kmain_st2(struct st2struct* st2)
         switch (tag->id)
         {
             case ST2_TAG_FB_ID:
+            {
+                struct st2_fbinfo* fb = (struct st2_fbinfo*)tag;
+
+                params.fb_phys_addr = fb->addr;
+                params.fbwidth = fb->width;
+                params.fbheight = fb->height;
+                params.fbbpp = fb->depth;
+
                 break;
+            }
+            
             case ST2_TAG_RSDP_ID:
             {
                 struct st2_tag_rsdp* rsdp_tag = (struct st2_tag_rsdp*)tag;

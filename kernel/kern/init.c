@@ -130,7 +130,11 @@ ssize_t tty_read(struct file* file, void* buf, off_t off, size_t size)
 
 ssize_t tty_write(struct file* file, const void* buf, off_t off, size_t size)
 {
-    while (size && size--) printk("%c", *((char*)buf++));
+    while (size && size--)
+    {
+        fb_putch(*((char*)buf++), 0xffffffff, 0x0);
+    }
+    //while (size && size--) printk("%c", *((char*)buf++));
     return size;
 }
 

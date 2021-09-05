@@ -11,6 +11,7 @@
 #include <micro/task.h>
 #include <micro/sched.h>
 #include <micro/init.h>
+#include <micro/fb.h>
 
 void main(struct bootparams params)
 {
@@ -53,6 +54,22 @@ void main(struct bootparams params)
     
     smp_init();
     printk("initialized other CPUs\n");
+
+    unsigned int pages = (params.fbwidth * params.fbheight * (params.fbbpp / 8)) / PAGE4K;
+    uintptr_t virt = mmu_kalloc(pages);
+
+    for (unsigned int i = 0; i < pages; i++)
+        mmu_kmap(virt + i * PAGE4K, params.fb_phys_addr + i * PAGE4K, PAGE_PR | PAGE_RW);
+
+    struct fb fb =
+    {
+        .addr = virt,
+        .width = params.fbwidth,
+        .height = params.fbheight,
+        .bpp = params.fbbpp,
+    };
+
+    fb_init(&fb);
 
     generic_init(genparams);
 }

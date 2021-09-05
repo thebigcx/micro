@@ -3,7 +3,7 @@
 #include <micro/elf.h>
 #include <arch/mmu.h>
 
-#define MODULE_BASE 0xffffffffa0000000
+//#define MODULE_BASE 0xffffffffa0000000
 
 static uintptr_t map_module(size_t size)
 {

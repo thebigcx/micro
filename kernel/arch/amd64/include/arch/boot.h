@@ -103,7 +103,6 @@ struct st2_tag_mmap
     struct st2_tag tag;
     uint64_t entries;
     struct st2_mmap_ent mmap[];
-
 };
 
 struct bootparams
@@ -111,4 +110,7 @@ struct bootparams
     uintptr_t rsdp;
     uintptr_t initrd_phys_start;
     uintptr_t initrd_phys_end;
+
+    uintptr_t fb_phys_addr;
+    unsigned int fbwidth, fbheight, fbbpp;
 };
