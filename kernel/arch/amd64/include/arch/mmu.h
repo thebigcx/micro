@@ -19,7 +19,7 @@ struct vm_map
 
 void mmu_init();
 uintptr_t mmu_kalloc(size_t n);
-void mmu_kfree(size_t n);
+void mmu_kfree(uintptr_t ptr, size_t n);
 void mmu_kmap(uintptr_t virt, uintptr_t phys, unsigned int flags);
 
 void mmu_map(struct vm_map* map, uintptr_t virt, uintptr_t phys, unsigned int flags);

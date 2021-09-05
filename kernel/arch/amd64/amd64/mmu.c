@@ -48,32 +48,110 @@ void mmu_init()
     lcr3((uintptr_t)&kpml4 - KBASE);
 }
 
-static uintptr_t heap_base = HEAPBASE;
-
-// TODO: rename to 'ksbrk' to reflect what actually happens
 uintptr_t mmu_kalloc(size_t n)
 {
-    for (size_t i = 0; i < n; i++)
-    {
-        unsigned int pdidx = PD_IDX(heap_base);
-        unsigned int ptidx = PT_IDX(heap_base);
+    unsigned int counter = 0;
+    uint64_t ptidx = 0;
+    uint64_t pdidx = 0;
 
-        if (!(kheap_dir[pdidx] & PAGE_PR))
+    // Attempt to use pre-allocated structures
+    for (uint32_t i = 0; i < ENTCNT; i++)
+    {
+        if (!(kheap_dir[i] & PAGE_PR) || kheap_dir[i] & PD_2M)
         {
-            kheap_dir[pdidx] = ((uintptr_t)&kheap_tbls[pdidx] - KBASE) | PAGE_PR | PAGE_RW;
+            pdidx = i + 1;
+            ptidx = 0;
+            counter = 0;
+            continue;
         }
 
-        kheap_tbls[pdidx][ptidx] = PAGE_PR | PAGE_RW;
+        for (uint32_t j = 0; j < ENTCNT; j++)
+        {
+            if (kheap_tbls[i][j] & PAGE_PR)
+            {
+                pdidx = i;
+                ptidx = j + 1;
+                counter = 0;
+                continue;
+            }
 
-        heap_base += PAGE4K;
+            counter++;
+
+            if (counter >= n)
+            {
+                uintptr_t addr = HEAPBASE + (pdidx * PAGE2M) + (ptidx * PAGE4K);
+
+                // Allocate the pages
+                while (counter--)
+                {
+                    if (ptidx >= 512)
+                    {
+                        pdidx++;
+                        ptidx = 0;
+                    }
+
+                    kheap_tbls[pdidx][ptidx] = PAGE_PR;
+                    ptidx++;
+                }
+
+                return addr;
+            }
+        }
     }
 
-    return heap_base - n * PAGE4K;
+    counter = 0;
+    pdidx = 0;
+    ptidx = 0;
+
+    // Need to allocate more paging structures
+
+    for (uint32_t i = 0; i < ENTCNT; i++)
+    {
+        if (kheap_dir[i] & PAGE_PR)
+        {
+            pdidx = i + 1;
+            ptidx = 0;
+            counter = 0;
+            continue;
+        }
+
+        counter += 512;
+        if (counter >= n)
+        {
+            uintptr_t addr = HEAPBASE + (pdidx * PAGE2M) + (ptidx * PAGE4K);
+
+            kheap_dir[pdidx] = ((uintptr_t)&kheap_tbls[pdidx] - KBASE) | PAGE_PR | PAGE_RW;
+
+            // Allocate the pages
+            while (n--)
+            {
+                if (ptidx >= 512)
+                {
+                    pdidx++;
+                    ptidx = 0;
+                    kheap_dir[pdidx] = ((uintptr_t)&kheap_tbls[pdidx] - KBASE) | PAGE_PR | PAGE_RW;
+                }
+
+                kheap_tbls[pdidx][ptidx] = PAGE_PR; // TODO: the physical address isn't actually present
+                ptidx++;
+            }
+
+            return addr;
+        }
+    }
+
+    printk("mmu_kalloc(): failed to allocate virtual memory of size=%x\n", n * PAGE4K);
+    return 0;
 }
 
-void mmu_kfree(size_t n)
+void mmu_kfree(uintptr_t ptr, size_t n)
 {
-    heap_base -= n * PAGE4K;
+    while (n--)
+    {
+        kheap_tbls[PD_IDX(ptr)][PT_IDX(ptr)] = 0; // Non-present
+        invlpg(ptr); // Flush TLB
+        ptr += PAGE4K;
+    }
 }
 
 void mmu_kmap(uintptr_t virt, uintptr_t phys, unsigned int flags)
@@ -237,7 +315,6 @@ struct vm_map* mmu_clone_vmmap(const struct vm_map* src)
 
         if (srcpt)
         {
-            // TODO: COPY THE DATA OVER!!!
             mktable(map, i, j);
 
             for (unsigned int k = 0; k < ENTCNT; k++)
