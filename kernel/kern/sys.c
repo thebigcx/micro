@@ -246,6 +246,20 @@ static char* sys_getcwd(char* buf, size_t size)
     return buf;
 }
 
+static int sys_readdir(int fdno, size_t idx, struct dirent* dirent)
+{
+    PTRVALID(dirent);
+
+    struct task* task = task_curr();
+    if (fdno < 0 || fdno >= task->fds.size) return -EBADF;
+
+    struct fd* fd = list_get(&task->fds, fdno);
+
+    if (fd->filp->flags != FL_DIR && fd->filp->flags != FL_MNTPT) return -ENOTDIR;
+
+    return vfs_readdir(fd->filp, idx, dirent);
+}
+
 typedef uintptr_t (*syscall_t)();
 
 static syscall_t syscalls[] =
@@ -265,7 +279,8 @@ static syscall_t syscalls[] =
     sys_mmap,
     sys_munmap,
     sys_chdir,
-    sys_getcwd
+    sys_getcwd,
+    sys_readdir
 };
 
 void syscall_handler(struct regs* r)

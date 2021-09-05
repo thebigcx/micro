@@ -4,6 +4,7 @@
 #include <micro/task.h>
 #include <micro/sched.h>
 #include <micro/ps2.h>
+#include <micro/fs.h>
 
 struct fheader
 {
@@ -155,7 +156,7 @@ void generic_init(struct genbootparams params)
     file->flags = FL_BLOCKDEV;
     file->device = initrd;
 
-    vfs_addnode(file, "/dev/initrd");    
+    vfs_addnode(file, "/dev/initrd");
 
     fat_init();
 

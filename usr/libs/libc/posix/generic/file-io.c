@@ -2,6 +2,7 @@
 #include <dirent.h>
 #include <stddef.h>
 #include <errno.h>
+#include <stdlib.h>
 #include <libc/sysdeps-internal.h>
 
 int open(const char* filename, int flags, mode_t mode)
@@ -85,6 +86,30 @@ off_t lseek(int fd, off_t off, int whence)
     return npos;
 }
 
+// TODO: make this better
+struct dirent* readdir(DIR* dirp)
+{
+	struct dirent* dirent = malloc(sizeof(struct dirent));
+	int e = sys_readdir(dirp->fd, dirp->pos++, dirent);
+
+	if (e == 1)
+		return dirent;
+	
+	return NULL;
+}
+
+DIR* opendir(const char* name)
+{
+	DIR* dir = malloc(sizeof(DIR));
+	dir->pos = 0;
+	dir->fd = open(name, 0, 0);
+	return dir;
+}
+
+int closedir(DIR* dirp)
+{
+	return -1;
+}
 
 /*int chdir(const char* path)
 {

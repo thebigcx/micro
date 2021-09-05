@@ -2,6 +2,7 @@
 #include <micro/vfs.h>
 #include <micro/stdlib.h>
 #include <micro/heap.h>
+#include <micro/fs.h>
 
 #define FAT_ATTR_RO             0x01
 #define FAT_ATTR_HIDDEN         0x02
@@ -15,6 +16,35 @@ uint64_t clus2lba(struct fat32_volume* vol, unsigned int cluster)
 {
     uint8_t sectors = vol->record.bpb.sectors_per_cluster;
     return vol->record.bpb.res_sectors + vol->record.bpb.fats * vol->record.ebr.sectors_per_fat + cluster * sectors - (2 * sectors);
+}
+
+void from8dot3(struct fat_dirent* dirent, char* dst)
+{
+    int i = 0;
+    for (; i < 8; i++)
+    {
+        if (dirent->name[i] == ' ')
+            break;
+        else if (dirent->name[i] >= 'A' && dirent->name[i] <= 'Z')
+            *dst++ = dirent->name[i] + 32; // convert to lower case
+        else
+            *dst++ = dirent->name[i];
+    }
+
+    *dst++ = '.';
+
+    int j = 0;
+    for (; j < 3; j++)
+    {
+        if (dirent->ext[j] == ' ')
+            break;
+        else if (dirent->ext[j] >= 'A' && dirent->ext[j] <= 'Z')
+            *dst++ = dirent->ext[j] + 32; // convert to lower case
+        else
+            *dst++ = dirent->ext[j];
+    }
+
+    if (j == 0) *(--dst) = 0;
 }
 
 // TODO
@@ -140,6 +170,7 @@ struct file* fat_find_impl(struct fat32_volume* vol, unsigned int cluster, const
 
                     file->ops.read = fat_read;
                     file->ops.find = fat_find;
+                    file->ops.readdir = fat_readdir;
 
                     strcpy(file->name, name);
                     
@@ -162,10 +193,64 @@ struct file* fat_find_impl(struct fat32_volume* vol, unsigned int cluster, const
     return NULL;
 }
 
+int fat_readdir_impl(struct fat32_volume* vol, unsigned int cluster, size_t idx, struct dirent* dirent)
+{
+    unsigned int clus = cluster;
+    unsigned int next = 0;
+
+    void* fatbuf = kmalloc(512); // Holds File Allocation Table
+    struct fat_dirent* buf = kmalloc(512); // Hold the data we care about
+
+    do
+    {
+        uint32_t fat_sector = vol->record.bpb.res_sectors + (clus * 4) / 512;
+        uint32_t fat_off = (clus * 4) % 512;
+
+        vfs_read(vol->device, fatbuf, fat_sector * 512, 512); // Probably redundant reads (same sector over and over again)
+        
+        uint64_t lba = clus2lba(vol, clus);
+
+        vfs_read(vol->device, buf, lba * 512, 512);
+
+        for (unsigned int i = 0; i < 512 / sizeof(struct fat_dirent); i++)
+        {
+            if (buf[i].name[0] == 0 || buf[i].name[0] == 0xe5 || buf[i].attr == FAT_ATTR_LFN || buf[i].attr & FAT_ATTR_VOLID) continue;
+            else
+            {
+                if (idx-- == 0)
+                {
+                    from8dot3(&buf[i], dirent->d_name);
+                    return 1;
+                }
+            }
+        }
+
+        next = *((uint32_t*)&fatbuf[fat_off]) & 0x0fffffff;
+        clus = next;
+
+    } while ((next != 0) && !((next & 0x0fffffff) >= 0x0ffffff8));
+
+    kfree(buf);
+    kfree(fatbuf);
+
+    return 0;
+}
+
 struct file* fat_root_find(struct file* dir, const char* name)
 {
     struct fat32_volume* vol = dir->device;
     return fat_find_impl(vol, vol->record.ebr.cluster_num, name);
+}
+
+int fat_root_readdir(struct file* dir, size_t idx, struct dirent* dirent)
+{
+    struct fat32_volume* vol = dir->device;
+    return fat_readdir_impl(vol, vol->record.ebr.cluster_num, idx, dirent);
+}
+
+int fat_readdir(struct file* dir, size_t idx, struct dirent* dirent)
+{
+    return fat_readdir_impl(dir->device, dir->inode, idx, dirent);
 }
 
 struct file* fat_find(struct file* dir, const char* name)
@@ -191,6 +276,7 @@ struct file* fat_mount(const char* dev, void* data)
     file->flags = FL_MNTPT;
     file->device = vol;
     file->ops.find = fat_root_find;
+    file->ops.readdir = fat_root_readdir;
     return file;
 }
 

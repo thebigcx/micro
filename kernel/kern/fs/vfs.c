@@ -47,6 +47,16 @@ struct file* vfs_find(struct file* dir, const char* name)
     return NULL;
 }
 
+int vfs_readdir(struct file* dir, size_t idx, struct dirent* dirent)
+{
+    if (dir && ((dir->flags & FL_DIR) || (dir->flags & FL_MNTPT)) && dir->ops.readdir)
+    {
+        return dir->ops.readdir(dir, idx, dirent);
+    }
+
+    return -ENOTDIR;
+}
+
 // Add a node (or 'struct file') to the VFS
 int vfs_addnode(struct file* file, const char* path)
 {

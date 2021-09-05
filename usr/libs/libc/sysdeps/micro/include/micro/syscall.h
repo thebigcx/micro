@@ -18,6 +18,7 @@
 #define SYS_munmap          13
 #define SYS_chdir           14
 #define SYS_getcwd          15
+#define SYS_readdir         16
 
 /*#define SYS_mmap            7
 #define SYS_munmap          8

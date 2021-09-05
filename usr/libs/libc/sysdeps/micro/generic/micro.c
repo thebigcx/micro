@@ -1,5 +1,6 @@
 #include <libc/sysdeps-internal.h>
 #include <micro/syscall.h>
+#include <errno.h>
 
 int sys_open(const char* pathname, int flags, mode_t mode, int* fd)
 {
@@ -131,6 +132,19 @@ int sys_getcwd(char* buf, size_t size, char** ret)
 	
 	*ret = cwd;
 	return 0;
+}
+
+int sys_readdir(int fd, size_t idx, struct dirent* dirent)
+{
+	int e = syscall(SYS_readdir, fd, idx, dirent);
+
+	if (e < 0)
+	{
+		errno = e;
+		return -1;
+	}
+
+	return e;
 }
 
 /*int sys_sigaction(int signum, const struct sigaction* act, struct sigaction* old)

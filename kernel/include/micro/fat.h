@@ -72,7 +72,10 @@ struct fat32_volume
     struct file* device;
 };
 
+struct dirent;
+
 void fat_init();
 
 ssize_t fat_read(struct file* file, void* buf, off_t off, size_t size);
 struct file* fat_find(struct file* dir, const char* name);
+int fat_readdir(struct file* dir, size_t size, struct dirent* dirent);
