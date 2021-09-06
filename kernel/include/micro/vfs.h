@@ -43,6 +43,8 @@ struct file
     size_t size;
 
     struct file_ops ops;
+
+    struct file* parent;
 };
 
 struct dirent;

@@ -16,6 +16,7 @@ static struct file* file_create(const char* name)
     file->device = NULL;
     file->inode = 0;
     file->flags = 0;
+    file->parent = NULL;
     memset(&file->ops, 0, sizeof(struct file_ops));
 
     return file;
@@ -99,6 +100,8 @@ int vfs_addnode(struct file* file, const char* path)
                 nfile = file;
 
             strcpy(nfile->name, old);
+
+            nfile->parent = curr->data;
 
             tree_push_back(curr, nfile);
             curr = curr->children.tail->data;

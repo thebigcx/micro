@@ -97,6 +97,14 @@ ssize_t fat_read(struct file* file, void* buf, off_t off, size_t size)
     return 0;
 }
 
+ssize_t fat_write(struct file* file, const void* buf, off_t off, size_t size)
+{
+    struct fat32_volume* vol = file->device;
+    (void)vol;
+    // TODO
+    return 0;
+}
+
 // name: in the format file.ext (no more than 8 characters)
 int fat_name_cmp(struct fat_dirent* dirent, const char* name)
 {
@@ -133,7 +141,7 @@ int fat_name_cmp(struct fat_dirent* dirent, const char* name)
     return ret;
 }
 
-struct file* fat_find_impl(struct fat32_volume* vol, unsigned int cluster, const char* name)
+struct file* fat_find_impl(struct fat32_volume* vol, struct file* dir, unsigned int cluster, const char* name)
 {
     unsigned int clus = cluster;
     unsigned int next = 0;
@@ -162,12 +170,14 @@ struct file* fat_find_impl(struct fat32_volume* vol, unsigned int cluster, const
                 {
                     struct file* file = kmalloc(sizeof(struct file));
 
+                    file->parent = dir;
                     file->device = vol;
                     file->flags = (buf[i].attr & FAT_ATTR_DIR) ? FL_DIR : FL_FILE;
                     file->inode = (buf[i].cluster_u << 16) | buf[i].cluster;
                     file->size = buf[i].file_sz;
 
                     file->ops.read = fat_read;
+                    file->ops.write = fat_write;
                     file->ops.find = fat_find;
                     file->ops.readdir = fat_readdir;
 
@@ -238,7 +248,7 @@ int fat_readdir_impl(struct fat32_volume* vol, unsigned int cluster, size_t idx,
 struct file* fat_root_find(struct file* dir, const char* name)
 {
     struct fat32_volume* vol = dir->device;
-    return fat_find_impl(vol, vol->record.ebr.cluster_num, name);
+    return fat_find_impl(vol, dir, vol->record.ebr.cluster_num, name);
 }
 
 int fat_root_readdir(struct file* dir, size_t idx, struct dirent* dirent)
@@ -254,7 +264,7 @@ int fat_readdir(struct file* dir, size_t idx, struct dirent* dirent)
 
 struct file* fat_find(struct file* dir, const char* name)
 {
-    return fat_find_impl(dir->device, dir->inode, name);
+    return fat_find_impl(dir->device, dir, dir->inode, name);
 }
 
 struct file* fat_mount(const char* dev, void* data)

@@ -116,11 +116,13 @@ ssize_t tty_read(struct file* file, void* buf, off_t off, size_t size)
 {
     uint8_t* raw = kmalloc(size);
     ssize_t bytes = kb_read(file, raw, off, size);
+    if (bytes <= 0) return bytes;
+
     ssize_t kbsize = 0;
 
     char* cbuf = buf;
 
-    for (size_t i = 0; i < size && i < bytes; i++)
+    for (size_t i = 0; i < size && i < (size_t)bytes; i++)
     {
         if (raw[i] < 88)
         {
