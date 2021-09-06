@@ -115,12 +115,12 @@ static char ascii[] =
 ssize_t tty_read(struct file* file, void* buf, off_t off, size_t size)
 {
     uint8_t* raw = kmalloc(size);
-    kb_read(file, raw, off, size);
+    ssize_t bytes = kb_read(file, raw, off, size);
     ssize_t kbsize = 0;
 
     char* cbuf = buf;
 
-    for (size_t i = 0; i < size; i++)
+    for (size_t i = 0; i < size && i < bytes; i++)
     {
         if (raw[i] < 88)
         {

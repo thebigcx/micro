@@ -3,6 +3,7 @@
 #include <micro/debug.h>
 #include <micro/lock.h>
 #include <micro/stdlib.h>
+#include <arch/panic.h>
 
 struct block
 {
@@ -78,9 +79,9 @@ void* kmalloc(size_t n)
                 b->used = 1;
                 UNLOCK(lock);
                 heap_check();
-//#ifdef DEBUG
+#ifdef DEBUG
                 memset((void*)(b + 1), 0xcb, b->size);
-//#endif
+#endif
                 heap_check();
                 return b + 1;
             }
@@ -88,9 +89,9 @@ void* kmalloc(size_t n)
             {
                 curr->used = 1;
                 UNLOCK(lock);
-//#ifdef DEBUG
+#ifdef DEBUG
                 memset((void*)(curr + 1), 0xcb, curr->size);
-//#endif
+#endif
                 heap_check();
                 return curr + 1;
             }

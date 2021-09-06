@@ -124,49 +124,49 @@ void __ubsan_handle_missing_return(struct unreach_info* info)
     print_location(info->location);
 }
 
-void __ubsan_handle_sub_overflow(struct overflow_info* info, uintptr_t, uintptr_t)
+void __ubsan_handle_sub_overflow(struct overflow_info* info, uintptr_t left, uintptr_t right)
 {
     printk_crit("UBSAN: subtraction overflow, %s (%d-bit)\n", info->type->name, bitw(info->type->info));
     print_location(info->location);
 }
 
-void __ubsan_handle_add_overflow(struct overflow_info* info, uintptr_t, uintptr_t)
+void __ubsan_handle_add_overflow(struct overflow_info* info, uintptr_t left, uintptr_t right)
 {
     printk_crit("UBSAN: addition overflow, %s (%d-bit)\n", info->type->name, bitw(info->type->info));
     print_location(info->location);
 }
 
-void __ubsan_handle_mul_overflow(struct overflow_info* info, uintptr_t, uintptr_t)
+void __ubsan_handle_mul_overflow(struct overflow_info* info, uintptr_t left, uintptr_t right)
 {
     printk_crit("UBSAN: multiplication overflow, %s (%d-bit)\n", info->type->name, bitw(info->type->info));
     print_location(info->location);
 }
 
-void __ubsan_handle_negate_overflow(struct overflow_info* info, uintptr_t)
+void __ubsan_handle_negate_overflow(struct overflow_info* info, uintptr_t ptr)
 {
     printk_crit("UBSAN: subtraction overflow, %s (%d-bit)\n", info->type->name, bitw(info->type->info));
     print_location(info->location);
 }
 
-void __ubsan_handle_out_of_bounds(struct oob_info* info, uintptr_t)
+void __ubsan_handle_out_of_bounds(struct oob_info* info, uintptr_t ptr)
 {
     printk_crit("UBSAN: out of bounds array index %s (%d-bit), index type %s (%d-bit)\n", info->array_type->name, bitw(info->array_type->info), info->index_type->name, bitw(info->index_type->info));
     print_location(info->location); 
 }
 
-void __ubsan_handle_load_invalid_value(struct inv_val_info* info, uintptr_t)
+void __ubsan_handle_load_invalid_value(struct inv_val_info* info, uintptr_t ptr)
 {
-    printk_crit("UBSAN: load-invalid-value: %s (%d-bit)\n", info->type->name, bitw(info->type->info));
+    printk_crit("UBSAN: load-invalid-value: %s (%d-bit) address %x\n", info->type->name, bitw(info->type->info), ptr);
     print_location(info->location);
 }
 
-void __ubsan_handle_divrem_overflow(struct overflow_info* info, uintptr_t, uintptr_t)
+void __ubsan_handle_divrem_overflow(struct overflow_info* info, uintptr_t left, uintptr_t right)
 {
     printk_crit("UBSAN: divrem overflow, %s (%d-bit)\n", info->type->name, bitw(info->type->info));
     print_location(info->location);
 }
 
-void __ubsan_handle_shift_out_of_bounds(struct shft_oob_info* info, uintptr_t, uintptr_t)
+void __ubsan_handle_shift_out_of_bounds(struct shft_oob_info* info, uintptr_t left, uintptr_t right)
 {
     printk_crit("UBSAN: shift out of bounds, %s (%d-bit) shifted by %s (%d-bit)\n", info->lhs_type->name, bitw(info->lhs_type->info), info->rhs_type->name, bitw(info->rhs_type->info));
     print_location(info->location);
@@ -179,6 +179,6 @@ uintptr_t __stack_chk_guard = STACK_CHK_GUARD;
 void __stack_chk_fail()
 {
     panic("Stack smashing detected");
-};
+}
 
 #endif

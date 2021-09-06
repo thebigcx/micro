@@ -288,6 +288,7 @@ static uintptr_t syscalls[] =
 void syscall_handler(struct regs* r)
 {
     uintptr_t n = arch_syscall_num(r);
+    printk("sys: %d\n", n);
     if (n >= sizeof(syscalls) / sizeof(syscall_t))
     {
         arch_syscall_ret(r, -ENOSYS);

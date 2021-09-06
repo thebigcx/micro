@@ -8,7 +8,7 @@ OBJ = $(patsubst %.c, %.o, $(SRC)) $(patsubst %.S, %.o, $(ASM))
 TARGET = dist/vmkernel
 
 all: $(TARGET) dev
-debug: CFLAGS += -g -DDEBUG -fsanitize=undefined
+debug: CFLAGS += -g3 -DDEBUG -fsanitize=undefined
 debug: $(TARGET) dev
 
 .PHONY: clean dev
