@@ -4,7 +4,7 @@
 
 .global lgdt_full
 
-// void lgdt_full(uint16_t, uint16_t)
+// void lgdt_full(struct gdtent*, uint16_t, uint16_t)
 lgdt_full:
     lgdt    (%rdi)
     mov     %dx, %ax  // Data
@@ -13,7 +13,17 @@ lgdt_full:
     mov     %ax, %fs
     mov     %ax, %gs
     mov     %ax, %ss
-    mov     %rsi, %rax // Code
-    pushq   %rax
-    pushq   %rsi
-    retfq
+
+    // Reload the code segment
+
+    popq    %rax // Pop the previous return address
+    
+    pushq   %rdx // SS
+    pushq   %rbp // RSP
+    pushfq       // RFLAGS
+    pushq   %rsi // CS
+    pushq   %rax // RIP
+    iretq
+
+lgdt_done:
+    ret

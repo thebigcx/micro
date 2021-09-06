@@ -119,6 +119,12 @@ int vfs_addnode(struct file* file, const char* path)
     return 0;
 }
 
+void* vfs_rmnode(const char* path)
+{
+    // TODO: impl
+    return NULL;
+}
+
 // vfs_getmnt(): returns the mount point of a path
 // *relat: the relative path in the mounted filesystem
 struct file* vfs_getmnt(const char* path, char** relat)

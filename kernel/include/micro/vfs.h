@@ -57,6 +57,7 @@ struct file* vfs_find(struct file* dir, const char* name);
 int vfs_readdir(struct file* file, size_t idx, struct dirent* dirent);
 
 int vfs_addnode(struct file* file, const char* path);
+void* vfs_rmnode(const char* path);
 struct file* vfs_getmnt(const char* path, char** relat);
 
 void vfs_mount_fs(const char* dev, const char* mnt, const char* fs, void* data);
