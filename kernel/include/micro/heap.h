@@ -5,3 +5,4 @@
 void* kmalloc(size_t n);
 void kfree(void* ptr);
 void heap_init();
+void heap_check();

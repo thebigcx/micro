@@ -114,3 +114,5 @@ struct bootparams
     uintptr_t fb_phys_addr;
     unsigned int fbwidth, fbheight, fbbpp;
 };
+
+void main(struct bootparams params);

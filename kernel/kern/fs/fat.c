@@ -47,7 +47,8 @@ void from8dot3(struct fat_dirent* dirent, char* dst)
     if (j == 0) *(--dst) = 0;
 }
 
-// TODO
+// TODO: cluster chain reading should be in a macro called FAT_READ_CLUSTERS
+
 ssize_t fat_read(struct file* file, void* buf, off_t off, size_t size)
 {
     struct fat32_volume* vol = file->device;
@@ -55,10 +56,10 @@ ssize_t fat_read(struct file* file, void* buf, off_t off, size_t size)
     unsigned int clus = file->inode;
     unsigned int next = 0;
 
-    void* fatbuf = kmalloc(512); // Holds File Allocation Table
+    uint8_t* fatbuf = kmalloc(512); // Holds File Allocation Table
     
-    void* fullbuf = kmalloc(off % 512 + size + (512 - (size % 512))); // Sector-aligned
-    void* fullbuf_ptr = fullbuf;
+    uint8_t* fullbuf = kmalloc(off % 512 + size + (512 - (size % 512))); // Sector-aligned
+    uint8_t* fullbuf_ptr = fullbuf;
     uint64_t start = off / 512;
     uint64_t end = (off + size) / 512;
 
@@ -97,7 +98,7 @@ ssize_t fat_read(struct file* file, void* buf, off_t off, size_t size)
 }
 
 // name: in the format file.ext (no more than 8 characters)
-int fat_name_cmp(struct fat_dirent* dirent, char* name)
+int fat_name_cmp(struct fat_dirent* dirent, const char* name)
 {
     char* first = kmalloc(12);
     char* second = kmalloc(12);
@@ -126,8 +127,6 @@ int fat_name_cmp(struct fat_dirent* dirent, char* name)
 
     int ret = !strcmp(first, second);
 
-    heap_check();
-
     kfree(first);
     kfree(second);
 
@@ -139,7 +138,7 @@ struct file* fat_find_impl(struct fat32_volume* vol, unsigned int cluster, const
     unsigned int clus = cluster;
     unsigned int next = 0;
 
-    void* fatbuf = kmalloc(512); // Holds File Allocation Table
+    uint8_t* fatbuf = kmalloc(512); // Holds File Allocation Table
     struct fat_dirent* buf = kmalloc(512); // Hold the data we care about
 
     do
@@ -198,7 +197,7 @@ int fat_readdir_impl(struct fat32_volume* vol, unsigned int cluster, size_t idx,
     unsigned int clus = cluster;
     unsigned int next = 0;
 
-    void* fatbuf = kmalloc(512); // Holds File Allocation Table
+    uint8_t* fatbuf = kmalloc(512); // Holds File Allocation Table
     struct fat_dirent* buf = kmalloc(512); // Hold the data we care about
 
     do

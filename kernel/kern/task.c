@@ -1,10 +1,12 @@
 #include <micro/task.h>
+#include <micro/sched.h>
 #include <micro/heap.h>
 #include <arch/cpu.h>
 #include <micro/thread.h>
 #include <micro/debug.h>
 #include <micro/binfmt.h>
 #include <micro/vfs.h>
+#include <micro/stdlib.h>
 
 // TODO: needs WAY more locking
 
@@ -103,15 +105,15 @@ static void idle()
 
 struct task* task_idle()
 {
-    return task_kcreat(NULL, idle);
+    return task_kcreat(NULL, (uintptr_t)idle);
 }
 
 struct task* task_init_creat()
 {
     struct task* task = mktask(NULL, mmu_create_vmmap());
 
-    char* argv[] = { "/init", NULL };
-    char* envp[] = { NULL };
+    const char* argv[] = { "/init", NULL };
+    const char* envp[] = { NULL };
 
     init_user_task(task, argv[0], argv, envp);
 
@@ -136,7 +138,7 @@ struct task* task_kcreat(struct task* parent, uintptr_t entry)
     return task;
 }
 
-struct task* task_clone(const struct task* src, struct thread* calling)
+struct task* task_clone(struct task* src, struct thread* calling)
 {
     struct task* task = mktask(src, mmu_clone_vmmap(src->vm_map));
     task->main = thread_clone(task, calling);

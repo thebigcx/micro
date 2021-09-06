@@ -12,6 +12,9 @@
 #include <micro/sched.h>
 #include <micro/init.h>
 #include <micro/fb.h>
+#include <micro/debug.h>
+#include <arch/ioapic.h>
+#include <arch/timer.h>
 
 void main(struct bootparams params)
 {
@@ -63,7 +66,7 @@ void main(struct bootparams params)
 
     struct fb fb =
     {
-        .addr = virt,
+        .addr = (void*)virt,
         .width = params.fbwidth,
         .height = params.fbheight,
         .bpp = params.fbbpp,

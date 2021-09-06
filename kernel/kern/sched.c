@@ -14,7 +14,7 @@ void sched_init()
 
     idt_set_handler(IPI_SCHED, switch_task);
 
-    for (int i = 0; i < g_cpu_cnt; i++)
+    for (unsigned int i = 0; i < g_cpu_cnt; i++)
     {
         printk("creating idle\n");
         g_cpus[i].idle = task_idle()->threads.head->data;
@@ -93,7 +93,7 @@ struct task* sched_task_fromid(int id)
     {
         struct task* task = node->data;
 
-        if (task->id == id) return task;
+        if (task->id == (unsigned int)id) return task;
     }
 
     return NULL;

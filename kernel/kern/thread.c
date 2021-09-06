@@ -1,8 +1,11 @@
 #include <micro/thread.h>
 #include <micro/task.h>
+#include <micro/sched.h>
 #include <arch/mmu.h>
 #include <arch/cpu.h>
 #include <micro/stdlib.h>
+#include <micro/debug.h>
+#include <micro/heap.h>
 
 void thread_start(struct thread* thread)
 {

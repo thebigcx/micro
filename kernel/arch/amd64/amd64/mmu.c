@@ -3,6 +3,7 @@
 #include <arch/cpu_func.h>
 #include <micro/stdlib.h>
 #include <micro/heap.h>
+#include <micro/debug.h>
 
 #define KBASE      (0xffffffff80000000)
 #define HEAPBASE   (0xffffffffc0000000)
@@ -332,7 +333,7 @@ struct vm_map* mmu_clone_vmmap(const struct vm_map* src)
                         mmu_kmap(virt1, phys1, PAGE_PR | PAGE_RW);
                         mmu_kmap(virt2, phys2, PAGE_PR | PAGE_RW);
 
-                        memcpy(virt2, virt1, PAGE4K);
+                        memcpy((void*)virt2, (const void*)virt1, PAGE4K);
                         // TODO: free the kernel allocated page
 
                         map->pts[i][j][k] = (~PAGE_FRAME & srcpt[k]) | phys2;

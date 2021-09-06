@@ -1,5 +1,5 @@
 LDFLAGS = -Tkernel.ld -nostdlib
-CFLAGS = -Wall -Wextra -ffreestanding -g -DDEBUG -fno-stack-protector -fno-pic -fpie -mno-red-zone -nostdinc -fsanitize=undefined -Iinclude -Iinclude/uapi
+CFLAGS = -Wall -Wextra -Wno-unused-parameter -pedantic -ffreestanding -fno-stack-protector -fno-pic -fpie -mno-red-zone -nostdinc -Iinclude -Iinclude/uapi
 
 include arch/amd64/amd64.mk
 include kern/kern.mk
@@ -8,6 +8,8 @@ OBJ = $(patsubst %.c, %.o, $(SRC)) $(patsubst %.S, %.o, $(ASM))
 TARGET = dist/vmkernel
 
 all: $(TARGET) dev
+debug: CFLAGS += -g -DDEBUG -fsanitize=undefined
+debug: $(TARGET) dev
 
 .PHONY: clean dev
 

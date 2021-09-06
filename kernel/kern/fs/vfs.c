@@ -4,6 +4,7 @@
 #include <micro/tree.h>
 #include <micro/heap.h>
 #include <micro/errno.h>
+#include <micro/debug.h>
 
 struct tree root;
 
@@ -31,7 +32,7 @@ ssize_t vfs_read(struct file* file, void* buf, off_t off, size_t size)
     return 0;
 }
 
-ssize_t vfs_write(struct file* file, void* buf, off_t off, size_t size)
+ssize_t vfs_write(struct file* file, const void* buf, off_t off, size_t size)
 {
     if (file->ops.write) return file->ops.write(file, buf, off, size);
     return 0;

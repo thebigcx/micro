@@ -1,4 +1,5 @@
 #include <micro/stdlib.h>
+#include <micro/heap.h>
 #include <micro/debug.h>
 #include <arch/panic.h>
 
@@ -87,9 +88,9 @@ char* ultoa(unsigned long n, char* str, int base)
     return strrev(str);
 }
 
-void memset(void* ptr, char c, size_t size)
+void memset(void* ptr, unsigned char c, size_t size)
 {
-    char* cp = (char*)ptr;
+    unsigned char* cp = (unsigned char*)ptr;
     while (size--) *cp++ = c;
 }
 

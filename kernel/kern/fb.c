@@ -1,4 +1,5 @@
 #include <micro/fb.h>
+#include <micro/stdlib.h>
 
 static struct fb fb;
 static unsigned int cx, cy;
@@ -203,7 +204,7 @@ void fb_putch(char c, uint32_t fg, uint32_t bg)
         return;
     }
 
-    uint8_t* bitmap = s_font[c];
+    uint8_t* bitmap = s_font[(int)c];
 
     uint32_t x = cx * 16;
     uint32_t y = cy * 16;

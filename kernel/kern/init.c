@@ -3,8 +3,13 @@
 #include <micro/vfs.h>
 #include <micro/task.h>
 #include <micro/sched.h>
-#include <micro/ps2.h>
 #include <micro/fs.h>
+#include <micro/heap.h>
+#include <micro/stdlib.h>
+#include <micro/ps2.h>
+#include <micro/fb.h>
+#include <micro/sys.h>
+#include <micro/fat.h>
 
 struct fheader
 {
@@ -30,14 +35,14 @@ struct initramfs
 ssize_t initrd_read(struct file* file, void* buf, off_t off, size_t size)
 {
     struct initrd* initrd = file->device;
-    memcpy(buf, initrd->start + off, size);
+    memcpy(buf, (void*)(initrd->start + off), size);
     return size;
 }
 
 ssize_t initramfs_read(struct file* file, void* buf, off_t off, size_t size)
 {
     struct initramfs_file* fs_file = file->device;
-    memcpy(buf, fs_file->start + off, size);
+    memcpy(buf, (void*)(fs_file->start + off), size);
     return size;
 }
 
@@ -110,17 +115,19 @@ static char ascii[] =
 ssize_t tty_read(struct file* file, void* buf, off_t off, size_t size)
 {
     uint8_t* raw = kmalloc(size);
-    ssize_t bytes = kb_read(file, raw, off, size);
+    kb_read(file, raw, off, size);
     ssize_t kbsize = 0;
+
+    char* cbuf = buf;
 
     for (size_t i = 0; i < size; i++)
     {
         if (raw[i] < 88)
         {
-            ((char*)buf)[kbsize++] = ascii[*raw];
+            cbuf[kbsize++] = ascii[*raw];
         }
 
-        buf++;
+        cbuf++;
     }
 
     kfree(raw);
@@ -130,11 +137,12 @@ ssize_t tty_read(struct file* file, void* buf, off_t off, size_t size)
 
 ssize_t tty_write(struct file* file, const void* buf, off_t off, size_t size)
 {
+    const char* cbuf = buf;
     while (size && size--)
     {
-        fb_putch(*((char*)buf++), 0xffffffff, 0x0);
+        fb_putch(*cbuf++, 0xffffffff, 0x0);
     }
-    //while (size && size--) printk("%c", *((char*)buf++));
+    
     return size;
 }
 
@@ -164,13 +172,7 @@ void generic_init(struct genbootparams params)
 
     fat_init();
 
-    //vfs_mount_fs("/dev/initrd", "/initrd", "initramfs", NULL);
     vfs_mount_fs("/dev/initrd", "/", "fat", NULL);
-
-    //module_load("/initrd/test.ko");
-    //for (;;);
-
-    // TODO: temporary
 
     struct file* tty = kmalloc(sizeof(struct file));
     tty->ops.read = tty_read;

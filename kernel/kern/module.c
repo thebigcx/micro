@@ -5,7 +5,7 @@
 
 //#define MODULE_BASE 0xffffffffa0000000
 
-static uintptr_t map_module(size_t size)
+/*static uintptr_t map_module(size_t size)
 {
     //static uintptr_t base = MODULE_BASE;
 
@@ -25,7 +25,7 @@ static uintptr_t map_module(size_t size)
 
 struct elf_shdr* get_section(struct elf_hdr* hdr, int idx)
 {
-    return (uintptr_t)hdr + hdr->sh_off + hdr->sh_ent_size * idx;
+    return (struct elf_shdr*)((uintptr_t)hdr + hdr->sh_off + hdr->sh_ent_size * idx);
 }
 
 void module_load(const char* path)
@@ -33,7 +33,7 @@ void module_load(const char* path)
     struct file* file = vfs_resolve(path);
 
     // TODO: don't read unnecessary information
-    void* data = map_module(file->size);
+    void* data = (void*)map_module(file->size);
     vfs_read(file, data, 0, file->size);
 
     struct elf_hdr* header = (struct elf_hdr*)data;
@@ -57,4 +57,4 @@ void module_load(const char* path)
     }
 
     
-}
+}*/

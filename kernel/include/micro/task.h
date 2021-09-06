@@ -31,7 +31,7 @@ struct thread;
 struct task* task_idle();
 struct task* task_init_creat();
 struct task* task_kcreat(struct task* parent, uintptr_t entry);
-struct task* task_clone(const struct task* src, struct thread* calling);
+struct task* task_clone(struct task* src, struct thread* calling);
 struct task* task_curr();
 
 void task_send(struct task* task, int signal);

@@ -93,8 +93,6 @@ void kmain_st2(struct st2struct* st2)
             {
                 struct st2_tag_mods* modules = (struct st2_tag_mods*)tag;
                 
-                struct st2_module mod = modules->modules[0];
-                
                 for (uint64_t i = 0; i < modules->module_cnt; i++)
                 {
                     struct st2_module mod = modules->modules[i];

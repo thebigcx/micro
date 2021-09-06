@@ -1,5 +1,6 @@
 #include <arch/panic.h>
 #include <arch/pio.h>
+#include <micro/debug.h>
 
 static void shutdown()
 {

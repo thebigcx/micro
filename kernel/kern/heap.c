@@ -2,6 +2,7 @@
 #include <arch/mmu.h>
 #include <micro/debug.h>
 #include <micro/lock.h>
+#include <micro/stdlib.h>
 
 struct block
 {
@@ -77,7 +78,9 @@ void* kmalloc(size_t n)
                 b->used = 1;
                 UNLOCK(lock);
                 heap_check();
+//#ifdef DEBUG
                 memset((void*)(b + 1), 0xcb, b->size);
+//#endif
                 heap_check();
                 return b + 1;
             }
@@ -85,7 +88,9 @@ void* kmalloc(size_t n)
             {
                 curr->used = 1;
                 UNLOCK(lock);
+//#ifdef DEBUG
                 memset((void*)(curr + 1), 0xcb, curr->size);
+//#endif
                 heap_check();
                 return curr + 1;
             }
@@ -107,7 +112,9 @@ void kfree(void* ptr)
 
     struct block* block = (struct block*)ptr - 1;
     block->used = 0;
+#ifdef DEBUG
     memset(block + 1, 0xcb, block->size);
+#endif
 
     if (block->prev && !block->prev->used) block = combine(block->prev, block);
     if (block->next && !block->next->used) block = combine(block, block->next);
@@ -119,8 +126,8 @@ void kfree(void* ptr)
 
 void heap_init()
 {
-    void* start = mmu_kalloc(10000);
-    for (int i = 0; i < 10000; i++)
+    uintptr_t start = mmu_kalloc(10000);
+    for (unsigned int i = 0; i < 10000; i++)
         mmu_kmap(start + i * PAGE4K, mmu_alloc_phys(), PAGE_PR | PAGE_RW);
 
     first = last = (struct block*)start;

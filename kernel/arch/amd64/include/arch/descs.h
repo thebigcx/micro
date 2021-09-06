@@ -76,6 +76,7 @@ struct __attribute__((packed)) tss
 };
 
 struct cpu_info;
+struct regs;
 
 // gdt.c
 void gdt_init_cpu(struct cpu_info* cpu);
@@ -84,3 +85,4 @@ extern void rel_segs(uint16_t, uint16_t);
 // idt.c
 void idt_init();
 void idt_init_cpu(struct cpu_info* cpu);
+void idt_set_handler(unsigned int n, void (*handler)(struct regs*));

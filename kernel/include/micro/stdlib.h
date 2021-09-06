@@ -18,7 +18,7 @@ size_t strlen(const char* str);
 char* strrev(char* str);
 char* itoa(int value, char* str, int base);
 char* ultoa(unsigned long n, char* str, int base);
-void memset(void* ptr, char c, size_t size);
+void memset(void* ptr, unsigned char c, size_t size);
 void memcpy(void* dst, const void* src, size_t size);
 char* strcpy(char* dst, const char* src);
 int strncmp(const char* s1, const char* s2, size_t n);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <micro/types.h>
+#include <micro/fs.h>
 
 struct file;
 
@@ -49,7 +50,7 @@ struct dirent;
 void vfs_init();
 
 ssize_t vfs_read(struct file* file, void* buf, off_t off, size_t size);
-ssize_t vfs_write(struct file* file, void* buf, off_t off, size_t size);
+ssize_t vfs_write(struct file* file, const void* buf, off_t off, size_t size);
 struct file* vfs_find(struct file* dir, const char* name);
 int vfs_readdir(struct file* file, size_t idx, struct dirent* dirent);
 

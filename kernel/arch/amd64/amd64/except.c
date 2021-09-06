@@ -4,6 +4,8 @@
 #include <arch/reg.h>
 #include <arch/cpu_func.h>
 #include <micro/task.h>
+#include <arch/panic.h>
+#include <micro/sched.h>
 
 static void dump(struct regs* r)
 {
@@ -62,7 +64,7 @@ void unrecoverable(const char* msg, struct regs* regs)
     printk("%s\n", msg);
     dump(regs);
     backtrace(regs->rip, regs->rbp, 32);
-    panic();
+    panic("Exception in Ring 3");
 }
 
 #define UNRECOVER(n, msg)\
@@ -82,7 +84,7 @@ static void divbyzero(struct regs* regs)
     printk("Divide by zero\n");
     dump(regs);
     backtrace(regs->rip, regs->rbp, 32);
-    panic();
+    panic("Exception in Ring 3");
 }
 
 static void debug(struct regs* regs)
@@ -118,7 +120,7 @@ static void invalid_opcode(struct regs* regs)
     printk("Invalid opcode\n");
     dump(regs);
     backtrace(regs->rip, regs->rbp, 32);
-    panic();
+    panic("Exception in Ring 3");
 }
 
 UNRECOVER(7, "Device not available")
@@ -139,7 +141,7 @@ static void gp(struct regs* regs, uint32_t e)
     printk("General protection fault\n");
     dump(regs);
     backtrace(regs->rip, regs->rbp, 32);
-    panic();
+    panic("Exception in Ring 3");
 }
 
 static void pf(struct regs* regs, uint32_t e)
@@ -153,7 +155,7 @@ static void pf(struct regs* regs, uint32_t e)
     printk("Page fault\n");
     dump(regs);
     backtrace(regs->rip, regs->rbp, 32);
-    panic();
+    panic("Exception in Ring 3");
 }
 
 static void x87_error(struct regs* regs)

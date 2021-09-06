@@ -11,7 +11,7 @@
     memcpy(inode, (buf + (ext2_inode_bgi(ext2, num) * ext2->superext.inode_sz) % 512))
 }*/
 
-static struct file* ext2vol_find(struct file* dir, const char* name)
+/*static struct file* ext2vol_find(struct file* dir, const char* name)
 {
     struct ext2_volume* vol = dir->device;
 
@@ -33,4 +33,4 @@ static struct file* ext2_mount(const char* dev)
 void ext2_init()
 {
     vfs_register_fs("ext2", ext2_mount);
-}
+}*/
