@@ -26,11 +26,20 @@ void acpi_init(uintptr_t rsdp)
 
 void* acpi_find(const char* sig)
 {
-    int entries = (rsdt->hdr.len - sizeof(rsdt->hdr)) / 4;
+    unsigned int entries;
 
-    for (int i = 0; i < entries; i++)
+    if (rev == 0)
+        entries = (rsdt->hdr.len - sizeof(rsdt->hdr)) / 4;
+    else
+        entries = (xsdt->hdr.len - sizeof(xsdt->hdr)) / 4;
+
+    for (unsigned int i = 0; i < entries; i++)
     {
-        struct sdthdr* h = (struct sdthdr*)((uint64_t)rsdt->sdts[i]);
+        struct sdthdr* h;
+        if (rev == 0)
+            h = (struct sdthdr*)((uint64_t)rsdt->sdts[i]);
+        else
+            h = (struct sdthdr*)xsdt->sdts[i];
         if (!strncmp((char*)h->sig, sig, 4)) return (void*)h;
     }
 
