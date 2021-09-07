@@ -1,4 +1,4 @@
-SRCS := cat.c pwd.c ls.c
+SRCS := cat.c pwd.c ls.c touch.c
 OBJS := $(patsubst %.c, %.o, $(SRCS))
 TARGS := $(patsubst %.c, %, $(SRCS))
 LDFLAGS := -Tlinker.ld -static -Bsymbolic -nostdlib -L$(ROOT)/usr/lib -l:libc.a
@@ -6,7 +6,7 @@ CFLAGS := -ffreestanding -fshort-wchar -mno-red-zone -Wall -nostdinc -I$(ROOT)/u
 
 .PHONY: all install
 
-all: cat pwd ls install
+all: cat pwd ls touch install
 
 # TODO: this system is bad
 cat: cat.c
@@ -27,6 +27,12 @@ ls: ls.c
 	@echo "    LD     ls"
 	@ld -o ls ls.o $(LDFLAGS)
 
+touch: touch.c
+	@echo "    CC     touch.o"
+	@gcc $(CFLAGS) -c touch.c -o touch.o
+	@echo "    LD     touch"
+	@ld -o touch touch.o $(LDFLAGS)
+
 #install:
 #	cp cat ../../../base/usr/bin/
 #	cp ls ../../../base/usr/bin/
@@ -36,6 +42,7 @@ install:
 	@cp cat $(ROOT)/usr/bin
 	@cp pwd $(ROOT)/usr/bin
 	@cp ls $(ROOT)/usr/bin
+	@cp touch $(ROOT)/usr/bin
 
 clean:
 	@echo "    RM     $(TARGS)"

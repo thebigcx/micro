@@ -32,7 +32,12 @@ static int sys_open(const char* path, uint32_t flags)
     struct file* file = vfs_resolve(canon);
     kfree(canon);
 
-    if (!file) return -ENOENT;
+    if (!file)
+    {
+        if (!(flags & O_CREAT)) return -ENOENT;
+        vfs_mkfile(path);
+        file = vfs_resolve(path);
+    }
 
     list_push_back(&task->fds, vfs_open(file));
     return task->fds.size - 1;

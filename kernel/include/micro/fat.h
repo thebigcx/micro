@@ -81,3 +81,4 @@ struct file* fat_find(struct file* dir, const char* name);
 int fat_readdir(struct file* dir, size_t size, struct dirent* dirent);
 void fat_mkfile(struct file* dir, const char* name);
 void fat_mkdir(struct file* dir, const char* name);
+void fat_rm(struct file* dir, const char* name);

@@ -184,8 +184,13 @@ void generic_init(struct genbootparams params)
 
     vfs_mount_fs("/dev/initrd", "/", "fat", NULL);
 
-    vfs_mkdir(vfs_resolve("/"), "test");
-    vfs_mkfile(vfs_resolve("/test"), "dirent");
+    //vfs_mkdir(vfs_resolve("/"), "test");
+    //vfs_mkfile(vfs_resolve("/test"), "dirent");
+    //vfs_rm(vfs_resolve("/"), "test");
+    //vfs_mkfile("/test.txt");
+    vfs_mkdir("/tests");
+    vfs_mkfile("/tests/text.txt");
+    //vfs_mkfile("/tests/dirent.txt");
 
     /*vfs_mkfile(vfs_resolve("/"), "test");
 

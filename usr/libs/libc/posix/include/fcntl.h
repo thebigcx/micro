@@ -7,4 +7,7 @@
 #define O_WRONLY __LIBC_O_WRONLY
 #define O_RDWR   __LIBC_O_RDWR
 
-int open(const char* pathname, int flags, mode_t mode);
+#define O_APPEND __LIBC_O_APPEND
+#define O_CREAT  __LIBC_O_CREAT
+
+int open(const char* pathname, int flags);

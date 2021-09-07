@@ -235,7 +235,7 @@ void fat_resize_file(struct file* file, size_t size)
 
         // Set parent's dirent structure size
 
-        // TODO: move directory entry parsing to a different function
+        // TODO: IMPORTANT: move directory entry parsing to a different function
 
         unsigned int parent_clusters = fat_cchain_cnt(vol, parent_clus);
         struct fat_dirent* dirents = kmalloc(512);
@@ -351,6 +351,53 @@ void fat_mkdir(struct file* dir, const char* name)
     fat_table_write(vol, dirent.cluster, 0xffffff8);
 }
 
+// TODO: IMPORTANT: move directory entry parsing to a different function
+
+void fat_rm(struct file* dir, const char* name)
+{
+    struct fat32_volume* vol = dir->device;
+    unsigned int clus = dir->inode;
+
+    struct fat_dirent* buf = kmalloc(512); // Hold the data we care about
+
+    unsigned int cnt = fat_cchain_cnt(vol, clus);
+    for (unsigned int i = 0; i < cnt; i++)
+    {
+        uint64_t lba = clus2lba(vol, clus);
+
+        vfs_read(vol->device, buf, lba * 512, 512);
+
+        for (unsigned int i = 0; i < 512 / sizeof(struct fat_dirent); i++)
+        {
+            if (   buf[i].name[0] == 0 || buf[i].name[0] == 0xe5
+                || buf[i].attr == FAT_ATTR_LFN || buf[i].attr & FAT_ATTR_VOLID) continue;
+            else
+            {
+                if (fat_name_cmp(&buf[i], name))
+                {
+                    struct fat_dirent* buf = kmalloc(512);
+                    vfs_read(vol->device, buf, clus2lba(vol, clus) * 512, 512);
+
+                    // TODO: delete the data
+
+                    memset(&buf[i], 0, sizeof(struct fat_dirent));
+
+                    vfs_write(vol->device, buf, clus2lba(vol, clus) * 512, 512);
+
+                    kfree(buf);
+                    return;
+                }
+            }
+        }
+
+        clus = fat_table_read(vol, clus);
+    }
+
+    kfree(buf);
+
+    return 0;
+}
+
 // name: in the format file.ext 8.3 limit
 int fat_name_cmp(struct fat_dirent* dirent, const char* name)
 {
@@ -434,6 +481,7 @@ struct file* fat_find(struct file* dir, const char* name)
                     file->ops.readdir = fat_readdir;
                     file->ops.mkfile  = fat_mkfile;
                     file->ops.mkdir   = fat_mkdir;
+                    file->ops.rm      = fat_rm;
 
                     strcpy(file->name, name);
                     
@@ -469,13 +517,15 @@ struct file* fat_mount(const char* dev, void* data)
     struct file* file = kmalloc(sizeof(struct file));
     memset(file, 0, sizeof(struct file));
 
-    file->flags = FL_MNTPT;
-    file->device = vol;
-    file->inode = vol->record.ebr.cluster_num;
-    file->ops.find = fat_find;
+    strcpy(file->name, "fat32");
+    file->flags       = FL_MNTPT;
+    file->device      = vol;
+    file->inode       = vol->record.ebr.cluster_num;
+    file->ops.find    = fat_find;
     file->ops.readdir = fat_readdir;
-    file->ops.mkfile = fat_mkfile;
-    file->ops.mkdir = fat_mkdir;
+    file->ops.mkfile  = fat_mkfile;
+    file->ops.mkdir   = fat_mkdir;
+    file->ops.rm      = fat_rm;
 
     return file;
 }

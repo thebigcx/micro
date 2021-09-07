@@ -52,6 +52,7 @@ install:
 	cp $(CRT0) $(ROOT)/usr/lib/
 	cp -r ansi/include/* $(ROOT)/usr/include/
 	cp -r posix/include/* $(ROOT)/usr/include/
+	cp -r sysdeps/micro/include/* $(ROOT)/usr/include/
 
 .PHONY:
 clean:

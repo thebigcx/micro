@@ -60,16 +60,66 @@ int vfs_readdir(struct file* dir, size_t idx, struct dirent* dirent)
 }
 
 // TODO: return int on sucess ?
-void vfs_mkfile(struct file* dir, const char* name)
+void vfs_mkfile(const char* path)
 {
-    if (dir && ((dir->flags & FL_DIR) || (dir->flags & FL_MNTPT)) && dir->ops.mkfile)
-        dir->ops.mkfile(dir, name);
+    char* relat;
+    struct file* file = vfs_getmnt(path, &relat);
+
+    char* saveptr;
+    char* token = strtok_r(relat, "/", &saveptr);
+    char* next = strtok_r(NULL, "/", &saveptr);
+
+    if (!file || !(file->flags & FL_MNTPT) || !token) return;
+
+    while (next)
+    {
+        struct file* child = vfs_find(file, token);
+        //kfree(file);
+        file = child;
+        if (!file) return;
+
+        token = next;
+        next = strtok_r(NULL, "/", &saveptr);
+    }
+
+    if (file && ((file->flags & FL_DIR) || (file->flags & FL_MNTPT)) && file->ops.mkfile)
+        file->ops.mkfile(file, token);
+
+    kfree(relat);
 }
 
-void vfs_mkdir(struct file* dir, const char* name)
+void vfs_mkdir(const char* path)
 {
-    if (dir && ((dir->flags & FL_DIR) || (dir->flags & FL_MNTPT)) && dir->ops.mkdir)
-        dir->ops.mkdir(dir, name);
+    char* relat;
+    struct file* file = vfs_getmnt(path, &relat);
+
+    char* saveptr;
+    char* token = strtok_r(relat, "/", &saveptr);
+    char* next = strtok_r(NULL, "/", &saveptr);
+
+    if (!file || !(file->flags & FL_MNTPT) || !token) return;
+
+    while (next)
+    {
+        struct file* child = vfs_find(file, token);
+        //kfree(file);
+        file = child;
+        if (!file) return;
+
+        token = next;
+        next = strtok_r(NULL, "/", &saveptr);
+    }
+
+    if (file && ((file->flags & FL_DIR) || (file->flags & FL_MNTPT)) && file->ops.mkdir)
+        file->ops.mkdir(file, token);
+
+    kfree(relat);
+}
+
+void vfs_rm(struct file* dir, const char* name)
+{
+    if (dir && ((dir->flags & FL_DIR) || (dir->flags & FL_MNTPT)) && dir->ops.rm)
+        dir->ops.rm(dir, name);
 }
 
 // Add a node (or 'struct file') to the VFS
@@ -138,7 +188,7 @@ void* vfs_rmnode(const char* path)
     return NULL;
 }
 
-// vfs_getmnt(): returns the mount point of a path
+// vfs_getmnt(): returns a copy of the mount point of a path
 // *relat: the relative path in the mounted filesystem
 struct file* vfs_getmnt(const char* path, char** relat)
 {
@@ -180,9 +230,11 @@ struct file* vfs_getmnt(const char* path, char** relat)
     kfree(path_cpy);
 
     *relat = kmalloc(strlen(path) - pos + 1);
-    strcpy(*relat, path + pos);    
+    strcpy(*relat, path + pos);
 
-    return (struct file*)curr->data;
+    struct file* mnt = kmalloc(sizeof(struct file));
+    memcpy(mnt, curr->data, sizeof(struct file));
+    return mnt;
 }
 
 char* vfs_mkcanon(const char* path, const char* work)
@@ -273,7 +325,9 @@ struct file* vfs_resolve(const char* path)
 
     while (token)
     {
-        file = vfs_find(file, token);
+        struct file* child = vfs_find(file, token);
+        kfree(file);
+        file = child;
         if (!file) return NULL;
 
         token = strtok_r(NULL, "/", &saveptr);
