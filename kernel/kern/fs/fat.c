@@ -100,8 +100,74 @@ ssize_t fat_read(struct file* file, void* buf, off_t off, size_t size)
 ssize_t fat_write(struct file* file, const void* buf, off_t off, size_t size)
 {
     struct fat32_volume* vol = file->device;
-    (void)vol;
-    // TODO
+    
+    if (off + size != file->size)
+    {
+        // TODO: allocate more or free clusters if necessary
+
+        file->size = off + size;
+        uintptr_t parent_clus = file->parent->inode;
+
+        // TODO: set FAT32 dirent structure size
+    }
+
+    unsigned int clus = file->inode;
+    unsigned int next = 0;
+
+    uint8_t* fatbuf = kmalloc(512); // Holds File Allocation Table
+    
+    uint8_t* fullbuf = kmalloc(512); // Sector-aligned
+    uint64_t start = off / 512;
+    uint64_t end = (off + size) / 512;
+
+    size_t pos = 0;
+
+    do
+    {
+        uint32_t fat_sector = vol->record.bpb.res_sectors + (clus * 4) / 512;
+        uint32_t fat_off = (clus * 4) % 512;
+
+        vfs_read(vol->device, fatbuf, fat_sector * 512, 512); // Probably redundant reads (same sector over and over again)
+        
+        uint64_t lba = clus2lba(vol, clus);
+
+        if (pos > end) break;
+
+        if (pos >= start)
+        {
+            size_t bytes = 0;
+            vfs_read(vol->device, fullbuf, lba * 512, 512);
+
+            if (pos == start)
+            {
+                bytes = (512 - (off % 512));
+                memcpy(fullbuf + (off % 512), buf, bytes);
+            }
+            else if (pos == end)
+            {
+                bytes = ((off + size) % 512);
+                memcpy(fullbuf, buf, bytes);
+            }
+            else
+            {
+                bytes = 512;
+                memcpy(fullbuf, buf, bytes);
+            }
+
+            vfs_write(vol->device, fullbuf, lba * 512, 512);
+            buf += bytes;
+        }
+
+        pos++;
+
+        next = *((uint32_t*)&fatbuf[fat_off]) & 0x0fffffff;
+        clus = next;
+
+    } while ((next != 0) && !((next & 0x0fffffff) >= 0x0ffffff8));
+
+    kfree(fatbuf);
+    kfree(fullbuf);
+
     return 0;
 }
 

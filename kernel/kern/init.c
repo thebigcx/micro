@@ -11,18 +11,18 @@
 #include <micro/sys.h>
 #include <micro/fat.h>
 
-struct fheader
+/*struct fheader
 {
     char name[128];
     uint64_t size;
-};
+};*/
 
 struct initrd
 {
     uintptr_t start, end;
 };
 
-struct initramfs_file
+/*struct initramfs_file
 {
     uintptr_t start;
 };
@@ -30,7 +30,7 @@ struct initramfs_file
 struct initramfs
 {
     struct initrd* device;
-};
+};*/
 
 ssize_t initrd_read(struct file* file, void* buf, off_t off, size_t size)
 {
@@ -39,7 +39,14 @@ ssize_t initrd_read(struct file* file, void* buf, off_t off, size_t size)
     return size;
 }
 
-ssize_t initramfs_read(struct file* file, void* buf, off_t off, size_t size)
+ssize_t initrd_write(struct file* file, const void* buf, off_t off, size_t size)
+{
+    struct initrd* initrd = file->device;
+    memcpy((void*)(initrd->start + off), buf, size);
+    return size;
+}
+
+/*ssize_t initramfs_read(struct file* file, void* buf, off_t off, size_t size)
 {
     struct initramfs_file* fs_file = file->device;
     memcpy(buf, (void*)(fs_file->start + off), size);
@@ -87,7 +94,7 @@ struct file* initramfs_mount(const char* dev, void* data)
     file->device = ramfs;
 
     return file;
-}
+}*/
 
 static char ascii[] =
 {
@@ -159,7 +166,7 @@ void generic_init(struct genbootparams params)
 
     printk("mounting initial ramdisk\n");
 
-    vfs_register_fs("initramfs", initramfs_mount);
+    //vfs_register_fs("initramfs", initramfs_mount);
 
     struct file* file = kmalloc(sizeof(struct file));
     struct initrd* initrd = kmalloc(sizeof(struct initrd));
@@ -167,6 +174,7 @@ void generic_init(struct genbootparams params)
     initrd->end = params.initrd_end;
 
     file->ops.read = initrd_read;
+    file->ops.write = initrd_write;
     file->flags = FL_BLOCKDEV;
     file->device = initrd;
 
@@ -175,6 +183,19 @@ void generic_init(struct genbootparams params)
     fat_init();
 
     vfs_mount_fs("/dev/initrd", "/", "fat", NULL);
+
+    // TEMP
+    struct file* assert = vfs_resolve("/usr/include/assert.h");
+    void* buf = kmalloc(512);
+    memset(buf, 'X', 512);
+    vfs_write(assert, buf, 0, 512);
+
+    char* buf2 = kmalloc(assert->size);
+    vfs_read(assert, buf2, 0, assert->size);
+
+    for (int i = 0; i < assert->size; i++) printk("%c", buf2[i]);
+
+    for (;;);
 
     struct file* tty = kmalloc(sizeof(struct file));
     tty->ops.read = tty_read;
