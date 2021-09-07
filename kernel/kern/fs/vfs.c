@@ -59,6 +59,19 @@ int vfs_readdir(struct file* dir, size_t idx, struct dirent* dirent)
     return -ENOTDIR;
 }
 
+// TODO: return int on sucess ?
+void vfs_mkfile(struct file* dir, const char* name)
+{
+    if (dir && ((dir->flags & FL_DIR) || (dir->flags & FL_MNTPT)) && dir->ops.mkfile)
+        dir->ops.mkfile(dir, name);
+}
+
+void vfs_mkdir(struct file* dir, const char* name)
+{
+    if (dir && ((dir->flags & FL_DIR) || (dir->flags & FL_MNTPT)) && dir->ops.mkdir)
+        dir->ops.mkdir(dir, name);
+}
+
 // Add a node (or 'struct file') to the VFS
 int vfs_addnode(struct file* file, const char* path)
 {
