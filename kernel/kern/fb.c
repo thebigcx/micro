@@ -3,6 +3,7 @@
 
 static struct fb fb;
 static unsigned int cx, cy;
+static int ready = 0;
 
 // Simple bitmap font
 static uint8_t s_font[128][8] =
@@ -137,16 +138,9 @@ static uint8_t s_font[128][8] =
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }  // U+007F
 };
 
-void fb_init(struct fb* fb_)
+void fb_clear(uint32_t fg)
 {
-    fb = *fb_;
-    cx = 0;
-    cy = 0;
-}
-
-static void clear()
-{
-    memset((void*)fb.addr, 0, fb.width * fb.height * (fb.bpp / 8));
+    memset((void*)fb.addr, fg, fb.width * fb.height * (fb.bpp / 8));
 }
 
 static void newline()
@@ -156,7 +150,7 @@ static void newline()
 
     if (cy >= fb.height / 16)
     {
-        clear();
+        fb_clear(0x0);
         cy = 0;
     }
 }
@@ -188,6 +182,8 @@ static void tab()
 
 void fb_putch(char c, uint32_t fg, uint32_t bg)
 {
+    if (!ready) return;
+
     if (c == '\n')
     {
         newline();
@@ -230,4 +226,20 @@ void fb_print(const char* str, uint32_t fg, uint32_t bg)
     {
         fb_putch(*str++, fg, bg);
     }
+}
+
+void fb_init(unsigned int width, unsigned int height, unsigned int depth)
+{
+    fb.width = width;
+    fb.height = height;
+    fb.bpp = depth;
+
+    cx = 0;
+    cy = 0;
+    ready = 1;
+}
+
+void fb_set_addr(void* addr)
+{
+    fb.addr = addr;
 }

@@ -20,10 +20,13 @@ void main(struct bootparams params)
 {
     struct genbootparams genparams;
 
+    printk("initrd: %x - %x\n", params.initrd_phys_start, params.initrd_phys_end);
+    printk("framebuffer: %dx%d with %d-bit color\n", params.fbwidth, params.fbheight, params.fbbpp);
+
+    printk("initializing the mmu...");
     mmu_alloc_phys_at(0, 0x100);
     mmu_init();
 
-    printk("initrd: %x - %x\n", params.initrd_phys_start, params.initrd_phys_end);
     uintptr_t size = (params.initrd_phys_end - params.initrd_phys_start + PAGE4K) / PAGE4K;
     uintptr_t vaddr = mmu_kalloc(size);
     for (uintptr_t i = 0; i < size * PAGE4K; i += PAGE4K)
@@ -32,47 +35,44 @@ void main(struct bootparams params)
     genparams.initrd_start = vaddr;
     genparams.initrd_end = vaddr + (params.initrd_phys_end - params.initrd_phys_start);
 
-    gdt_init_cpu(&g_cpus[0]);
-    idt_init();
-    idt_init_cpu(&g_cpus[0]);
-    printk("loaded gdt\n");
-    
-    heap_init();
-    printk("initialized heap\n");
-
-    acpi_init(params.rsdp);
-    //acpi_parse_madt();
-    printk("initialized ACPI\n");
-
-    lapic_setup();
-    printk("initialized LAPIC\n");
-
-    ioapic_init();
-    printk("initalized IOAPIC\n");
-
-    timer_init();
-    printk("initialized timer\n");
-
-    sti();
-    
-    smp_init();
-    printk("initialized other CPUs\n");
-
-    unsigned int pages = (params.fbwidth * params.fbheight * (params.fbbpp / 8)) / PAGE4K;
+    unsigned int pages = (params.fbwidth * params.fbheight * (params.fbbpp / 8)) / PAGE4K + 1;
     uintptr_t virt = mmu_kalloc(pages);
 
     for (unsigned int i = 0; i < pages; i++)
         mmu_kmap(virt + i * PAGE4K, params.fb_phys_addr + i * PAGE4K, PAGE_PR | PAGE_RW);
 
-    struct fb fb =
-    {
-        .addr = (void*)virt,
-        .width = params.fbwidth,
-        .height = params.fbheight,
-        .bpp = params.fbbpp,
-    };
+    fb_set_addr((void*)virt);
 
-    fb_init(&fb);
+    printk("done\n");
+
+    printk("loading gdt and idt...");
+    gdt_init_cpu(&g_cpus[0]);
+    idt_init();
+    idt_init_cpu(&g_cpus[0]);
+    printk("done\n");
+    
+    printk("initializing kernel heap...");
+    heap_init();
+    printk("done\n");
+
+    printk("initializing ACPI...");
+    acpi_init(params.rsdp);
+    printk("done\n");
+
+    printk("initializing APIC...");
+    lapic_setup();
+    ioapic_init();
+    printk("done\n");
+
+    printk("initializing timer...");
+    timer_init();
+    printk("done\n");
+
+    sti();
+    
+    printk("starting cpus...");
+    //smp_init();
+    printk("done\n");
 
     generic_init(genparams);
 }

@@ -18,23 +18,37 @@ SECTIONS
 
     .text : AT(ADDR(.text) - VIRTADDR)
     {
-        *(.text)
+        *(.text*)
+        . = ALIGN(0x1000);
     }
+
+    . += 0x1000;
 
     .rodata : AT(ADDR(.rodata) - VIRTADDR)
     {
-        *(.rodata)
+        *(.rodata*)
+        . = ALIGN(0x1000);
     }
+
+    . += 0x1000;
 
     .data : AT(ADDR(.data) - VIRTADDR)
     {
-        *(.data)
+        *(.data*)
+        . = ALIGN(0x1000);
+    }
+
+    .dynamic :
+    {
+        *(.dynamic)
+        . = ALIGN(0x1000);
     }
 
     .bss : AT(ADDR(.bss) - VIRTADDR)
     {
         *(COMMON)
-        *(.bss)
+        *(.bss*)
+        . = ALIGN(0x1000);
     }
 
     _kernel_end = .;

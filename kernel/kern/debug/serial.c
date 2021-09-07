@@ -4,6 +4,8 @@
 #include <arch/cpu.h>
 #include <micro/lock.h>
 #include <arch/pio.h>
+#include <micro/fb.h>
+#include <arch/boot.h>
 
 #if DEBUG
 
@@ -11,6 +13,9 @@
 
 static void serial_putch(char c)
 {
+    //term_write(&c, 1);
+    //return;
+
     static int ready = 0;
     if (!ready)
     {
@@ -27,9 +32,11 @@ static void serial_putch(char c)
         ready = 1;
     }
 
+    fb_putch(c, 0xffffffff, 0x0);
+
     // Wait for trasmit to be empty
     while ((inb(PORT + 5) & 0x20) == 0);
-    outb(PORT, c); 
+    outb(PORT, c);
 }
 
 static lock_t lock = 0;
@@ -42,6 +49,12 @@ void printk(const char* s, ...)
     va_start(list, s);
     snprintf(s, buffer, 200, list);
     va_end(list);
+
+    if (use_boot_term)
+    {
+        term_write(buffer, strlen(buffer));
+        return;
+    }
 
     LOCK(lock);
     

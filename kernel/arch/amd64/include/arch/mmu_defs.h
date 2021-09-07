@@ -22,3 +22,7 @@
 
 typedef uint64_t page_t;
 typedef page_t pml_t[512];
+
+#define KBASE      (0xffffffff80000000)
+#define HEAPBASE   (0xffffffffc0000000)
+#define MMIO_BASE  (KBASE - 0x100000000)

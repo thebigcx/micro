@@ -5,10 +5,6 @@
 #include <micro/heap.h>
 #include <micro/debug.h>
 
-#define KBASE      (0xffffffff80000000)
-#define HEAPBASE   (0xffffffffc0000000)
-#define MMIO_BASE  (KBASE - 0x100000000)
-
 #define ENTCNT 512
 
 // Indices of page structures
@@ -195,7 +191,8 @@ uintptr_t mmu_map_mmio(uintptr_t mmio)
     return v + mmio % PAGE4K;
 }
 
-#define BUF_SZ 156250
+// TODO: detect memory and resize buffer
+#define BUF_SZ 200000
 static uint8_t phys_bmp[BUF_SZ]; // 0 = free, 1 = used
 
 void mmu_phys_init()

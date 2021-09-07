@@ -12,14 +12,15 @@ static int rev;
 
 void acpi_init(uintptr_t rsdp)
 {
-    struct rsdp* ptr = (struct rsdp*)rsdp;
+    struct rsdp* ptr = (struct rsdp*)mmu_map_mmio(rsdp);
+    printk("rsdp: %x\n", ptr);
     rev = ptr->rev;
 
     if (rev == 0)
         rsdt = (struct rsdt*)mmu_map_mmio(ptr->rsdt_addr);
     else
     {
-        struct xsdp* extptr = (struct xsdp*)rsdp;
+        struct xsdp* extptr = (struct xsdp*)ptr;
         xsdt = (struct xsdt*)mmu_map_mmio(extptr->xsdt_addr);
     }
 }
@@ -37,9 +38,9 @@ void* acpi_find(const char* sig)
     {
         struct sdthdr* h;
         if (rev == 0)
-            h = (struct sdthdr*)((uint64_t)rsdt->sdts[i]);
+            h = (struct sdthdr*)mmu_map_mmio((uint64_t)rsdt->sdts[i]);
         else
-            h = (struct sdthdr*)xsdt->sdts[i];
+            h = (struct sdthdr*)mmu_map_mmio(xsdt->sdts[i]);
         if (!strncmp((char*)h->sig, sig, 4)) return (void*)h;
     }
 

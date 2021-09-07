@@ -1,5 +1,5 @@
-LDFLAGS = -Tkernel.ld -nostdlib
-CFLAGS = -Wall -Wextra -Wno-unused-parameter -pedantic -ffreestanding -fno-stack-protector -fno-pic -fpie -mno-red-zone -nostdinc -Iinclude -Iinclude/uapi
+LDFLAGS = -Tkernel.ld -nostdlib -zmax-page-size=0x1000 -static -pie --no-dynamic-linker -ztext
+CFLAGS = -Wall -Wextra -Wno-unused-parameter -pedantic -ffreestanding -fno-stack-protector -fno-pic -fpie -mno-red-zone -mno-80387 -mno-mmx -mno-3dnow -mno-sse -mno-sse2 -nostdinc -Iinclude -Iinclude/uapi
 
 include arch/amd64/amd64.mk
 include kern/kern.mk
@@ -16,7 +16,7 @@ debug: $(TARGET) dev
 $(TARGET): $(OBJ)
 	@echo "    LD $@"
 	@mkdir -p dist
-	@gcc $^ -o $@ $(LDFLAGS)
+	@ld $^ -o $@ $(LDFLAGS)
 
 dev:
 	$(MAKE) -C dev
