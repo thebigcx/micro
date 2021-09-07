@@ -12,6 +12,8 @@
 #define FAT_ATTR_AR             0x20
 #define FAT_ATTR_LFN            0x0f
 
+// TODO: cache the FATs in memory
+
 uint64_t clus2lba(struct fat32_volume* vol, unsigned int cluster)
 {
     uint8_t sectors = vol->record.bpb.sectors_per_cluster;
@@ -47,16 +49,68 @@ void from8dot3(struct fat_dirent* dirent, char* dst)
     if (j == 0) *(--dst) = 0;
 }
 
-// TODO: cluster chain reading should be in a macro called FAT_READ_CLUSTERS
+unsigned int fat_table_read(struct fat32_volume* vol, unsigned int i)
+{
+    uint32_t fat_sector = vol->record.bpb.res_sectors + (i * 4) / 512;
+    uint32_t fat_off = (i * 4) % 512;
+
+    uint32_t* buf = kmalloc(512);
+
+    vfs_read(vol->device, buf, fat_sector * 512, 512);
+
+    uint32_t val = buf[fat_off / 4];
+
+    kfree(buf);
+
+    return val;
+}
+
+void fat_table_write(struct fat32_volume* vol, unsigned int i, unsigned int val)
+{
+    uint32_t fat_sector = vol->record.bpb.res_sectors + (i * 4) / 512;
+    uint32_t fat_off = (i * 4) % 512;
+
+    uint32_t* buf = kmalloc(512);
+
+    vfs_read(vol->device, buf, fat_sector * 512, 512);
+    buf[fat_off / 4] = val;
+    vfs_write(vol->device, buf, fat_sector * 512, 512);
+
+    kfree(buf);
+}
+
+unsigned int fat_cchain_cnt(struct fat32_volume* vol, unsigned int clus)
+{
+    unsigned int cnt = 0;
+    do
+    {
+        clus = fat_table_read(vol, clus);
+        cnt++;
+
+    } while ((clus != 0) && !((clus & 0x0fffffff) >= 0x0ffffff8));
+
+    return cnt;
+}
+
+unsigned int fat_alloc_clus(struct fat32_volume* vol)
+{
+    for (unsigned int i = 2; i < vol->record.bpb.sector_cnt / vol->record.bpb.sectors_per_cluster; i++)
+    {
+        unsigned int ent = fat_table_read(vol, i);
+
+        if (ent == 0)
+            return i;
+    }
+
+    printk("fat: could not allocate cluster\n");
+    return 0;
+}
 
 ssize_t fat_read(struct file* file, void* buf, off_t off, size_t size)
 {
     struct fat32_volume* vol = file->device;
 
     unsigned int clus = file->inode;
-    unsigned int next = 0;
-
-    uint8_t* fatbuf = kmalloc(512); // Holds File Allocation Table
     
     uint8_t* fullbuf = kmalloc(off % 512 + size + (512 - (size % 512))); // Sector-aligned
     uint8_t* fullbuf_ptr = fullbuf;
@@ -65,17 +119,13 @@ ssize_t fat_read(struct file* file, void* buf, off_t off, size_t size)
 
     size_t pos = 0;
 
-    do
-    {
-        uint32_t fat_sector = vol->record.bpb.res_sectors + (clus * 4) / 512;
-        uint32_t fat_off = (clus * 4) % 512;
+    unsigned int cnt = fat_cchain_cnt(vol, clus);
 
-        vfs_read(vol->device, fatbuf, fat_sector * 512, 512); // Probably redundant reads (same sector over and over again)
-        
+    for (unsigned int i = 0; i < cnt; i++)
+    {
         uint64_t lba = clus2lba(vol, clus);
 
         if (pos > end) break;
-
         if (pos >= start)
         {
             vfs_read(vol->device, fullbuf_ptr, lba * 512, 512);
@@ -83,15 +133,11 @@ ssize_t fat_read(struct file* file, void* buf, off_t off, size_t size)
         }
 
         pos++;
-
-        next = *((uint32_t*)&fatbuf[fat_off]) & 0x0fffffff;
-        clus = next;
-
-    } while ((next != 0) && !((next & 0x0fffffff) >= 0x0ffffff8));
+        clus = fat_table_read(vol, clus);
+    }
 
     memcpy(buf, fullbuf + (off % 512), size);
 
-    kfree(fatbuf);
     kfree(fullbuf);
 
     return 0;
@@ -103,18 +149,57 @@ ssize_t fat_write(struct file* file, const void* buf, off_t off, size_t size)
     
     if (off + size != file->size)
     {
-        // TODO: allocate more or free clusters if necessary
-
-        file->size = off + size;
         uintptr_t parent_clus = file->parent->inode;
 
-        // TODO: set FAT32 dirent structure size
+        // Set parent's dirent structure size
+
+        // TODO: move directory entry parsing to a different function
+        
+        unsigned int parent_clusters = fat_cchain_cnt(vol, parent_clus);
+        struct fat_dirent* dirents = kmalloc(512);
+        for (unsigned int i = 0; i < parent_clusters; i++)
+        {
+            vfs_read(vol->device, dirents, clus2lba(vol, parent_clus) * 512, 512);
+            for (unsigned int j = 0; j < 512 / sizeof(struct fat_dirent); j++)
+            {
+                if (dirents[j].name[0] == 0 || dirents[j].name[0] == 0xe5) continue;
+                else
+                {
+                    if (fat_name_cmp(&dirents[j], file->name))
+                    {
+                        dirents[j].file_sz = off + size;
+                        vfs_write(vol->device, dirents, clus2lba(vol, parent_clus) * 512, 512);
+                        goto end;
+                    }
+                }
+            }
+
+            parent_clus = fat_table_read(vol, parent_clus);
+        }
+end:
+
+        if ((off + size) / 512 < file->size / 512)
+        {
+            // Free cluster
+        }
+        else if ((off + size) / 512 > file->size / 512)
+        {
+            // Allocate cluster
+            unsigned int clus = fat_alloc_clus(vol);
+            fat_table_write(vol, clus, 0xffffff8);
+
+            // Set last cluster to not EOC anymore
+            unsigned int cnt = fat_cchain_cnt(vol, file->inode) - 1;
+            unsigned int last = file->inode;
+            while (cnt && cnt--) last = fat_table_read(vol, last);
+
+            fat_table_write(vol, last, clus);
+        }
+
+        file->size = off + size;
     }
 
     unsigned int clus = file->inode;
-    unsigned int next = 0;
-
-    uint8_t* fatbuf = kmalloc(512); // Holds File Allocation Table
     
     uint8_t* fullbuf = kmalloc(512); // Sector-aligned
     uint64_t start = off / 512;
@@ -122,13 +207,9 @@ ssize_t fat_write(struct file* file, const void* buf, off_t off, size_t size)
 
     size_t pos = 0;
 
-    do
+    unsigned int cnt = fat_cchain_cnt(vol, clus);
+    for (unsigned int i = 0; i < cnt; i++)
     {
-        uint32_t fat_sector = vol->record.bpb.res_sectors + (clus * 4) / 512;
-        uint32_t fat_off = (clus * 4) % 512;
-
-        vfs_read(vol->device, fatbuf, fat_sector * 512, 512); // Probably redundant reads (same sector over and over again)
-        
         uint64_t lba = clus2lba(vol, clus);
 
         if (pos > end) break;
@@ -160,12 +241,9 @@ ssize_t fat_write(struct file* file, const void* buf, off_t off, size_t size)
 
         pos++;
 
-        next = *((uint32_t*)&fatbuf[fat_off]) & 0x0fffffff;
-        clus = next;
+        clus = fat_table_read(vol, clus);
+    }
 
-    } while ((next != 0) && !((next & 0x0fffffff) >= 0x0ffffff8));
-
-    kfree(fatbuf);
     kfree(fullbuf);
 
     return 0;
@@ -207,21 +285,13 @@ int fat_name_cmp(struct fat_dirent* dirent, const char* name)
     return ret;
 }
 
-struct file* fat_find_impl(struct fat32_volume* vol, struct file* dir, unsigned int cluster, const char* name)
+struct file* fat_find_impl(struct fat32_volume* vol, struct file* dir, unsigned int clus, const char* name)
 {
-    unsigned int clus = cluster;
-    unsigned int next = 0;
-
-    uint8_t* fatbuf = kmalloc(512); // Holds File Allocation Table
     struct fat_dirent* buf = kmalloc(512); // Hold the data we care about
 
-    do
+    unsigned int cnt = fat_cchain_cnt(vol, clus);
+    for (unsigned int i = 0; i < cnt; i++)
     {
-        uint32_t fat_sector = vol->record.bpb.res_sectors + (clus * 4) / 512;
-        uint32_t fat_off = (clus * 4) % 512;
-
-        vfs_read(vol->device, fatbuf, fat_sector * 512, 512); // Probably redundant reads (same sector over and over again)
-        
         uint64_t lba = clus2lba(vol, clus);
 
         vfs_read(vol->device, buf, lba * 512, 512);
@@ -250,39 +320,27 @@ struct file* fat_find_impl(struct fat32_volume* vol, struct file* dir, unsigned 
                     strcpy(file->name, name);
                     
                     kfree(buf);
-                    kfree(fatbuf);
 
                     return file;
                 }
             }
         }
 
-        next = *((uint32_t*)&fatbuf[fat_off]) & 0x0fffffff;
-        clus = next;
-
-    } while ((next != 0) && !((next & 0x0fffffff) >= 0x0ffffff8));
+        clus = fat_table_read(vol, clus);
+    }
 
     kfree(buf);
-    kfree(fatbuf);
 
     return NULL;
 }
 
-int fat_readdir_impl(struct fat32_volume* vol, unsigned int cluster, size_t idx, struct dirent* dirent)
+int fat_readdir_impl(struct fat32_volume* vol, unsigned int clus, size_t idx, struct dirent* dirent)
 {
-    unsigned int clus = cluster;
-    unsigned int next = 0;
-
-    uint8_t* fatbuf = kmalloc(512); // Holds File Allocation Table
     struct fat_dirent* buf = kmalloc(512); // Hold the data we care about
 
-    do
+    unsigned int cnt = fat_cchain_cnt(vol, clus);
+    for (unsigned int i = 0; i < cnt; i++)
     {
-        uint32_t fat_sector = vol->record.bpb.res_sectors + (clus * 4) / 512;
-        uint32_t fat_off = (clus * 4) % 512;
-
-        vfs_read(vol->device, fatbuf, fat_sector * 512, 512); // Probably redundant reads (same sector over and over again)
-        
         uint64_t lba = clus2lba(vol, clus);
 
         vfs_read(vol->device, buf, lba * 512, 512);
@@ -300,13 +358,10 @@ int fat_readdir_impl(struct fat32_volume* vol, unsigned int cluster, size_t idx,
             }
         }
 
-        next = *((uint32_t*)&fatbuf[fat_off]) & 0x0fffffff;
-        clus = next;
-
-    } while ((next != 0) && !((next & 0x0fffffff) >= 0x0ffffff8));
+        clus = fat_table_read(vol, clus);
+    }
 
     kfree(buf);
-    kfree(fatbuf);
 
     return 0;
 }

@@ -186,16 +186,14 @@ void generic_init(struct genbootparams params)
 
     // TEMP
     struct file* assert = vfs_resolve("/usr/include/assert.h");
-    void* buf = kmalloc(512);
-    memset(buf, 'X', 512);
-    vfs_write(assert, buf, 0, 512);
+    void* buf = kmalloc(1024);
+    memset(buf, 'X', 1024);
+    vfs_write(assert, buf, 0, 1024);
 
     char* buf2 = kmalloc(assert->size);
     vfs_read(assert, buf2, 0, assert->size);
 
     for (int i = 0; i < assert->size; i++) printk("%c", buf2[i]);
-
-    for (;;);
 
     struct file* tty = kmalloc(sizeof(struct file));
     tty->ops.read = tty_read;
