@@ -56,8 +56,6 @@ static void setup_user_stack(struct task* task, const char* path, const char* ar
         args[argc] = task->main->regs.rsp;
         argc++;
     }
-    
-    argc++; // Name of program
 
     // Pointer-align the stack for char* argv[]
     task->main->regs.rsp -= (task->main->regs.rsp % 8);

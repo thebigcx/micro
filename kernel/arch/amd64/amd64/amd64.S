@@ -15,8 +15,14 @@ lgdt_full:
     mov     %ax, %ss
 
     // Reload the code segment
+    //popq    %rax // Pop the previous return address
 
-    popq    %rax // Pop the previous return address
+    movq    %rsp, %rbp
+
+    
+    //pushq   %rax
+    //pushq   %rax
+    leaq    .done(%rip), %rax
     
     pushq   %rdx // SS
     pushq   %rbp // RSP
@@ -25,5 +31,5 @@ lgdt_full:
     pushq   %rax // RIP
     iretq
 
-lgdt_done:
+.done:
     ret

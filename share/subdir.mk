@@ -1,0 +1,7 @@
+RULES := all clean
+
+$(RULES): $(SUBDIRS)
+$(SUBDIRS):
+	$(MAKE) -C $@ $(MAKECMDGOALS)
+
+.PHONY: $(RULES) $(SUBDIRS)

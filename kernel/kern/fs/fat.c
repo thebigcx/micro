@@ -3,6 +3,7 @@
 #include <micro/stdlib.h>
 #include <micro/heap.h>
 #include <micro/fs.h>
+#include <micro/debug.h>
 
 #define FAT_ATTR_RO             0x01
 #define FAT_ATTR_HIDDEN         0x02
@@ -71,6 +72,16 @@ void to8dot3(const char* reg_name, char* name, char* ext)
     for (int i = 0; i < 3; i++)
         if (ext[i] >= 'a' && ext[i] <= 'z')
             ext[i] -= 32;
+}
+
+// name: in the format file.ext 8.3 limit
+int fat_name_cmp(struct fat_dirent* dirent, const char* name)
+{
+    char name2[8];
+    char ext2[3];
+    to8dot3(name, name2, ext2);
+
+    return !strncmp((const char*)dirent->name, name2, 8) && !strncmp((const char*)dirent->ext, ext2, 3);
 }
 
 unsigned int fat_table_read(struct fat32_volume* vol, unsigned int i)
@@ -167,6 +178,66 @@ ssize_t fat_read(struct file* file, void* buf, off_t off, size_t size)
     return 0;
 }
 
+// TODO: IMPORTANT: move directory entry parsing to a different function
+void fat_resize_dirent(struct fat32_volume* vol, unsigned int clus, const char* name, size_t size)
+{
+    unsigned int clusters = fat_cchain_cnt(vol, clus);
+    struct fat_dirent* dirents = kmalloc(512);
+    for (unsigned int i = 0; i < clusters; i++)
+    {
+        vfs_read(vol->device, dirents, clus2lba(vol, clus) * 512, 512);
+        for (unsigned int j = 0; j < 512 / sizeof(struct fat_dirent); j++)
+        {
+            if (dirents[j].name[0] == 0 || dirents[j].name[0] == 0xe5) continue;
+            else
+            {
+                if (fat_name_cmp(&dirents[j], name))
+                {
+                    dirents[j].file_sz = size;
+                    vfs_write(vol->device, dirents, clus2lba(vol, clus) * 512, 512);
+                    return;
+                }
+            }
+        }
+
+        clus = fat_table_read(vol, clus);
+    }
+}
+
+void fat_resize_file(struct file* file, size_t size)
+{
+    if (file->size == size) return; // No need
+
+    struct fat32_volume* vol = file->device;
+
+    if (file->parent) // Set parent's dirent structure size
+        fat_resize_dirent(vol, file->parent->inode, file->name, size);
+
+    if (size / 512 < file->size / 512)
+    {
+        // Free clusters
+    }
+    else if (size / 512 > file->size / 512)
+    {
+        // Find last cluster
+        unsigned int cnt = fat_cchain_cnt(vol, file->inode) - 1;
+        unsigned int clus = file->inode;
+        while (cnt && cnt--) clus = fat_table_read(vol, clus);
+
+        // Allocate cluster
+        for (unsigned int i = 0; i < (size / 512) - (file->size / 512); i++)
+        {
+            unsigned int prev = clus;
+            clus = fat_alloc_clus(vol);
+            fat_table_write(vol, prev, clus);
+        }
+        
+        fat_table_write(vol, clus, 0xffffff8);
+    }
+
+    file->size = size;
+}
+
 ssize_t fat_write(struct file* file, const void* buf, off_t off, size_t size)
 {
     struct fat32_volume* vol = file->device;
@@ -210,7 +281,8 @@ ssize_t fat_write(struct file* file, const void* buf, off_t off, size_t size)
             }
 
             vfs_write(vol->device, fullbuf, lba * 512, 512);
-            buf += bytes;
+
+            buf = (void*)((uintptr_t)buf + bytes);
         }
 
         pos++;
@@ -221,69 +293,6 @@ ssize_t fat_write(struct file* file, const void* buf, off_t off, size_t size)
     kfree(fullbuf);
 
     return 0;
-}
-
-void fat_resize_file(struct file* file, size_t size)
-{
-    if (file->size == size) return; // No need
-
-    struct fat32_volume* vol = file->device;
-
-    if (file->parent)
-    {
-        uintptr_t parent_clus = file->parent->inode;
-
-        // Set parent's dirent structure size
-
-        // TODO: IMPORTANT: move directory entry parsing to a different function
-
-        unsigned int parent_clusters = fat_cchain_cnt(vol, parent_clus);
-        struct fat_dirent* dirents = kmalloc(512);
-        for (unsigned int i = 0; i < parent_clusters; i++)
-        {
-            vfs_read(vol->device, dirents, clus2lba(vol, parent_clus) * 512, 512);
-            for (unsigned int j = 0; j < 512 / sizeof(struct fat_dirent); j++)
-            {
-                if (dirents[j].name[0] == 0 || dirents[j].name[0] == 0xe5) continue;
-                else
-                {
-                    if (fat_name_cmp(&dirents[j], file->name))
-                    {
-                        dirents[j].file_sz = size;
-                        vfs_write(vol->device, dirents, clus2lba(vol, parent_clus) * 512, 512);
-                        goto end;
-                    }
-                }
-            }
-
-            parent_clus = fat_table_read(vol, parent_clus);
-        }
-end:
-    }
-
-    if (size / 512 < file->size / 512)
-    {
-        // Free clusters
-    }
-    else if (size / 512 > file->size / 512)
-    {
-        // Find last cluster
-        unsigned int cnt = fat_cchain_cnt(vol, file->inode) - 1;
-        unsigned int clus = file->inode;
-        while (cnt && cnt--) clus = fat_table_read(vol, clus);
-
-        // Allocate cluster
-        for (unsigned int i = 0; i < (size / 512) - (file->size / 512); i++)
-        {
-            unsigned int prev = clus;
-            clus = fat_alloc_clus(vol);
-            fat_table_write(vol, prev, clus);
-        }
-        
-        fat_table_write(vol, clus, 0xffffff8);
-    }
-
-    file->size = size;
 }
 
 void fat_dirent_append(struct file* dir, struct fat_dirent* dirent)
@@ -342,7 +351,7 @@ void fat_mkfile(struct file* dir, const char* name)
 
     struct fat_dirent dirent;
     memset(&dirent, 0, sizeof(struct fat_dirent));
-    to8dot3(name, dirent.name, dirent.ext);
+    to8dot3(name, (char*)dirent.name, (char*)dirent.ext);
 
     // Give the file one cluster (TODO: maybe this isn't necessary?)
     dirent.cluster = fat_alloc_clus(vol);
@@ -358,7 +367,7 @@ void fat_mkdir(struct file* dir, const char* name)
     struct fat_dirent dirent;
     memset(&dirent, 0, sizeof(struct fat_dirent));
 
-    to8dot3(name, dirent.name, dirent.ext);
+    to8dot3(name, (char*)dirent.name, (char*)dirent.ext);
 
     // Give the file one cluster (TODO: maybe this isn't necessary?)
     dirent.cluster = fat_alloc_clus(vol);
@@ -411,18 +420,6 @@ void fat_rm(struct file* dir, const char* name)
     }
 
     kfree(buf);
-
-    return 0;
-}
-
-// name: in the format file.ext 8.3 limit
-int fat_name_cmp(struct fat_dirent* dirent, const char* name)
-{
-    char name2[8];
-    char ext2[3];
-    to8dot3(name, name2, ext2);
-
-    return !strncmp(dirent->name, name2, 8) && !strncmp(dirent->ext, ext2, 3);
 }
 
 int fat_readdir(struct file* dir, size_t idx, struct dirent* dirent)

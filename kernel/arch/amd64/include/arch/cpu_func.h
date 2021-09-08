@@ -4,7 +4,7 @@
 #include <micro/platform.h>
 #include <arch/descs.h>
 
-FORCE_INLINE void lidt(struct descptr* idtr)
+FORCE_INLINE void lidt(volatile struct descptr* idtr)
 {
     asm volatile ("lidt (%0)" :: "r"(idtr));
 }

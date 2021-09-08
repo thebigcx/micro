@@ -118,7 +118,7 @@ void idt_init()
 
 void idt_init_cpu(struct cpu_info* cpu)
 {
-    struct descptr idtr;
+    volatile struct descptr idtr;
     idtr.lim = sizeof(s_idt) - 1;
     idtr.base = (uintptr_t)s_idt;
 

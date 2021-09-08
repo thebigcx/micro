@@ -37,7 +37,6 @@ static struct block* combine(struct block* b1, struct block* b2)
 static struct block* split(struct block* b, size_t n)
 {
     struct block* new = (struct block*)((uintptr_t)b + sizeof(struct block) + n);
-    memset(new, 0, sizeof(struct block));
    
     // Set the data
     new->used = 0;
@@ -112,6 +111,12 @@ void kfree(void* ptr)
     heap_check();
 
     struct block* block = (struct block*)ptr - 1;
+#ifdef DEBUG
+    if (!block->used)
+    {
+        printk("kfree(): double free\n");
+    }
+#endif
     block->used = 0;
 #ifdef DEBUG
     memset(block + 1, 0xcb, block->size);
@@ -134,8 +139,7 @@ void heap_init()
     first = last = (struct block*)start;
     first->used = 0;
     first->size = 10000 * PAGE4K;
-    first->next = NULL;
-    first->prev = NULL;
+    first->next = first->prev = NULL;
 }
 
 // Scan the heap to find corrupted blocks - crazy large sizes, invalid prev and next pointers
@@ -144,7 +148,6 @@ void heap_init()
 // effectively as often as possibly or between critical code
 void heap_check()
 {
-    //return;
 #ifdef DEBUG
     struct block* curr = first;
     while (curr != NULL)

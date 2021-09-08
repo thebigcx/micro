@@ -7,7 +7,9 @@ include kern/kern.mk
 OBJ = $(patsubst %.c, %.o, $(SRC)) $(patsubst %.S, %.o, $(ASM))
 TARGET = dist/vmkernel
 
-all: $(TARGET) dev
+release: CFLAGS += -O3
+release: $(TARGET) dev
+
 debug: CFLAGS += -g3 -DDEBUG -fsanitize=undefined
 debug: $(TARGET) dev
 
