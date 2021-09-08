@@ -108,6 +108,8 @@ int sys_mmap(void* addr, size_t length, int prot, int flags, int fd, off_t offse
 {
     void* mapped_addr = (void*)syscall(SYS_mmap, addr, length, prot, flags, fd, offset);
 
+	// TODO: error checking
+
     *ret = mapped_addr;
 
     return 0;
@@ -127,6 +129,7 @@ int sys_getcwd(char* buf, size_t size, char** ret)
 {
 	char* cwd = (char*)syscall(SYS_getcwd, buf, size);
 
+	// TODO: don't do this
 	if (!cwd)
 		return -1;
 	
@@ -138,6 +141,7 @@ int sys_readdir(int fd, size_t idx, struct dirent* dirent)
 {
 	int e = syscall(SYS_readdir, fd, idx, dirent);
 
+	// TODO: don't do this
 	if (e < 0)
 	{
 		errno = e;
@@ -145,6 +149,11 @@ int sys_readdir(int fd, size_t idx, struct dirent* dirent)
 	}
 
 	return e;
+}
+
+int sys_mkdir(const char* path, mode_t mode)
+{
+	return syscall(SYS_mkdir, path, mode);
 }
 
 /*int sys_sigaction(int signum, const struct sigaction* act, struct sigaction* old)

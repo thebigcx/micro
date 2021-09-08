@@ -19,15 +19,6 @@
 #define SYS_chdir           14
 #define SYS_getcwd          15
 #define SYS_readdir         16
-
-/*#define SYS_mmap            7
-#define SYS_munmap          8
-#define SYS_stat            9
-#define SYS_kill            10
-#define SYS_getpid          11
-#define SYS_lseek           12
-#define SYS_ioctl           13
-#define SYS_chdir           14
-#define SYS_getcwd          15*/
+#define SYS_mkdir           17
 
 uint64_t syscall(uint64_t sysno, ...);

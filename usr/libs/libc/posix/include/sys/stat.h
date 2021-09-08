@@ -20,3 +20,5 @@ struct stat
 	struct timespec st_mtim;
 	struct timespec st_ctim;
 };
+
+int mkdir(const char* path, mode_t mode);

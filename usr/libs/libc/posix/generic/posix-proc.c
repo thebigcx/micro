@@ -62,7 +62,7 @@ char* getcwd(char* buf, size_t size)
 	if (e != 0)
 	{
 		errno = e;
-		return -1;
+		return (char*)-1;
 	}
 
 	return ret;

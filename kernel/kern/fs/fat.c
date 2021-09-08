@@ -286,27 +286,25 @@ end:
     file->size = size;
 }
 
-void fat_mkdirent(struct file* dir, struct fat_dirent* dirent)
+void fat_dirent_append(struct file* dir, struct fat_dirent* dirent)
 {
     struct fat32_volume* vol = dir->device;
     unsigned int clus = dir->inode;
 
     unsigned int dirents_per_clus = 512 / sizeof(struct fat_dirent);
 
-    fat_resize_file(dir, dir->size + sizeof(struct fat_dirent));
-    
-    unsigned int cnt = fat_cchain_cnt(vol, clus);
-    for (unsigned int i = 0; i < cnt; i++)
+    struct fat_dirent* buf = kmalloc(512);
+
+    for (;;)
     {
+        vfs_read(vol->device, buf, clus2lba(vol, clus) * 512, 512);
+
         for (unsigned int j = 0; j < dirents_per_clus; j++)
         {
-            if (i * dirents_per_clus + j == dir->size - sizeof(struct fat_dirent))
+            if (buf[j].name[0] == 0) // Unused dirent
             {
                 // Read the sector, write the dirent, and flush the sector
-                struct fat_dirent* buf = kmalloc(512);
-                vfs_read(vol->device, buf, clus2lba(vol, clus) * 512, 512);
-
-                memcpy(&buf[i], dirent, sizeof(struct fat_dirent));
+                memcpy(&buf[j], dirent, sizeof(struct fat_dirent));
 
                 vfs_write(vol->device, buf, clus2lba(vol, clus) * 512, 512);
 
@@ -315,8 +313,27 @@ void fat_mkdirent(struct file* dir, struct fat_dirent* dirent)
             }
         }
 
+        unsigned int prev = clus;
         clus = fat_table_read(vol, clus);
+
+        if (clus >= 0xffffff8)
+        {
+            // Allocate a new cluster for dirents
+            clus = fat_alloc_clus(vol);
+            fat_table_write(vol, prev, clus);
+            fat_table_write(vol, clus, 0xffffff8);
+        }
     }
+
+    kfree(buf);
+}
+
+void fat_mkdirent(struct file* dir, struct fat_dirent* dirent)
+{
+    struct fat_dirent zero;
+    memset(&zero, 0, sizeof(struct fat_dirent));
+    fat_dirent_append(dir, dirent);
+    fat_dirent_append(dir, &zero);
 }
 
 void fat_mkfile(struct file* dir, const char* name)

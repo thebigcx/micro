@@ -189,7 +189,11 @@ void generic_init(struct genbootparams params)
     //vfs_rm(vfs_resolve("/"), "test");
     //vfs_mkfile("/test.txt");
     vfs_mkdir("/tests");
-    vfs_mkfile("/tests/text.txt");
+    
+    for (unsigned int i = 0; i < 50; i++)
+    {
+        vfs_mkfile("/tests/test.txt");
+    }
     //vfs_mkfile("/tests/dirent.txt");
 
     /*vfs_mkfile(vfs_resolve("/"), "test");

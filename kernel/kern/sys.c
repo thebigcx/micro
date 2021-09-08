@@ -30,14 +30,15 @@ static int sys_open(const char* path, uint32_t flags)
 
     char* canon = vfs_mkcanon(path, task->workd);
     struct file* file = vfs_resolve(canon);
-    kfree(canon);
 
     if (!file)
     {
         if (!(flags & O_CREAT)) return -ENOENT;
-        vfs_mkfile(path);
-        file = vfs_resolve(path);
+        vfs_mkfile(canon);
+        file = vfs_resolve(canon);
     }
+
+    kfree(canon);
 
     list_push_back(&task->fds, vfs_open(file));
     return task->fds.size - 1;
@@ -267,6 +268,21 @@ static int sys_readdir(int fdno, size_t idx, struct dirent* dirent)
     return vfs_readdir(fd->filp, idx, dirent);
 }
 
+static int sys_mkdir(const char* path)
+{
+    PTRVALID(path);
+
+    struct task* task = task_curr();
+    char* canon = vfs_mkcanon(path, task->workd);
+
+    if (canon[0] == 0) return -ENOENT;
+    if (sys_access(canon, F_OK) == 0) return -EEXIST;
+
+    vfs_mkdir(canon);
+
+    return 0;
+}
+
 typedef uintptr_t (*syscall_t)();
 
 static uintptr_t syscalls[] =
@@ -287,7 +303,8 @@ static uintptr_t syscalls[] =
     (uintptr_t)sys_munmap,
     (uintptr_t)sys_chdir,
     (uintptr_t)sys_getcwd,
-    (uintptr_t)sys_readdir
+    (uintptr_t)sys_readdir,
+    (uintptr_t)sys_mkdir
 };
 
 void syscall_handler(struct regs* r)

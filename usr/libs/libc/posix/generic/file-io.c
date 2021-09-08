@@ -111,48 +111,17 @@ int closedir(DIR* dirp)
 	return -1;
 }
 
-/*int chdir(const char* path)
+int mkdir(const char* path, mode_t mode)
 {
-	int e = sys_chdir(path);
-	if (e != 0)
-	{
-        errno = e;
-		return -1;
-	}
+	int e = sys_mkdir(path, mode);
 
-	return 0;
-}
+	if (!e) return 0;
 
-char* getcwd(char* buf, size_t size)
-{
-	char* ret;
-	int e = sys_getcwd(buf, size, &ret);
-
-	if (e != 0)
-	{
-        errno = e;
-		return NULL;
-	}
-
-	return ret;
-}
-
-struct dirent* readdir(DIR* dirp)
-{
-	return NULL;
-}
-
-DIR* opendir(const char* name)
-{
-	return NULL;
-}
-
-int closedir(DIR* dirp)
-{
+	errno = e;
 	return -1;
 }
 
-
+/*
 int ioctl(int fd, unsigned long request, void* argp)
 {
     int ret = sys_ioctl(fd, request, argp);

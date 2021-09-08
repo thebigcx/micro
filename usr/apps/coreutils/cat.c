@@ -1,4 +1,5 @@
 #include <unistd.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -11,7 +12,7 @@ int main(int argc, char** argv)
     }
 
     int fd;
-    if ((fd = open(argv[1], 0, 0)) < 0)
+    if ((fd = open(argv[1], 0)) < 0)
     {
         printf("cat: %s: no such file or directory\n", argv[1]);
         return 0;
@@ -20,6 +21,8 @@ int main(int argc, char** argv)
     lseek(fd, 0, SEEK_END);
     size_t len = lseek(fd, 0, SEEK_CUR);
     lseek(fd, 0, SEEK_SET);
+
+    if (!len) return 0;
 
     char* buffer = malloc(len);
     read(fd, buffer, len);

@@ -29,3 +29,4 @@ int sys_getcwd(char* buf, size_t size, char** ret);
 int sys_access(const char* pathname, int mode);
 int sys_wait(int* status, pid_t* pid);
 int sys_readdir(int fd, size_t idx, struct dirent* dirent);
+int sys_mkdir(const char* path, mode_t mode);

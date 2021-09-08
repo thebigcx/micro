@@ -6,8 +6,9 @@
 
 FILE* fopen(const char* path, const char* mode)
 {
+    // TODO: parse 'mode' string
     FILE* file = malloc(sizeof(FILE));
-    file->fd = open(path, 0, 0);
+    file->fd = open(path, 0);
     return file;
 }
 
