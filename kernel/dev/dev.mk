@@ -7,10 +7,6 @@ all: $(TARG)
 
 .PHONY: clean all
 
-#$(TARG): $(OBJ)
-#	@echo "    AR $@"
-#	@ar rvs $@ $^
-
 %.ko: %.c
 	@echo "    CC $@"
 	@gcc -c $< -o $@ $(CFLAGS)

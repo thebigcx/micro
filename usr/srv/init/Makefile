@@ -7,14 +7,14 @@ CFLAGS := -ffreestanding -fno-stack-protector -Wall -Wextra -Wno-unused-paramete
 all: $(TARG)
 
 $(TARG): $(OBJS)
-	@echo "    LD      $@"
+	@echo "    LD    $@"
 	@ld -Tlinker.ld -static -nostdlib -Bsymbolic -o $@ $^ -L$(ROOT)/usr/lib -l:libc.a
 
 %.o: %.c
-	@echo "    CC      $@"
+	@echo "    CC    $@"
 	@gcc $(CFLAGS) -c $< -o $@
 
 .PHONY:
 clean:
-	@echo "    RM      $(TARG)"
+	@echo "    RM    $(TARG)"
 	@rm -f $(OBJS) $(TARG)

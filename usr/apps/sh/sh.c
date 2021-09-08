@@ -3,7 +3,9 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <sys/mman.h>
+#include <sys/wait.h>
 #include <string.h>
+#include <stdio.h>
 
 #define PATH "/usr/bin/"
 
@@ -76,7 +78,7 @@ int main(int argc, char** argv)
                     if (fork() == 0)
                     {
                         const char* envp[] = { NULL };
-                        execve(bin, argv, envp);
+                        execve(bin, (const char**)argv, envp);
                     }
                     else
                     {

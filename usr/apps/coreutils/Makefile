@@ -9,9 +9,9 @@ CFLAGS := -ffreestanding -fshort-wchar -mno-red-zone -Wall -nostdinc -I$(ROOT)/u
 all: $(TARGS)
 
 %: %.c
-	@echo "    CC     $@.o"
+	@echo "    CC    $@.o"
 	@gcc $(CFLAGS) -c $< -o $@.o
-	@echo "    LD     $@"
+	@echo "    LD    $@"
 	@ld -o $@ $@.o $(LDFLAGS)
 
 install:
@@ -23,5 +23,5 @@ install:
 	@cp mkdir $(ROOT)/usr/bin
 
 clean:
-	@echo "    RM     $(TARGS)"
+	@echo "    RM    $(TARGS)"
 	@rm -f $(TARGS) $(OBJS)

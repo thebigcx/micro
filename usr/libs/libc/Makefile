@@ -31,19 +31,19 @@ $(CRT0):
 	@cp internal/generic/crt0.o .
 
 $(AR): $(OBJS)
-	@echo "    AR      $@"
+	@echo "    AR    $@"
 	@ar rcs $@ $^
 
 $(SO): $(OBJS)
-	@echo "    LD      $@"
+	@echo "    LD    $@"
 	@ld -shared -nostdlib -Bsymbolic -o $@ $^
 
 %.o: %.c
-	@echo "    CC      $@"
+	@echo "    CC    $@"
 	@gcc $(CFLAGS) -c $< -o $@
 
 %.o: %.S
-	@echo "    AS      $@"
+	@echo "    AS    $@"
 	@gcc -c $< -o $@
 
 install:
@@ -56,5 +56,5 @@ install:
 
 .PHONY:
 clean:
-	@echo "    RM      $(SO) $(AR)"
+	@echo "    RM    $(SO) $(AR)"
 	@rm -f $(OBJS) $(SO) $(AR) $(CRT0)
