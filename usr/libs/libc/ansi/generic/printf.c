@@ -95,14 +95,15 @@ int sprintf(char* str, const char* format, ...)
 
 int vfprintf(FILE* file, const char* format, va_list args)
 {
-    /*size_t len = strlen(format) + 1;
+    size_t len = 300;
     char* str = malloc(len);
     vsnprintf(str, len, format, args);
     write(file->fd, str, strlen(str));
-    free(str);*/
-    // TODO: implement
-    assert(!"vfprintf() not implemented!\n");
-    return -1;
+    free(str);
+    return 0;
+    // TODO: this is bad
+    //assert(!"vfprintf() not implemented!\n");
+    //return -1;
 }
 
 void fprintf(FILE* file, const char* format, ...)

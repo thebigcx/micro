@@ -1,26 +1,27 @@
 SRCS := cat.c pwd.c ls.c touch.c mkdir.c
 OBJS := $(patsubst %.c, %.o, $(SRCS))
 TARGS := $(patsubst %.c, %, $(SRCS))
-LDFLAGS := -Tlinker.ld -static -Bsymbolic -nostdlib -L$(ROOT)/usr/lib -l:libc.a
-CFLAGS := -ffreestanding -fshort-wchar -mno-red-zone -Wall -nostdinc -I$(ROOT)/usr/include -fno-stack-protector
+CFLAGS := -ffreestanding -fshort-wchar -mno-red-zone -Wall -fno-stack-protector
 
-.PHONY: all install
+CC = x86_64-micro-gcc
+
+.PHONY: all install clean
 
 all: $(TARGS)
 
 %: %.c
 	@echo "    CC    $@.o"
-	@gcc $(CFLAGS) -c $< -o $@.o
+	@$(CC) $(CFLAGS) -c $< -o $@.o
 	@echo "    LD    $@"
-	@ld -o $@ $@.o $(LDFLAGS)
+	@$(CC) -static -o $@ $@.o
 
 install:
-	@mkdir -p $(ROOT)/usr/bin
-	@cp cat $(ROOT)/usr/bin
-	@cp pwd $(ROOT)/usr/bin
-	@cp ls $(ROOT)/usr/bin
-	@cp touch $(ROOT)/usr/bin
-	@cp mkdir $(ROOT)/usr/bin
+	@mkdir -p $(DESTDIR)/usr/bin
+	@cp cat $(DESTDIR)/usr/bin
+	@cp pwd $(DESTDIR)/usr/bin
+	@cp ls $(DESTDIR)/usr/bin
+	@cp touch $(DESTDIR)/usr/bin
+	@cp mkdir $(DESTDIR)/usr/bin
 
 clean:
 	@echo "    RM    $(TARGS)"

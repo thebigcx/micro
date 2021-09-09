@@ -47,7 +47,8 @@ void from8dot3(struct fat_dirent* dirent, char* dst)
             *dst++ = dirent->ext[j];
     }
 
-    if (j == 0) *(--dst) = 0;
+    if (j == 0) *(--dst) = 0; // We don't want a trailing '.'
+    else *dst = 0;
 }
 
 void to8dot3(const char* reg_name, char* name, char* ext)

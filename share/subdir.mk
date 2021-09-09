@@ -1,4 +1,4 @@
-RULES := all clean
+RULES := all clean install
 
 $(RULES): $(SUBDIRS)
 $(SUBDIRS):

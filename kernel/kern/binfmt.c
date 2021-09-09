@@ -19,18 +19,13 @@ uintptr_t elf_load(struct task* task, void* data)
         if (phdr->type == PT_LOAD)
         {
             uintptr_t begin = phdr->vaddr;
-            uintptr_t size = phdr->memsz;
+            uintptr_t memsize = phdr->memsz;
+            uintptr_t filesize = phdr->filesz;
 
-            if (begin % PAGE4K)
-            {
-                begin -= begin % PAGE4K;
-                size += begin % PAGE4K;
-            }
+            uintptr_t page_begin = begin - (begin % PAGE4K);
+            uintptr_t page_cnt = memsize - (memsize % PAGE4K) + PAGE4K * 2;
 
-            if (size % PAGE4K)
-                size = size - (size % PAGE4K) + PAGE4K;
-
-            for (uintptr_t i = begin; i < begin + size; i += PAGE4K)
+            for (uintptr_t i = page_begin; i < page_begin + page_cnt; i += PAGE4K)
             {
                 mmu_map(task->vm_map, i, mmu_alloc_phys(), PAGE_PR | PAGE_RW | PAGE_USR);
             }
@@ -39,7 +34,8 @@ uintptr_t elf_load(struct task* task, void* data)
             uintptr_t cr3 = rcr3();
             
             lcr3(task->vm_map->pml4_phys);
-            memcpy((void*)begin, (void*)((uintptr_t)data + phdr->offset), size);
+            memset((void*)begin, 0, memsize);
+            memcpy((void*)begin, (void*)((uintptr_t)data + phdr->offset), filesize);
             lcr3(cr3);
         }
     }
