@@ -157,8 +157,11 @@ struct task* task_clone(struct task* src, struct thread* calling)
 
 void task_execve(struct task* task, const char* path, const char* argv[], const char* envp[])
 {
+    // About to delete the in-use pml4
+    mmu_set_kpml4();
     mmu_destroy_vmmap(task->vm_map);
     task->vm_map = mmu_create_vmmap();
+    lcr3(task->vm_map->pml4_phys);
 
     // Clean threads
     LIST_FOREACH(&task->threads)
@@ -198,15 +201,16 @@ void task_exit(int status)
 
     task->main = NULL;
 
-    //mmu_destroy_vmmap(task->vm_map);
-
     if (task->parent) task_send(task->parent, SIGCHLD);
-
-    //kfree(task);
-
     task->dead = 1;
 
     switch_next();
+}
+
+void task_delete(struct task* task)
+{
+    mmu_destroy_vmmap(task->vm_map);
+    kfree(task);
 }
 
 void task_send(struct task* task, int signal)

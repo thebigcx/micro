@@ -11,6 +11,7 @@
 #include <micro/mman.h>
 #include <micro/stdlib.h>
 #include <micro/heap.h>
+#include <micro/wait.h>
 
 int is_valid_ptr(const void* ptr)
 {
@@ -19,8 +20,6 @@ int is_valid_ptr(const void* ptr)
 }
 
 #define PTRVALID(ptr) { if (!is_valid_ptr(ptr)) return -EFAULT; }
-
-// TODO: API folder
 
 static int sys_open(const char* path, uint32_t flags)
 {
@@ -44,10 +43,14 @@ static int sys_open(const char* path, uint32_t flags)
     return task->fds.size - 1;
 }
 
-static int sys_close(int fd)
+static int sys_close(int fdno)
 {
-    // TODO: remove list element at
-    return -1;
+    struct task* task = task_curr();
+    if (fdno < 0 || (size_t)fdno >= task->fds.size) return -EBADF;
+
+    vfs_close(list_remove(&task->fds, fdno));
+
+    return 0;
 }
 
 static ssize_t sys_read(int fdno, void* buf, size_t size)
@@ -115,7 +118,8 @@ static int sys_execve(const char* path, const char* argv[], const char* envp[])
     }
     argv_copy[argc] = NULL;
 
-    task_execve(task_curr(), path, (const char**)argv_copy, envp);
+    // TODO: copy envp
+    task_execve(task_curr(), canon, (const char**)argv_copy, envp);
     sched_yield();
     return -1;
 }
@@ -179,17 +183,24 @@ static off_t sys_lseek(int fdno, off_t offset, int whence)
     return -EINVAL;
 }
 
-static int sys_wait(int* status)
+// TODO: add support for thread blocking
+
+static int sys_waitpid(int pid, int* wstatus, int options)
 {
-    PTRVALID(status);
+    PTRVALID(wstatus);
 
-    struct task* curr = task_curr();
-    if (!curr->children.size) return -ECHILD;
-    curr->waiting = 1;
+    if (options > (WNOHANG | WUNTRACED) || options < 0) return -EINVAL;
 
-    sti();
-    while (curr->waiting);
-    return 0;
+    struct task* task = sched_task_fromid(pid);
+    if (!task || task->parent != task_curr()) return -ECHILD;
+
+    if (!task->dead && options & WNOHANG) return 0;
+
+    while (!task->dead) sched_yield(); // FIXME: this is a pretty poor way of mimicking thread blocking
+
+    task_delete(task);
+
+    return pid;
 }
 
 // TODO: currently only supports fixed anonymous mappings
@@ -298,7 +309,7 @@ static uintptr_t syscalls[] =
     (uintptr_t)sys_getpid,
     (uintptr_t)sys_access,
     (uintptr_t)sys_lseek,
-    (uintptr_t)sys_wait,
+    (uintptr_t)sys_waitpid,
     (uintptr_t)sys_mmap,
     (uintptr_t)sys_munmap,
     (uintptr_t)sys_chdir,

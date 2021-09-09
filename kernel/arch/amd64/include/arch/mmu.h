@@ -36,3 +36,5 @@ uintptr_t mmu_virt2phys(struct vm_map* map, uintptr_t virt);
 struct vm_map* mmu_create_vmmap();
 struct vm_map* mmu_clone_vmmap(const struct vm_map* src);
 void mmu_destroy_vmmap(struct vm_map* map);
+
+void mmu_set_kpml4();

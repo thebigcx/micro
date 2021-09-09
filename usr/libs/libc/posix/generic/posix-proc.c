@@ -41,10 +41,10 @@ int execvp(const char* file, const char* argv[])
     return -1;
 }
 
-pid_t wait(int* status)
+pid_t waitpid(pid_t pid, int* wstatus, int options)
 {
-	pid_t pid;
-	int e = sys_wait(status, &pid);
+	pid_t ret;
+	int e = sys_waitpid(pid, wstatus, options, &ret);
 	
 	if (e != 0)
 	{
@@ -52,7 +52,7 @@ pid_t wait(int* status)
 		return -1;
 	}
 
-	return pid;
+	return ret;
 }
 
 int chdir(const char* path)

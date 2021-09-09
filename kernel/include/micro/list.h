@@ -24,3 +24,4 @@ void* list_dequeue(struct list* self);
 void* list_pop_back(struct list* self);
 void list_clear(struct list* self);
 void* list_get(struct list* self, size_t i);
+void* list_remove(struct list* self, size_t i);

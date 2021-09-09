@@ -80,9 +80,34 @@ void list_clear(struct list* self)
     while (self->size) list_dequeue(self);
 }
 
-void* list_get(struct list* self, size_t i)
+static struct lnode* _list_get_impl(struct list* self, size_t i)
 {
     struct lnode* node = self->head;
     while (i && i--) node = node->next; // i=0 will overflow if not checked
-    return node->data;
+    return node;
+}
+
+void* list_get(struct list* self, size_t i)
+{
+    return _list_get_impl(self, i)->data;
+}
+
+void* list_remove(struct list* self, size_t i)
+{
+    struct lnode* lnode = _list_get_impl(self, i);
+    
+    if (lnode->next)
+        lnode->next->prev = lnode->prev;
+    else
+        self->tail = lnode->prev;
+
+    if (lnode->prev)
+        lnode->prev->next = lnode->next;
+    else
+        self->head = lnode->next;
+
+    // Clean up and return the data
+    void* ret = lnode->data;
+    kfree(lnode);
+    return ret;
 }

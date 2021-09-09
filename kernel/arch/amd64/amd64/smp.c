@@ -28,7 +28,7 @@ static void ap_entry(uint16_t id)
     g_cpu_cnt++;
 
     struct cpu_info* cpu = &g_cpus[id];
-    cpu->threads = list_create();
+    //cpu->threads = list_create();
     cpu->current = NULL;
     cpu->lock = 0;
 

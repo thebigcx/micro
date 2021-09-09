@@ -216,8 +216,6 @@ void generic_init(struct genbootparams params)
     tty->flags = FL_CHARDEV;
     vfs_addnode(tty, "/dev/tty");
 
-    sched_start(task_init_creat());
-
     printk("starting scheduler\n");
     sched_init();
 }

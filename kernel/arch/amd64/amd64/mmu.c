@@ -42,7 +42,7 @@ void mmu_init()
     for (int i = 0; i < ENTCNT; i++)
         memset(&(kheap_tbls[i]), 0, sizeof(page_t) * ENTCNT);
 
-    lcr3((uintptr_t)&kpml4 - KBASE);
+    mmu_set_kpml4();
 }
 
 uintptr_t mmu_kalloc(size_t n)
@@ -330,7 +330,9 @@ struct vm_map* mmu_clone_vmmap(const struct vm_map* src)
                         mmu_kmap(virt2, phys2, PAGE_PR | PAGE_RW);
 
                         memcpy((void*)virt2, (const void*)virt1, PAGE4K);
-                        // TODO: free the kernel allocated page
+                        
+                        mmu_kfree(virt1, 1);
+                        mmu_kfree(virt2, 1);
 
                         map->pts[i][j][k] = (~PAGE_FRAME & srcpt[k]) | phys2;
                     }
@@ -353,20 +355,44 @@ struct vm_map* mmu_clone_vmmap(const struct vm_map* src)
 
 void mmu_destroy_vmmap(struct vm_map* map)
 {
-    // TODO: implement
     for (unsigned int i = 0; i < ENTCNT; i++)
     {
+        for (unsigned int j = 0; j < ENTCNT; j++)
+        {
+            if (map->pts[i][j])
+            {
+                for (unsigned int k = 0; k < ENTCNT; k++)
+                {
+                    if (   map->pts[i][j][k] & PAGE_PR
+                        && map->pts[i][j][k] & PAGE_USR) // Don't want to delete kernel pages
+                    {
+                        mmu_free_phys(map->pts[i][j][k] & PAGE_FRAME, 1);
+                    }
+                }
+
+                mmu_kfree((uintptr_t)map->pts[i][j], 1);
+                mmu_free_phys(map->pds[i][j] & PAGE_FRAME, 1);
+            }
+        }
+
         kfree(map->pts[i]);
 
-        //mmu_kfree(map->pds[i], 1);
-        //mmu_free_phys(map->phys_pds[i], 1);
+        mmu_kfree((uintptr_t)map->pds[i], 1);
+        mmu_free_phys(map->phys_pds[i], 1);
     }
 
-    mmu_kfree(map->pml4, 1);
-    mmu_kfree(map->pdpt, 1);
-    //mmu_free_phys(map->pml4_phys, 1);
-    //mmu_free_phys(map->pdpt_phys, 1);
+    mmu_kfree((uintptr_t)map->pml4, 1);
+    mmu_kfree((uintptr_t)map->pdpt, 1);
+    mmu_free_phys(map->pml4_phys, 1);
+    mmu_free_phys(map->pdpt_phys, 1);
 
     kfree(map->pds);
     kfree(map->pts);
+
+    kfree(map);
+}
+
+void mmu_set_kpml4()
+{
+    lcr3((uintptr_t)&kpml4 - KBASE);
 }

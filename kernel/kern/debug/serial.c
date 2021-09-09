@@ -7,7 +7,7 @@
 #include <micro/fb.h>
 #include <arch/boot.h>
 
-#if DEBUG
+//#if DEBUG
 
 #define PORT 0x3f8
 
@@ -77,9 +77,9 @@ void printk_crit(const char* s, ...)
     while (*f != 0) serial_putch(*f++);
 }
 
-#else
+//#else
 
-void printk(const char* s, ...) {}
-void printk_crit(const char* s, ...) {}
+//void printk(const char* s, ...) {}
+//void printk_crit(const char* s, ...) {}
 
-#endif
+//#endif

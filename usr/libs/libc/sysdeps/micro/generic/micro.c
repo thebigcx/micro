@@ -92,15 +92,15 @@ int sys_lseek(int fd, off_t off, int whence, off_t* noff)
     return 0;
 }
 
-int sys_wait(int* status, pid_t* pid)
+int sys_waitpid(pid_t pid, int* wstatus, int options, pid_t* ret)
 {
-	pid_t ret = syscall(SYS_wait, status);
-	if (ret < 0)
+	pid_t res = syscall(SYS_waitpid, pid, wstatus, options);
+	if (res < 0)
 	{
-		return ret;
+		return res;
 	}
 
-	*pid = ret;
+	*ret = res;
 	return 0;
 }
 

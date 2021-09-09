@@ -13,7 +13,7 @@
 #define SYS_getpid          8
 #define SYS_access          9
 #define SYS_lseek           10
-#define SYS_wait            11
+#define SYS_waitpid         11
 #define SYS_mmap            12
 #define SYS_munmap          13
 #define SYS_chdir           14

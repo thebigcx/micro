@@ -10,8 +10,8 @@
 void thread_start(struct thread* thread)
 {
     // TODO: TEMP SMP
-    list_push_back(&g_cpus[0].threads, thread);
-    thread->state = THREAD_READY;
+    //list_push_back(&g_cpus[0].threads, thread);
+    //thread->state = THREAD_READY;
 }
 
 struct thread* thread_creat(struct task* parent, uintptr_t entry, int usr)
@@ -101,11 +101,6 @@ void thread_handle_signals(struct thread* thread)
     int* sigptr = list_dequeue(&thread->parent->sigqueue);
     int sig = *sigptr;
     kfree(sigptr);
-
-    if (sig == SIGCHLD)
-    {
-        thread->parent->waiting = 0;
-    }
 
     uintptr_t handler = thread->parent->signals[sig];
 

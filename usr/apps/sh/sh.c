@@ -75,7 +75,8 @@ int main(int argc, char** argv)
                         break;
                     }
 
-                    if (fork() == 0)
+                    pid_t child = fork();
+                    if (child == 0)
                     {
                         const char* envp[] = { NULL };
                         execve(bin, (const char**)argv, envp);
@@ -83,7 +84,7 @@ int main(int argc, char** argv)
                     else
                     {
                         int status;
-                        wait(&status);
+                        waitpid(child, &status, 0);
                     }
 
                     buffer_size = 0;
