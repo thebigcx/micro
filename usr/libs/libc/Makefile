@@ -47,12 +47,12 @@ $(SO): $(OBJS)
 	@gcc -c $< -o $@
 
 install:
-	cp $(AR) $(ROOT)/usr/lib/
-	cp $(SO) $(ROOT)/usr/lib/
-	cp $(CRT0) $(ROOT)/usr/lib/
-	cp -r ansi/include/* $(ROOT)/usr/include/
-	cp -r posix/include/* $(ROOT)/usr/include/
-	cp -r sysdeps/micro/include/* $(ROOT)/usr/include/
+	cp $(AR) $(DESTDIR)/usr/lib/
+	cp $(SO) $(DESTDIR)/usr/lib/
+	cp $(CRT0) $(DESTDIR)/usr/lib/
+	cp -r ansi/include/* $(DESTDIR)/usr/include/
+	cp -r posix/include/* $(DESTDIR)/usr/include/
+	cp -r sysdeps/micro/include/* $(DESTDIR)/usr/include/
 
 .PHONY:
 clean:

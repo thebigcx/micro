@@ -11,6 +11,7 @@ void* calloc(size_t nitems, size_t size);
 
 char* itoa(int value, char* str, int base);
 char* ultoa(unsigned long n, char* str, int base);
+int atoi(const char* str);
 int abs(int n);
 
 int rand();
@@ -19,3 +20,6 @@ void srand(unsigned int seed);
 void abort();
 
 void exit(int status);
+int atexit(void (*function)(void));
+
+char* getenv(const char* name);

@@ -92,15 +92,16 @@ int sprintf(char* str, const char* format, ...)
 	return 0;
 }
 
-void vfprintf(FILE* file, const char* format, va_list args)
+int vfprintf(FILE* file, const char* format, va_list args)
 {
-    //char* str = malloc(strlen(format));
-    // TODO: userspace malloc/free
-    char str[100];
-    vsnprintf(str, 100, format, args);
+    /*size_t len = strlen(format) + 1;
+    char* str = malloc(len);
+    vsnprintf(str, len, format, args);
     write(file->fd, str, strlen(str));
-    //free(str);
-    
+    free(str);*/
+    // TODO: implement
+    assert(!"vfprintf() not implemented!\n");
+    return -1;
 }
 
 void fprintf(FILE* file, const char* format, ...)

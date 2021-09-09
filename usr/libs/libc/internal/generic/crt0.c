@@ -3,17 +3,21 @@
 
 extern int main(int, void**);
 
-// Need to forward-declare
-void libc_start_main(int (*main)(), int argc, void** argv);
+char** environ;
 
-void _start(int argc, void** argv)
+// Need to forward-declare
+void libc_start_main(int (*)(), int, void**, char**);
+
+void _start(int argc, void** argv, char** envp)
 {
-    libc_start_main(main, argc, argv);
+    libc_start_main(main, argc, argv, envp);
 }
 
-void libc_start_main(int (*main)(), int argc, void** argv)
+void libc_start_main(int (*main)(), int argc, void** argv, char** envp)
 {
     __libc_init();
+
+    environ = envp;
 
     int ret = main(argc, argv);
 

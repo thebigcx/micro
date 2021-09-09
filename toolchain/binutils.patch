@@ -1,0 +1,137 @@
+diff --git a/bfd/config.bfd b/bfd/config.bfd
+index 7f7c12d4b2d..3a2785f4132 100644
+--- a/bfd/config.bfd
++++ b/bfd/config.bfd
+@@ -653,6 +653,12 @@ case "${targ}" in
+     targ_selvecs=
+     targ64_selvecs=x86_64_elf64_vec
+     ;;
++  i[3-7]-*-micro*)
++    targ_defvec=i386_elf32_vec
++    targ_selvecs=
++    targ64_selvecs=x86_64_elf64_vec
++    ;;
++
+ #ifdef BFD64
+   x86_64-*-cloudabi*)
+     targ_defvec=x86_64_elf64_cloudabi_vec
+@@ -718,6 +724,11 @@ case "${targ}" in
+     targ_selvecs=i386_elf32_vec
+     want64=true
+     ;;
++  x86_64-*-micro*)
++    targ_defvec=x86_64_elf64_vec
++    targ_selvecs=i386_elf32_vec
++    want64=true
++    ;;
+ #endif
+   i[3-7]86-*-lynxos*)
+     targ_defvec=i386_elf32_vec
+diff --git a/config.sub b/config.sub
+index 7384e9198b4..053e6a7d33c 100755
+--- a/config.sub
++++ b/config.sub
+@@ -1703,7 +1703,7 @@ case $os in
+ 	     | *vms* | esix* | aix* | cnk* | sunos | sunos[34]* \
+ 	     | hpux* | unos* | osf* | luna* | dgux* | auroraux* | solaris* \
+ 	     | sym* |  plan9* | psp* | sim* | xray* | os68k* | v88r* \
+-	     | hiux* | abug | nacl* | netware* | windows* \
++	     | hiux* | abug | nacl* | netware* | windows* | micro* \
+ 	     | os9* | macos* | osx* | ios* \
+ 	     | mpw* | magic* | mmixware* | mon960* | lnews* \
+ 	     | amigaos* | amigados* | msdos* | newsos* | unicos* | aof* \
+diff --git a/gas/configure.tgt b/gas/configure.tgt
+index 550fa4098f8..00302fa0b7c 100644
+--- a/gas/configure.tgt
++++ b/gas/configure.tgt
+@@ -261,6 +261,7 @@ case ${generic_target} in
+   i386-*-*nt*)				fmt=coff em=pe ;;
+   i386-*-rdos*)				fmt=elf ;;
+   i386-*-darwin*)			fmt=macho ;;
++  i386-*-micro*)            fmt=elf em=gnu ;;
+ 
+   ia16-*-elf*)				fmt=elf ;;
+ 
+diff --git a/ld/Makefile.am b/ld/Makefile.am
+index 6cfdfddc5d1..d7694b4f767 100644
+--- a/ld/Makefile.am
++++ b/ld/Makefile.am
+@@ -285,6 +285,7 @@ ALL_EMULATION_SOURCES = \
+ 	eelf_i386_ldso.c \
+ 	eelf_i386_sol2.c \
+ 	eelf_i386_vxworks.c \
++	eelf_i386_micro.c \
+ 	eelf_iamcu.c \
+ 	eelf_mipsel_haiku.c \
+ 	eelf_s390.c \
+@@ -462,6 +463,7 @@ ALL_64_EMULATION_SOURCES = \
+ 	eelf_x86_64_fbsd.c \
+ 	eelf_x86_64_haiku.c \
+ 	eelf_x86_64_sol2.c \
++	eelf_x86_64_micro.c \
+ 	ehppa64linux.c \
+ 	ei386pep.c \
+ 	emmo.c
+diff --git a/ld/Makefile.in b/ld/Makefile.in
+index 30fa918dfc8..9264d3b5f43 100644
+--- a/ld/Makefile.in
++++ b/ld/Makefile.in
+@@ -775,6 +775,7 @@ ALL_EMULATION_SOURCES = \
+ 	eelf_i386_ldso.c \
+ 	eelf_i386_sol2.c \
+ 	eelf_i386_vxworks.c \
++	eelf_i386_micro.c \
+ 	eelf_iamcu.c \
+ 	eelf_mipsel_haiku.c \
+ 	eelf_s390.c \
+@@ -951,6 +952,7 @@ ALL_64_EMULATION_SOURCES = \
+ 	eelf_x86_64_fbsd.c \
+ 	eelf_x86_64_haiku.c \
+ 	eelf_x86_64_sol2.c \
++	eelf_x86_64_micro.c \
+ 	ehppa64linux.c \
+ 	ei386pep.c \
+ 	emmo.c
+diff --git a/ld/configure.tgt b/ld/configure.tgt
+index 5411104ec36..d5b7600b10b 100644
+--- a/ld/configure.tgt
++++ b/ld/configure.tgt
+@@ -407,6 +407,11 @@ i[3-7]86-*-vxworks*)	targ_emul=elf_i386_vxworks
+ 			;;
+ i[3-7]86-*-chaos)	targ_emul=elf_i386_chaos
+ 			;;
++i[3-7]86-*-micro*)
++                    targ_emul=elf_i386_micro
++                    targ_extra_emuls=elf_i386
++                    targ64_extra_emuls="elf_x86_64_micro elf_x86_64"
++                    ;;
+ ia16-*-elf*)		targ_emul=elf_i386
+ 			targ_extra_emuls=i386msdos
+ 			;;
+@@ -1016,6 +1021,10 @@ x86_64-*-mingw*)	targ_emul=i386pep ;
+ 			targ_extra_emuls=i386pe
+ 			targ_extra_ofiles="deffilep.o pep-dll.o pe-dll.o"
+ 			;;
++x86_64-*-micro*)
++                    targ_emul=elf_x86_64_micro
++                    targ_extra_emuls="elf_i386_micro elf_x86_64 elf_i386"
++                    ;;
+ xc16x-*-elf)		targ_emul=elf32xc16x
+ 			targ_extra_emuls="elf32xc16xl elf32xc16xs"
+ 			;;
+diff --git a/ld/emulparams/elf_i386_micro.sh b/ld/emulparams/elf_i386_micro.sh
+new file mode 100644
+index 00000000000..342d5298d1a
+--- /dev/null
++++ b/ld/emulparams/elf_i386_micro.sh
+@@ -0,0 +1,3 @@
++. ${srcdir}/emulparams/elf_i386.sh
++GENERATE_SHLIB_SCRIPT=yes
++GENERATE_PIE_SCRIPT=yes
+diff --git a/ld/emulparams/elf_x86_64_micro.sh b/ld/emulparams/elf_x86_64_micro.sh
+new file mode 100644
+index 00000000000..a2af90a6cbe
+--- /dev/null
++++ b/ld/emulparams/elf_x86_64_micro.sh
+@@ -0,0 +1 @@
++. ${srcdir}/emulparams/elf_x86_64.sh

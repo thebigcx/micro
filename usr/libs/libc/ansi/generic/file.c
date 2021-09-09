@@ -33,3 +33,20 @@ int fseek(FILE* stream, long int offset, int whence)
 {
     return lseek(stream->fd, offset, whence);
 }
+
+int fflush(FILE* stream)
+{
+    // TODO: buffering
+    return 0;
+}
+
+long int ftell(FILE* stream)
+{
+    return lseek(stream->fd, 0, SEEK_CUR);        
+}
+
+// TODO: implement stdio buffering
+void setbuf(FILE* stream, char* buf)
+{
+    assert(!"setbuf() not implemented!\n");
+}

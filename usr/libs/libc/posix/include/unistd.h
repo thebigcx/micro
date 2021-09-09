@@ -17,6 +17,8 @@ ssize_t write(int fd, const void* buf, size_t count);
 int close(int fd);
 off_t lseek(int fd, off_t offset, int whence);
 int execve(const char* pathname, const char* argv[], const char* envp[]);
+int execv(const char* path, const char* argv[]);
+int execvp(const char* file, const char* argv[]);
 pid_t getpid();
 pid_t fork();
 int chdir(const char* path);

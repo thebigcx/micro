@@ -4,6 +4,8 @@
 #include <stdarg.h>
 #include <stdint.h>
 
+#define BUFSIZ 4096
+
 typedef struct FILE
 {
     int fd;
@@ -23,10 +25,13 @@ int vsprintf(char* str, const char* format, va_list args);
 int vsnprintf(char* str, size_t n, const char* format, va_list args);
 void printf(const char* format, ...);
 void fprintf(FILE* file, const char* format, ...);
-void vfprintf(FILE* file, const char* format, va_list args);
+int vfprintf(FILE* file, const char* format, va_list args);
 
 FILE* fopen(const char* path, const char* mode);
 int fclose(FILE* stream);
 size_t fread(void* ptr, size_t size, size_t nmemb, FILE* stream);
 size_t fwrite(const void* ptr, size_t size, size_t nmemb, FILE* stream);
 int fseek(FILE* stream, long int offset, int whence);
+int fflush(FILE* stream);
+long int ftell(FILE* stream);
+void setbuf(FILE* stream, char* buf);

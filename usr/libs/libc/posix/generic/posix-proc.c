@@ -1,5 +1,6 @@
 #include <unistd.h>
 #include <libc/sysdeps-internal.h>
+#include <libc/libc-internal.h>
 #include <errno.h>
 
 pid_t getpid()
@@ -24,6 +25,18 @@ int execve(const char* pathname, const char* argv[], const char* envp[])
 {
 	int e = sys_execve(pathname, argv, envp);
 	errno = e;
+    return -1;
+}
+
+int execv(const char* path, const char* argv[])
+{
+    return execve(path, argv, environ); 
+}
+
+int execvp(const char* file, const char* argv[])
+{
+    // TODO: parse the PATH environment variable
+    assert(!"execvp() not implemented!\n");
     return -1;
 }
 
