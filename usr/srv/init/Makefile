@@ -2,17 +2,20 @@ SOURCES := init.c
 
 OBJS := $(patsubst %.c, %.o, $(SOURCES))
 TARG = init
-CFLAGS := -ffreestanding -fno-stack-protector -Wall -Wextra -Wno-unused-parameter -Wno-unused-variable -nostdinc -I$(ROOT)/usr/include
+CFLAGS := -fno-stack-protector -Wall -Wextra -Wno-unused-parameter -Wno-unused-variable 
 
 all: $(TARG)
 
 $(TARG): $(OBJS)
 	@echo "    LD    $@"
-	@ld -Tlinker.ld -static -nostdlib -Bsymbolic -o $@ $^ -L$(ROOT)/usr/lib -l:libc.a
+	@x86_64-micro-gcc -static -o $@ $^
 
 %.o: %.c
 	@echo "    CC    $@"
-	@gcc $(CFLAGS) -c $< -o $@
+	@x86_64-micro-gcc $(CFLAGS) -c $< -o $@
+
+install:
+	cp $(TARG) $(DESTDIR)/
 
 .PHONY:
 clean:

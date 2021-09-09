@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <fcntl.h>
+#include <assert.h>
 
 FILE* fopen(const char* path, const char* mode)
 {

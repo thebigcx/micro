@@ -2,6 +2,7 @@
 #include <libc/sysdeps-internal.h>
 #include <libc/libc-internal.h>
 #include <errno.h>
+#include <assert.h>
 
 pid_t getpid()
 {
@@ -30,7 +31,7 @@ int execve(const char* pathname, const char* argv[], const char* envp[])
 
 int execv(const char* path, const char* argv[])
 {
-    return execve(path, argv, environ); 
+    return execve(path, argv, (const char**)environ); 
 }
 
 int execvp(const char* file, const char* argv[])

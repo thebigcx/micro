@@ -10,7 +10,7 @@ TARGET = dist/vmkernel
 release: CFLAGS += -O3
 release: $(TARGET) dev
 
-debug: CFLAGS += -g3 -DDEBUG -fsanitize=undefined
+debug: CFLAGS += -g -DDEBUG -fsanitize=undefined
 debug: $(TARGET) dev
 
 .PHONY: clean dev

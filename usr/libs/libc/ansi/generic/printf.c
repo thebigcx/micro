@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <assert.h>
 
 int vsnprintf(char* str, size_t n, const char* format, va_list list)
 {

@@ -11,6 +11,7 @@ SOURCES := internal/generic/init.c				\
 		   ansi/generic/string.c				\
 		   ansi/generic/signal.c				\
 		   ansi/generic/errno.c					\
+		   ansi/generic/assert.c				\
 		   posix/generic/file-io.c				\
 		   posix/generic/posix-proc.c 			\
 		   posix/generic/posix-time.c			\
@@ -23,7 +24,7 @@ OBJS := $(patsubst %.c, %.o, $(SOURCES)) $(patsubst %.S, %.o, $(ASM))
 AR := libc.a
 SO := libc.so
 CRT0 := crt0.o
-CFLAGS := -ffreestanding -fno-stack-protector -O2 -Wall -Wextra -Wno-unused-parameter -Wno-unused-variable -nostdinc -Iansi/include -Iinternal/include -Iposix/include -Isysdeps/micro/include
+CFLAGS := -ffreestanding -fno-stack-protector -O2 -Wall -Wextra -Wno-unused-parameter -Wno-unused-variable -Iansi/include -Iinternal/include -Iposix/include -Isysdeps/micro/include
 
 all: $(AR) $(SO) $(CRT0)
 
@@ -32,11 +33,11 @@ $(CRT0):
 
 $(AR): $(OBJS)
 	@echo "    AR    $@"
-	@ar rcs $@ $^
+	@x86_64-micro-ar rcs $@ $^
 
 $(SO): $(OBJS)
 	@echo "    LD    $@"
-	@ld -shared -nostdlib -Bsymbolic -o $@ $^
+	@x86_64-micro-ld -shared -Bsymbolic -o $@ $^
 
 %.o: %.c
 	@echo "    CC    $@"
@@ -47,6 +48,9 @@ $(SO): $(OBJS)
 	@gcc -c $< -o $@
 
 install:
+	mkdir -p $(DESTDIR)/usr
+	mkdir -p $(DESTDIR)/usr/include
+	mkdir -p $(DESTDIR)/usr/lib
 	cp $(AR) $(DESTDIR)/usr/lib/
 	cp $(SO) $(DESTDIR)/usr/lib/
 	cp $(CRT0) $(DESTDIR)/usr/lib/

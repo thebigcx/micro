@@ -21,6 +21,12 @@ uintptr_t elf_load(struct task* task, void* data)
             uintptr_t begin = phdr->vaddr;
             uintptr_t size = phdr->memsz;
 
+            if (begin % PAGE4K)
+            {
+                begin -= begin % PAGE4K;
+                size += begin % PAGE4K;
+            }
+
             if (size % PAGE4K)
                 size = size - (size % PAGE4K) + PAGE4K;
 
