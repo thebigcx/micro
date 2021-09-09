@@ -16,16 +16,17 @@ static struct task* mktask(struct task* parent, struct vm_map* vm_map)
 {
     struct task* task = kmalloc(sizeof(struct task));
 
-    task->threads = list_create();
-    task->fds = list_create();
-    task->id = s_id++;
-    task->vm_map = vm_map;
+    task->threads  = list_create();
+    task->fds      = list_create();
+    task->id       = s_id++;
+    task->vm_map   = vm_map;
     task->children = list_create();
-    task->parent = parent;
-    task->main = NULL;
-    task->sigmask = 0;
+    task->parent   = parent;
+    task->main     = NULL;
+    task->sigmask  = 0;
     task->sigqueue = list_create();
-    task->waiting = 0;
+    task->waiting  = 0;
+    task->dead     = 0;
     
     strcpy(task->workd, "/");
     
@@ -197,11 +198,13 @@ void task_exit(int status)
 
     task->main = NULL;
 
-    mmu_destroy_vmmap(task->vm_map);
+    //mmu_destroy_vmmap(task->vm_map);
 
     if (task->parent) task_send(task->parent, SIGCHLD);
 
     //kfree(task);
+
+    task->dead = 1;
 
     switch_next();
 }

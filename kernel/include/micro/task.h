@@ -23,6 +23,8 @@ struct task
     uintptr_t signals[32];
     uint32_t sigmask;
 
+    int dead;
+
     volatile int waiting;
 };
 

@@ -228,6 +228,7 @@ uintptr_t mmu_alloc_phys()
         }
     }
 
+    printk("pmm: out of physical memory pages.\n");
     return 0;
 }
 
@@ -269,16 +270,14 @@ struct vm_map* mmu_create_vmmap()
 
     map->pml4 = (pml_t*)mmu_kalloc(1);
     map->pdpt = (pml_t*)mmu_kalloc(1);
-    map->pds = (page_t**)mmu_kalloc(1);
-    map->pts = (page_t***)mmu_kalloc(1);
+    map->pds = (page_t**)kmalloc(PAGE4K);
+    map->pts = (page_t***)kmalloc(PAGE4K);
 
     map->pml4_phys = mmu_alloc_phys();
     map->pdpt_phys = mmu_alloc_phys();
 
     mmu_kmap((uintptr_t)map->pml4, map->pml4_phys, PAGE_PR | PAGE_RW);
     mmu_kmap((uintptr_t)map->pdpt, map->pdpt_phys, PAGE_PR | PAGE_RW);
-    mmu_kmap((uintptr_t)map->pds, mmu_alloc_phys(), PAGE_PR | PAGE_RW);
-    mmu_kmap((uintptr_t)map->pts, mmu_alloc_phys(), PAGE_PR | PAGE_RW);
 
     memcpy(map->pml4, kpml4, PAGE4K);
     memset(map->pdpt, 0, PAGE4K);
@@ -294,7 +293,7 @@ struct vm_map* mmu_create_vmmap()
 
         (*map->pdpt)[i] = map->phys_pds[i] | PAGE_PR | PAGE_RW | PAGE_USR;
 
-        map->pts[i] = (page_t**)kmalloc(4096); // FIXME: rely on page faults to allocate only what is needed
+        map->pts[i] = (page_t**)kmalloc(4096); // FIXME: create the page tables as needed
 		memset(map->pts[i], 0, PAGE4K);
     }
 
@@ -355,4 +354,19 @@ struct vm_map* mmu_clone_vmmap(const struct vm_map* src)
 void mmu_destroy_vmmap(struct vm_map* map)
 {
     // TODO: implement
+    for (unsigned int i = 0; i < ENTCNT; i++)
+    {
+        kfree(map->pts[i]);
+
+        //mmu_kfree(map->pds[i], 1);
+        //mmu_free_phys(map->phys_pds[i], 1);
+    }
+
+    mmu_kfree(map->pml4, 1);
+    mmu_kfree(map->pdpt, 1);
+    //mmu_free_phys(map->pml4_phys, 1);
+    //mmu_free_phys(map->pdpt_phys, 1);
+
+    kfree(map->pds);
+    kfree(map->pts);
 }
