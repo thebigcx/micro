@@ -12,26 +12,6 @@ static struct list ready_queue;
 
 static struct thread* next_ready(struct cpu_info* cpu)
 {
-    // Make sure we haven't looped back to the start
-    /*uintptr_t i = threads.size;
-
-    do
-    {
-        if (!threads.size || !i)
-        {
-            cpu->current = cpu->idle;
-            break;
-        }
-        else
-        {
-            cpu->current = list_dequeue(&threads);
-            list_push_back(&threads, cpu->current);
-            i--;
-        }
-
-    } while (cpu->current->state != THREAD_READY);
-
-    return cpu->current;*/
     if (!ready_queue.size)
         return cpu->idle;
 
@@ -71,7 +51,6 @@ void switch_next()
     struct cpu_info* cpu = cpu_curr();
     if (TEST_LOCK(cpu->lock)) return;
 
-    //cpu->current = cpu_next_ready(cpu);
     do
     {
         cpu->current = next_ready(cpu);
@@ -127,7 +106,6 @@ void sched_start(struct task* task)
     list_push_back(&tasks, task);
     LIST_FOREACH(&task->threads)
     {
-        //thread_start((struct thread*)node->data);
         struct thread* thread = node->data;
         thread->state = THREAD_READY;
         list_push_back(&ready_queue, thread);

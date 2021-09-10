@@ -42,15 +42,15 @@ struct __attribute__((packed)) ext2_sb_ext
     uint32_t features_compat;       // Optional features present
     uint32_t features_req;          // Required features present
     uint32_t features_ro;           // Read-only features present
-    uint8_t fs_id[16];              // Filesystem ID
-    char volume_name[16];           // Volume name
-    char last_mnt[64];              // Path this volume was last mounted to
+    uint8_t  fs_id[16];             // Filesystem ID
+    char     volume_name[16];       // Volume name
+    char     last_mnt[64];          // Path this volume was last mounted to
     uint32_t alg_bitmap;            // Compression algorithms used
-    uint8_t prealloc_blocks;        // Number of blocks to preallocate for files
-    uint8_t prealloc_dir_blocks;    // Number of blocks to preallocate for directories
+    uint8_t  prealloc_blocks;       // Number of blocks to preallocate for files
+    uint8_t  prealloc_dir_blocks;   // Number of blocks to preallocate for directories
     uint16_t unused;                // Unused
-    uint8_t padding[16];            // Padding
-    char journal_id[16];            // Journal ID
+    uint8_t  padding[16];           // Padding
+    char     journal_id[16];        // Journal ID
     uint32_t journal_inode;         // Journal inode
     uint32_t journal_dev;           // Journal device
     uint32_t orpan_inode_head;      // Head of orphan inode list
