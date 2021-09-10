@@ -186,26 +186,28 @@ void generic_init(struct genbootparams params)
 
     struct file* init = vfs_resolve("/usr/include/assert.h");
     char* buffer = kmalloc(init->size);
-    vfs_read(init, buffer, 100, init->size - 100);
+    memset(buffer, 'X', init->size);
+    vfs_write(init, buffer, 100, init->size - 100);
+    vfs_read(init, buffer, 0, init->size);
 
     for (int i = 0; i < 1024; i++) printk("%c", buffer[i]);
 
-    for (;;);
+    //for (;;);
 
-    fat_init();
+    //fat_init();
 
-    vfs_mount_fs("/dev/initrd", "/", "fat", NULL);
+    //vfs_mount_fs("/dev/initrd", "/", "fat", NULL);
 
     //vfs_mkdir(vfs_resolve("/"), "test");
     //vfs_mkfile(vfs_resolve("/test"), "dirent");
     //vfs_rm(vfs_resolve("/"), "test");
     //vfs_mkfile("/test.txt");
-    vfs_mkdir("/tests");
+    /*vfs_mkdir("/tests");
     
     for (unsigned int i = 0; i < 50; i++)
     {
         vfs_mkfile("/tests/test.txt");
-    }
+    }*/
     //vfs_mkfile("/tests/dirent.txt");
 
     /*vfs_mkfile(vfs_resolve("/"), "test");

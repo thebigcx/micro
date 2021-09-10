@@ -13,6 +13,11 @@ static ssize_t read_blocks(struct ext2_volume* vol, void* buf, uintptr_t blk, si
     return vfs_read(vol->device, buf, blk * vol->blksize, vol->blksize * cnt);
 }
 
+static ssize_t write_blocks(struct ext2_volume* vol, const void* buf, uintptr_t blk, size_t cnt)
+{
+    return vfs_write(vol->device, buf, blk * vol->blksize, vol->blksize * cnt);
+}
+
 static void ext2_read_inode(struct ext2_volume* ext2, unsigned int num, struct ext2_inode* inode)
 {
     uint8_t* buf = kmalloc(ext2->blksize);
@@ -63,10 +68,64 @@ static struct file* dirent2file(struct ext2_volume* vol, struct file* parent, st
     return file;
 }
 
+#define INO_SIND 12 // Singly indirect
+#define INO_DIND 13 // Doubly indirect
+#define INO_TIND 14 // Triply indirect
+
 static uint32_t ext2_inode_blk(struct ext2_volume* vol, struct ext2_inode* ino, unsigned int i)
 {
-    // TODO: indirect blocks
-    return ino->blocks[i];
+    uint32_t bpp = vol->blksize / sizeof(uint32_t); // Blocks per pointer
+    uint32_t sind = INO_SIND;                       // Singly indirect start
+    uint32_t dind = sind + bpp;                     // Doubly indirect start
+    uint32_t tind = dind + bpp * bpp;               // Triply indirect start
+
+    if (i < sind) // No indirect
+    {
+        return ino->blocks[i];
+    }
+    else if (i < dind) // Singly indirect
+    {
+        uint32_t* buf = kmalloc(vol->blksize);
+
+        read_blocks(vol, buf, ino->blocks[INO_SIND], 1);
+        uint32_t ret = buf[i - INO_SIND];
+        kfree(buf);
+
+        return ret;
+    }
+    else if (i < tind) // Doubly indirect
+    {
+        uint32_t* blk_ptrs = kmalloc(vol->blksize);
+        uint32_t* buf = kmalloc(vol->blksize);
+
+        read_blocks(vol, blk_ptrs, ino->blocks[INO_DIND], 1); // First indirect
+        read_blocks(vol, buf, blk_ptrs[(i - dind) / bpp], 1); // Second indirect
+
+        uint32_t ret = buf[(i - dind) % bpp];
+
+        kfree(buf);
+        kfree(blk_ptrs);
+
+        return ret;
+    }
+    else // Triply indirect
+    {
+        uint32_t* sind_ptrs = kmalloc(vol->blksize);
+        uint32_t* dind_ptrs = kmalloc(vol->blksize);
+        uint32_t* buf = kmalloc(vol->blksize);
+        
+        read_blocks(vol, sind_ptrs, ino->blocks[INO_TIND],       1); // First indirect
+        read_blocks(vol, dind_ptrs, sind_ptrs[(i - dind) / bpp], 1); // Second indirect
+        read_blocks(vol, buf,       dind_ptrs[(i - tind) / bpp], 1); // Third indirect
+
+        uint32_t ret = buf[(i - tind) % bpp];
+
+        kfree(buf);
+        kfree(dind_ptrs);
+        kfree(sind_ptrs);
+
+        return ret;
+    }
 }
 
 ssize_t ext2_read(struct file* file, void* buf, off_t off, size_t size)
@@ -111,10 +170,47 @@ ssize_t ext2_read(struct file* file, void* buf, off_t off, size_t size)
 
 ssize_t ext2_write(struct file* file, const void* buf, off_t off, size_t size)
 {
-    return -1;
+    struct ext2_volume* vol = file->device;
+
+    struct ext2_inode ino;
+    ext2_read_inode(vol, file->inode, &ino);
+
+    uint32_t startblk =  off         / vol->blksize; // Start block
+    uint32_t modoff   =  off         % vol->blksize; // Byte offset of start block
+
+    uint32_t endblk   = (size + off) / vol->blksize; // End block
+    uint32_t modend   = (size + off) % vol->blksize; // Byte offset of end block
+
+    uint8_t* fullbuf = kmalloc(vol->blksize);
+    
+    uint64_t ptroff = 0;
+    for (uint32_t i = startblk; i <= endblk; i++)
+    {
+        read_blocks(vol, fullbuf, ext2_inode_blk(vol, &ino, i), 1);
+
+        uint32_t start = 0;
+        uint32_t wsize = vol->blksize;
+
+        if (i == startblk)
+        {
+            start = modoff;
+            wsize = vol->blksize - start;
+        }
+        if (i == endblk)
+            wsize = modend;
+
+        memcpy(fullbuf + start, (void*)((uintptr_t)buf + ptroff), wsize);
+
+        write_blocks(vol, fullbuf, ext2_inode_blk(vol, &ino, i), 1);
+
+        ptroff += wsize;
+    }
+
+    kfree(fullbuf);
+    return size;
 }
 
-
+// TODO: move dirent parsing into one function
 // TODO: return error codes somehow
 struct file* ext2_find(struct file* dir, const char* name)
 {
@@ -153,9 +249,41 @@ struct file* ext2_find(struct file* dir, const char* name)
     return NULL;
 }
 
-int ext2_readdir(struct file* dir, size_t size, struct dirent* dirent)
+int ext2_readdir(struct file* dir, size_t idx, struct dirent* dirent)
 {
-    return -1;
+    struct ext2_volume* vol = dir->device;
+
+    struct ext2_inode ino;
+    ext2_read_inode(vol, dir->inode, &ino);
+
+    uintptr_t offset = 0;
+    uintptr_t blk    = 0;
+
+    void* buf = kmalloc(vol->blksize);
+    read_blocks(vol, buf, ext2_inode_blk(vol, &ino, blk), 1);
+
+    while (offset + blk * vol->blksize < INOSIZE(ino))
+    {
+        struct ext2_dirent* edirent = (struct ext2_dirent*)((uintptr_t)buf + offset);
+        offset += edirent->size;
+
+        if (!idx--)
+        {
+            strncpy(dirent->d_name, edirent->name, edirent->name_len);
+            kfree(buf);
+            return 1;
+        }
+
+        if (offset >= vol->blksize)
+        {
+            blk++; offset = 0;
+            read_blocks(vol, buf, ext2_inode_blk(vol, &ino, blk), 1);
+        }
+    }
+
+    kfree(buf);
+
+    return 0;
 }
 
 void ext2_mkfile(struct file* dir, const char* name)

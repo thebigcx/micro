@@ -129,9 +129,11 @@ char* strcpy(char* dst, const char* src)
 
 char* strncpy(char* dst, const char* src, size_t size)
 {
-    size_t i = size;
-    while (i && i--) *dst++ = *src++;
-    dst[size] = 0;
+    size_t i = 0;
+    for (; i < size; i++)
+        dst[i] = src[i];
+    dst[i] = 0;
+
     return dst;
 }
 
