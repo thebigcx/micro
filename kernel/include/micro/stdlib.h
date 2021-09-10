@@ -21,6 +21,7 @@ char* ultoa(unsigned long n, char* str, int base);
 void memset(void* ptr, unsigned char c, size_t size);
 void memcpy(void* dst, const void* src, size_t size);
 char* strcpy(char* dst, const char* src);
+char* strncpy(char* dst, const char* src, size_t size);
 int strncmp(const char* s1, const char* s2, size_t n);
 int strcmp(const char* s1, const char* s2);
 char* strtok_r(char* str, const char* delim, char** saveptr);

@@ -7,7 +7,7 @@ int main(int argc, char** argv)
     assert(argc > 1);
 
     int fd;
-    if (!(fd = open(argv[1], O_CREAT)))
+    if (!(fd = open(argv[1], O_CREAT | O_RDONLY)))
     {
         printf("touch: %s: no such file or directory\n", argv[1]);
     }

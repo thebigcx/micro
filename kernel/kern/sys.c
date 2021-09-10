@@ -26,7 +26,7 @@ static int sys_open(const char* path, uint32_t flags)
     PTRVALID(path);
     
     // Must specify an access mode
-    if (!(flags & 3)) return -EINVAL;
+    //if (!(flags & 3)) return -EINVAL;
 
     struct task* task = task_curr();
 

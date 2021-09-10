@@ -127,6 +127,14 @@ char* strcpy(char* dst, const char* src)
     return dst;
 }
 
+char* strncpy(char* dst, const char* src, size_t size)
+{
+    size_t i = size;
+    while (i && i--) *dst++ = *src++;
+    dst[size] = 0;
+    return dst;
+}
+
 size_t strspn(const char* str, const char* delim)
 {
     size_t n = 0;

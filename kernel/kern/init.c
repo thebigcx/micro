@@ -10,6 +10,7 @@
 #include <micro/fb.h>
 #include <micro/sys.h>
 #include <micro/fat.h>
+#include <micro/ext2.h>
 
 /*struct fheader
 {
@@ -179,6 +180,11 @@ void generic_init(struct genbootparams params)
     file->device = initrd;
 
     vfs_addnode(file, "/dev/initrd");
+
+    ext2_init();
+    vfs_mount_fs("/dev/initrd", "/", "ext2", NULL);
+
+    for (;;);
 
     fat_init();
 

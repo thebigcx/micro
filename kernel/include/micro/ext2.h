@@ -1,8 +1,9 @@
 #pragma once
 
 #include <micro/types.h>
+#include <micro/vfs.h>
 
-struct __attribute__((packed)) ext2_sb_base
+struct __attribute__((packed)) ext2_sb
 {
     uint32_t inode_cnt;         // Total number of inodes in filesystem
     uint32_t blk_cnt;           // Total number of blocks in filesystem
@@ -34,7 +35,7 @@ struct __attribute__((packed)) ext2_sb_base
     uint16_t res_gid;           // Group ID that can use reserved blocks
 };
 
-struct __attribute__((packed)) ext2_sb_ext
+struct __attribute__((packed)) ext2_sbext
 {
     uint32_t first_inode;           // First non-reserved inode
     uint16_t inode_sz;              // Size of inode structure in bytes
@@ -56,17 +57,84 @@ struct __attribute__((packed)) ext2_sb_ext
     uint32_t orpan_inode_head;      // Head of orphan inode list
 };
 
-struct __attribute__((packed)) ext2_sb
+struct __attribute__((packed)) ext2_bgd
 {
-    struct ext2_sb_base sb;
-    struct ext2_sb_ext sbext;
+    uint32_t block_bmp;     // Block address of block usage bitmap
+    uint32_t inode_bmp;     // Block address of inode usage bitmap
+    uint32_t inode_tbl;     // Starting block address of inode table
+    uint32_t free_blocks;   // Number of free blocks in group
+    uint32_t free_inodes;   // Number of free inodes in group
+    uint32_t dir_cnt;       // Number of directories in group
+    uint16_t padding;
+    uint8_t res[12];
+};
+
+struct __attribute__((packed)) ext2_inode
+{
+    uint16_t mode;          // Types and Permissions
+    uint16_t userid;        // User ID
+    uint32_t size;          // Lower 32 bits of size
+    uint32_t last_access;   // Last access time in POSIX time
+    uint32_t creation_time; // Creation time in POSIX time
+    uint32_t last_mod_time; // Last modification time in POSIX time
+    uint32_t del_time;      // Deletion time in POSIX time
+    uint16_t grpid;         // Group ID
+    uint16_t link_cnt;      // Amount of hard links (directory entries)
+    uint32_t sector_cnt;    // Count of disk sectors
+    uint32_t flags;         // Flags
+    uint32_t os_spec1;      // OS-specific value #1
+    uint32_t blocks[15];    // Direct/Indirect block pointers
+    uint32_t gen_num;       // Generation number
+    uint32_t file_acl;      // Extended attributes for file
+    union
+    {
+        uint32_t dir_acl;   // Directory attributes
+        uint32_t size_u;    // File size upper 32 bits
+    };
+    uint32_t frag_addr;     // Block address of fragment
+    uint8_t os_spec2[12];   // OS-specific value #2
+};
+
+#define INODE_FIFO      0x1000
+#define INODE_CHARDEV   0x2000
+#define INODE_DIR       0x4000
+#define INODE_BLOCKDEV  0x6000
+#define INODE_FILE      0x8000
+#define INODE_SYMLINK   0xa000
+#define INODE_SOCKET    0xc000
+
+struct __attribute__((packed)) ext2_dirent
+{
+    uint32_t inode;      // Inode
+    uint16_t size;       // Total size of this field
+    uint8_t  name_len;   // Name length least-significant 8 bits
+    uint8_t  type;       // Type indicator
+    char     name[];
 };
 
 struct ext2_volume
 {
-    struct file* device;
+    struct file*     device;
+    size_t           blksize;
+
+    struct ext2_bgd* groups;
+    unsigned int     group_cnt;
+
+    struct __attribute__((packed))
+    {
+        struct ext2_sb    sb;
+        struct ext2_sbext sbext;
+    };
 };
 
 struct file;
 
 void ext2_init();
+
+ssize_t ext2_read(struct file* file, void* buf, off_t off, size_t size);
+ssize_t ext2_write(struct file* file, const void* buf, off_t off, size_t size);
+struct file* ext2_find(struct file* dir, const char* name);
+int ext2_readdir(struct file* dir, size_t size, struct dirent* dirent);
+void ext2_mkfile(struct file* dir, const char* name);
+void ext2_mkdir(struct file* dir, const char* name);
+void ext2_rm(struct file* dir, const char* name);
