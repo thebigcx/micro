@@ -184,6 +184,12 @@ void generic_init(struct genbootparams params)
     ext2_init();
     vfs_mount_fs("/dev/initrd", "/", "ext2", NULL);
 
+    struct file* init = vfs_resolve("/usr/include/assert.h");
+    char* buffer = kmalloc(init->size);
+    vfs_read(init, buffer, 100, init->size - 100);
+
+    for (int i = 0; i < 1024; i++) printk("%c", buffer[i]);
+
     for (;;);
 
     fat_init();

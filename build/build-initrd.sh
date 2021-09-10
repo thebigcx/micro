@@ -1,7 +1,7 @@
 dd if=/dev/zero of=initrd.img bs=1k count=14400
 chown "$SUDO_UID":"$SUDO_GID" initrd.img
 #mkfs.fat -F32 initrd.img 14400
-mkfs.ext2 initrd.img
+mkfs.ext2 initrd.img 1440
 mkdir -p mnt
 sudo mount initrd.img mnt
 sudo cp ../usr/srv/init/init mnt/

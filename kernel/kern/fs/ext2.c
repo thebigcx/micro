@@ -20,7 +20,6 @@ static void ext2_read_inode(struct ext2_volume* ext2, unsigned int num, struct e
     // Inode block group descriptor
     size_t grpoff       = (num - 1) % ext2->sb.inodes_per_grp;
     size_t grp          = (num - 1) / ext2->sb.inodes_per_grp;
-
     // Inode table
     uintptr_t table     = ext2->groups[grp].inode_tbl;
 
@@ -72,7 +71,42 @@ static uint32_t ext2_inode_blk(struct ext2_volume* vol, struct ext2_inode* ino, 
 
 ssize_t ext2_read(struct file* file, void* buf, off_t off, size_t size)
 {
-    return -1;
+    struct ext2_volume* vol = file->device;
+
+    uint32_t startblk =  off         / vol->blksize; // Start block
+    uint32_t modoff   =  off         % vol->blksize; // Byte offset of start block
+
+    uint32_t endblk   = (size + off) / vol->blksize; // End block
+    uint32_t modend   = (size + off) % vol->blksize; // Byte offset of end block
+
+    struct ext2_inode ino;
+    ext2_read_inode(vol, file->inode, &ino);
+
+    uint8_t* fullbuf = kmalloc(vol->blksize);
+    
+    uint64_t ptroff = 0;
+    for (uint32_t i = startblk; i <= endblk; i++)
+    {
+        read_blocks(vol, fullbuf, ext2_inode_blk(vol, &ino, i), 1);
+
+        uint32_t start = 0;
+        uint32_t size = vol->blksize;
+
+        if (i == startblk)
+        {
+            start = modoff;
+            size = vol->blksize - start;
+        }
+        if (i == endblk)
+            size = modend;
+
+        memcpy((void*)((uintptr_t)buf + ptroff), fullbuf + start, size);
+
+        ptroff += size;
+    }
+
+    kfree(fullbuf);
+    return size;
 }
 
 ssize_t ext2_write(struct file* file, const void* buf, off_t off, size_t size)
@@ -163,16 +197,17 @@ static struct file* ext2_mount(const char* dev, void* data)
 
     struct file* file = kmalloc(sizeof(struct file));
 
-    file->device   = vol;
-    file->flags    = FL_MNTPT;
-    file->inode    = 2;
-    file->ops.find = ext2_find;
+    file->device      = vol;
+    file->flags       = FL_MNTPT;
+    file->inode       = 2;
 
-    // TESTS
-    //struct ext2_inode ino;
-    //ext2_read_inode(vol, 2, &ino);
-    struct file* init = ext2_find(file, "init");
-    for (;;);
+    file->ops.read    = ext2_read;
+    file->ops.write   = ext2_write;
+    file->ops.find    = ext2_find;
+    file->ops.readdir = ext2_readdir;
+    file->ops.mkfile  = ext2_mkfile;
+    file->ops.mkdir   = ext2_mkdir;
+    file->ops.rm      = ext2_rm;
 
     return file;
 }

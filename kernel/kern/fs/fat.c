@@ -153,6 +153,7 @@ ssize_t fat_read(struct file* file, void* buf, off_t off, size_t size)
     uint64_t start = off / 512;
     uint64_t end = (off + size) / 512;
 
+    // TODO: use 'i' rather than this variable
     size_t pos = 0;
 
     unsigned int cnt = fat_cchain_cnt(vol, clus);
@@ -532,7 +533,6 @@ struct file* fat_mount(const char* dev, void* data)
     struct file* file = kmalloc(sizeof(struct file));
     memset(file, 0, sizeof(struct file));
 
-    strcpy(file->name, "fat32");
     file->flags       = FL_MNTPT;
     file->device      = vol;
     file->inode       = vol->record.ebr.cluster_num;
