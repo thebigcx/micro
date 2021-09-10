@@ -297,6 +297,20 @@ static int sys_mkdir(const char* path)
     return 0;
 }
 
+static int sys_ioctl(int fdno, unsigned long req, void* argp)
+{
+    PTRVALID(argp);
+
+    struct task* task = task_curr();
+    if (fdno < 0 || (size_t)fdno >= task->fds.size) return -EBADF;
+
+    struct fd* fd = list_get(&task->fds, fdno);
+
+    if (fd->filp->flags == FL_FILE || fd->filp->flags == FL_DIR) return -ENOTTY;
+
+    return vfs_ioctl(fd->filp, req, argp);
+}
+
 typedef uintptr_t (*syscall_t)();
 
 static uintptr_t syscalls[] =
@@ -318,7 +332,8 @@ static uintptr_t syscalls[] =
     (uintptr_t)sys_chdir,
     (uintptr_t)sys_getcwd,
     (uintptr_t)sys_readdir,
-    (uintptr_t)sys_mkdir
+    (uintptr_t)sys_mkdir,
+    (uintptr_t)sys_ioctl
 };
 
 void syscall_handler(struct regs* r)

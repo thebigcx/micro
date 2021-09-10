@@ -181,22 +181,23 @@ void generic_init(struct genbootparams params)
 
     vfs_addnode(file, "/dev/initrd");
 
-    ext2_init();
-    vfs_mount_fs("/dev/initrd", "/", "ext2", NULL);
+    //ext2_init();
+    //vfs_mount_fs("/dev/initrd", "/", "ext2", NULL);
 
-    struct file* init = vfs_resolve("/usr/include/assert.h");
-    char* buffer = kmalloc(init->size);
-    memset(buffer, 'X', init->size);
-    vfs_write(init, buffer, 100, init->size - 100);
-    vfs_read(init, buffer, 0, init->size);
+    //struct file* init = vfs_resolve("/usr/include/assert.h");
+    //char* buffer = kmalloc(9800);
+    //memset(buffer, 'X', 9800);
+    //vfs_write(init, buffer, 0, 9800);
 
-    for (int i = 0; i < 1024; i++) printk("%c", buffer[i]);
+    //vfs_read(init, buffer, 0, init->size);
+
+    //for (int i = 0; i < init->size; i++) printk("%c", buffer[i]);
 
     //for (;;);
 
-    //fat_init();
+    fat_init();
 
-    //vfs_mount_fs("/dev/initrd", "/", "fat", NULL);
+    vfs_mount_fs("/dev/initrd", "/", "fat", NULL);
 
     //vfs_mkdir(vfs_resolve("/"), "test");
     //vfs_mkfile(vfs_resolve("/test"), "dirent");

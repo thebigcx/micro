@@ -122,6 +122,14 @@ void vfs_rm(struct file* dir, const char* name)
         dir->ops.rm(dir, name);
 }
 
+int vfs_ioctl(struct file* file, unsigned long req, void* argp)
+{
+    if (file && file->ops.ioctl)
+        return file->ops.ioctl(file, req, argp);
+
+    return -ENOTTY;
+}
+
 // Add a node (or 'struct file') to the VFS
 int vfs_addnode(struct file* file, const char* path)
 {

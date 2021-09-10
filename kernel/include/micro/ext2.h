@@ -83,14 +83,21 @@ struct __attribute__((packed)) ext2_inode
     uint32_t sector_cnt;    // Count of disk sectors
     uint32_t flags;         // Flags
     uint32_t os_spec1;      // OS-specific value #1
-    uint32_t blocks[15];    // Direct/Indirect block pointers
+    uint32_t directs[12];   // Direct block pointers
+
+    uint32_t sind;          // Singly-indirect block pointers
+    uint32_t dind;          // Doubly-indirect block pointers
+    uint32_t tind;          // Triply-indirect block pointers
+
     uint32_t gen_num;       // Generation number
     uint32_t file_acl;      // Extended attributes for file
+    
     union
     {
         uint32_t dir_acl;   // Directory attributes
         uint32_t size_u;    // File size upper 32 bits
     };
+
     uint32_t frag_addr;     // Block address of fragment
     uint8_t os_spec2[12];   // OS-specific value #2
 };

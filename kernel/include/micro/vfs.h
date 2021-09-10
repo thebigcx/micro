@@ -5,13 +5,14 @@
 
 struct file;
 
-typedef ssize_t (*read_t)(struct file* file, void* buf, off_t off, size_t size);
-typedef ssize_t (*write_t)(struct file* file, const void* buf, off_t off, size_t size);
-typedef struct file* (*find_t)(struct file* dir, const char* name);
-typedef int (*readdir_t)(struct file* dir, size_t idx, struct dirent* dirent);
-typedef void (*mkfile_t)(struct file* dir, const char* name);
-typedef void (*mkdir_t)(struct file* dir, const char* name);
-typedef void (*rm_t)(struct file* dir, const char* name);
+typedef ssize_t      (*read_t   )(struct file* file, void* buf, off_t off, size_t size);
+typedef ssize_t      (*write_t  )(struct file* file, const void* buf, off_t off, size_t size);
+typedef struct file* (*find_t   )(struct file* dir, const char* name);
+typedef int          (*readdir_t)(struct file* dir, size_t idx, struct dirent* dirent);
+typedef void         (*mkfile_t )(struct file* dir, const char* name);
+typedef void         (*mkdir_t  )(struct file* dir, const char* name);
+typedef void         (*rm_t     )(struct file* dir, const char* name);
+typedef int          (*ioctl_t  )(struct file* file, unsigned long req, void* argp);
 
 struct file_ops
 {
@@ -22,6 +23,7 @@ struct file_ops
     mkfile_t  mkfile;
     mkdir_t   mkdir;
     rm_t      rm;
+    ioctl_t   ioctl;
 };
 
 #define FL_FILE     1
@@ -66,6 +68,8 @@ void vfs_mkfile(const char* path);
 void vfs_mkdir(const char* name);
 
 void vfs_rm(struct file* dir, const char* name);
+
+int vfs_ioctl(struct file* file, unsigned long req, void* argp);
 
 int vfs_addnode(struct file* file, const char* path);
 void* vfs_rmnode(const char* path);
