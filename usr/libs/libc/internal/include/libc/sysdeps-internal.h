@@ -30,3 +30,4 @@ int sys_access(const char* pathname, int mode);
 int sys_wait(pid_t pid, int* wstatus, int options, pid_t* ret);
 int sys_readdir(int fd, size_t idx, struct dirent* dirent);
 int sys_mkdir(const char* path, mode_t mode);
+int sys_time(time_t* timer);

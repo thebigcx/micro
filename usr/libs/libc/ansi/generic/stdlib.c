@@ -37,3 +37,14 @@ char* getenv(const char* name)
     assert(!"getenv() not implemented\n");
     return NULL;
 }
+
+unsigned long strtoul(const char* str, char** endptr, int base)
+{
+    assert(!"strtoul() not implemented!\n");
+    return 0;
+}
+
+void qsort(void* base, size_t nitems, size_t size, int (*compar)(const void*, const void*))
+{
+    assert(!"qsort() is not implemented!\n");
+}

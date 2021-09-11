@@ -12,3 +12,4 @@ typedef int					uid_t;
 typedef int					gid_t;
 typedef long				blksize_t;
 typedef long				blkcnt_t;
+typedef long int            time_t;

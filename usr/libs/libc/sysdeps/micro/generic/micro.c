@@ -166,3 +166,8 @@ int sys_nanosleep(const struct timespec* req, struct timespec* rem)
 	// TODO
 	return 0;
 }
+
+int sys_time(time_t* timer)
+{
+	return syscall(SYS_time, timer);
+}

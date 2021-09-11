@@ -19,5 +19,6 @@
 #define SYS_readdir         16
 #define SYS_mkdir           17
 #define SYS_ioctl           18
+#define SYS_time            19
 
 extern unsigned long syscall(unsigned long sysno, ...);

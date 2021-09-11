@@ -2,7 +2,6 @@ SOURCES := internal/generic/init.c				\
 		   internal/generic/crt0.c  			\
 		   ansi/generic/malloc.c				\
 		   ansi/generic/math.c					\
-		   ansi/generic/file.c					\
 		   ansi/generic/printf.c				\
 		   ansi/generic/stdio.c					\
 		   ansi/generic/stdlib.c  				\
@@ -59,7 +58,6 @@ install:
 	cp $(CRT0) $(DESTDIR)/usr/lib/
 	cp -r ansi/include/* $(DESTDIR)/usr/include/
 	cp -r posix/include/* $(DESTDIR)/usr/include/
-	cp -r sysdeps/micro/include/* $(DESTDIR)/usr/include/
 
 .PHONY:
 clean:

@@ -95,43 +95,35 @@ int sprintf(char* str, const char* format, ...)
 
 int vfprintf(FILE* file, const char* format, va_list args)
 {
+    // TODO: this is bad
     size_t len = 300;
     char* str = malloc(len);
     vsnprintf(str, len, format, args);
     write(file->fd, str, strlen(str));
     free(str);
     return 0;
-    // TODO: this is bad
-    //assert(!"vfprintf() not implemented!\n");
-    //return -1;
 }
 
-void fprintf(FILE* file, const char* format, ...)
-{
-    va_list list;
-    va_start(list, format);
-    
-    vfprintf(file, format, list);
-
-    va_end(list);
-}
-
-void printf(const char* format, ...)
+int fprintf(FILE* file, const char* format, ...)
 {
     va_list list;
     va_start(list, format);
 
-    vfprintf(stdout, format, list);
+    int ret = vfprintf(file, format, list);
 
     va_end(list);
+
+    return ret;
 }
 
-void puts(const char* str)
+int printf(const char* format, ...)
 {
-    write(stdout->fd, str, strlen(str));
-}
+    va_list list;
+    va_start(list, format);
 
-void putchar(char c)
-{
-    write(stdout->fd, &c, 1);
+    int ret = vfprintf(stdout, format, list);
+
+    va_end(list);
+
+    return ret;
 }

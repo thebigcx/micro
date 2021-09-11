@@ -8,10 +8,12 @@
 #include <micro/sched.h>
 #include <micro/errno.h>
 #include <micro/fs.h>
+#include <micro/fcntl.h>
 #include <micro/mman.h>
 #include <micro/stdlib.h>
 #include <micro/heap.h>
 #include <micro/wait.h>
+#include <micro/time.h>
 
 int is_valid_ptr(const void* ptr)
 {
@@ -51,7 +53,8 @@ static int sys_close(int fdno)
     struct task* task = task_curr();
     if (fdno < 0 || (size_t)fdno >= task->fds.size) return -EBADF;
 
-    vfs_close(list_remove(&task->fds, fdno));
+    // TODO: close without changing other indices
+    //vfs_close(list_remove(&task->fds, fdno));
 
     return 0;
 }
@@ -311,6 +314,14 @@ static int sys_ioctl(int fdno, unsigned long req, void* argp)
     return vfs_ioctl(fd->filp, req, argp);
 }
 
+// TODO: implement
+static int sys_time(time_t* time)
+{
+    PTRVALID(time);
+    *time = 0;
+    return 0;
+}
+
 typedef uintptr_t (*syscall_t)();
 
 static uintptr_t syscalls[] =
@@ -333,7 +344,8 @@ static uintptr_t syscalls[] =
     (uintptr_t)sys_getcwd,
     (uintptr_t)sys_readdir,
     (uintptr_t)sys_mkdir,
-    (uintptr_t)sys_ioctl
+    (uintptr_t)sys_ioctl,
+    (uintptr_t)sys_time
 };
 
 void syscall_handler(struct regs* r)

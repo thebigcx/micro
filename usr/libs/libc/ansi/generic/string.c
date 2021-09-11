@@ -49,6 +49,19 @@ void* memset(void* dst, unsigned char c, size_t n)
     return dst;
 }
 
+void* memchr(const void* str, int c, size_t n)
+{
+    char* cstr = str;
+    while (n--)
+    {
+        if (*cstr == (char)c)
+            return cstr;
+        cstr++;
+    }
+
+    return NULL;
+}
+
 int strcmp(const char* str1, const char* str2)
 {
     size_t len1 = strlen(str1);
@@ -259,4 +272,23 @@ char* strstr(const char* str, const char* substr)
 char* strerror(int errnum)
 {
     return "Error\n";
+}
+
+char* strrchr(const char* str, int c)
+{
+    if (!strlen(str)) return NULL;
+    char* ptr = str + strlen(str) - 1;
+
+    while (*ptr != c)
+    {
+        if (ptr == str) return NULL;
+        ptr--;
+    }
+
+    return ptr;
+}
+
+char* strcat(char* dst, const char* src)
+{
+    return strcpy(dst + strlen(dst), src);
 }
