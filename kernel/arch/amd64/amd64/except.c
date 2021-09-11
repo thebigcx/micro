@@ -134,6 +134,7 @@ static void gp(struct regs* regs, uint32_t e)
 {
     if (regs->cs & 3)
     {
+        dump(regs);
         task_send(task_curr(), SIGSEGV);
         sched_yield();
     }
@@ -148,6 +149,7 @@ static void pf(struct regs* regs, uint32_t e)
 {
     if (regs->cs & 3)
     {
+        dump(regs);
         task_send(task_curr(), SIGSEGV);
         sched_yield();
     }

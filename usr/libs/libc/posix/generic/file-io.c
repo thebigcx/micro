@@ -86,6 +86,18 @@ off_t lseek(int fd, off_t off, int whence)
     return npos;
 }
 
+int ioctl(int fd, unsigned long request, void* argp)
+{
+	int ret = sys_ioctl(fd, request, argp);
+	if (ret < 0)
+	{
+		errno = ret;
+		return -1;
+	}
+
+	return ret;
+}
+
 // TODO: make this better
 struct dirent* readdir(DIR* dirp)
 {
@@ -119,6 +131,24 @@ int mkdir(const char* path, mode_t mode)
 
 	errno = e;
 	return -1;
+}
+
+int truncate(const char* path, off_t len)
+{
+	// TODO: truncate syscall
+	return 0;
+}
+
+int ftruncate(int fd, off_t len)
+{
+	// TODO: ftruncate syscall
+	return 0;
+}
+
+int isatty(int fd)
+{
+	// TODO
+	return 1;
 }
 
 /*

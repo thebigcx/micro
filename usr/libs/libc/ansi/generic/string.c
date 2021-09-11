@@ -235,3 +235,28 @@ char* strdup(const char* s)
     strcpy(news, s);
     return news;
 }
+
+char* strchr(const char* str, int c)
+{
+    while (*str != 0)
+    {
+        if (*str == c) break;
+        str++;
+    }
+    return str;
+}
+
+char* strstr(const char* str, const char* substr)
+{
+    while (*str != 0)
+    {
+        if (!strcmp(str, substr)) return str;
+        str++;
+    }
+    return NULL;
+}
+
+char* strerror(int errnum)
+{
+    return "Error\n";
+}

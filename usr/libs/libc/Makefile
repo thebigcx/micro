@@ -12,10 +12,13 @@ SOURCES := internal/generic/init.c				\
 		   ansi/generic/signal.c				\
 		   ansi/generic/errno.c					\
 		   ansi/generic/assert.c				\
+		   ansi/generic/ctype.c 				\
+		   ansi/generic/time.c	 				\
 		   posix/generic/file-io.c				\
 		   posix/generic/posix-proc.c 			\
 		   posix/generic/posix-time.c			\
 		   posix/generic/mman.c					\
+		   posix/generic/termios.c				\
 		   sysdeps/micro/generic/micro.c		\
 
 ASM :=     sysdeps/micro/generic/syscall.S

@@ -95,6 +95,7 @@ static void init_user_task(struct task* task, const char* path, const char* argv
 
     list_push_back(&task->fds, vfs_open(vfs_resolve("/dev/tty")));
     list_push_back(&task->fds, vfs_open(vfs_resolve("/dev/tty")));
+    list_push_back(&task->fds, vfs_open(vfs_resolve("/dev/tty")));
 }
 
 static void idle()

@@ -19,12 +19,12 @@
 #define IXON    0002000  /* Enable start/stop output control.  */
 #define IXANY   0004000  /* Enable any character to restart output.  */
 #define IXOFF   0010000  /* Enable start/stop input control.  */
-#define IMAXBEL 0020000  /* Ring bell when input queue is full
+#define IMAXBEL 0020000  /* Ring bell when input queue is full */
 #define IUTF8   0040000  /* Input is UTF8 (not in POSIX).  */
 
 /* c_oflag bits */
 #define OPOST   0000001  /* Post-process output.  */
-#define OLCUC   0000002  /* Map lowercase characters to uppercase on output.
+#define OLCUC   0000002  /* Map lowercase characters to uppercase on output. */
 #define ONLCR   0000004  /* Map NL to CR-NL on output.  */
 #define OCRNL   0000010  /* Map CR to NL on output.  */
 #define ONOCR   0000020  /* No CR output at column 0.  */

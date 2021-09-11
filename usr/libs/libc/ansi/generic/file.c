@@ -5,11 +5,12 @@
 #include <fcntl.h>
 #include <assert.h>
 
+// TODO: move to stdio.c
 FILE* fopen(const char* path, const char* mode)
 {
     // TODO: parse 'mode' string
     FILE* file = malloc(sizeof(FILE));
-    file->fd = open(path, 0);
+    file->fd = open(path, 0, 0);
     return file;
 }
 
@@ -50,4 +51,33 @@ long int ftell(FILE* stream)
 void setbuf(FILE* stream, char* buf)
 {
     assert(!"setbuf() not implemented!\n");
+}
+
+size_t getline(char** lineptr, size_t* n, FILE* stream)
+{
+    size_t i = 0;
+    char c;
+
+    while (fread(&c, 1, 1, stream) == 1)
+    {
+        if (c == '\n')
+        {
+            (*lineptr)[i] = 0;
+            return i;
+        }
+        (*lineptr)[i++] = c;
+    }
+
+    return i;
+}
+
+int sscanf(const char* str, const char* format, ...)
+{
+    return 0;
+}
+
+void perror(const char* s)
+{
+    // TODO: implement
+    printf("%s\n", s);
 }

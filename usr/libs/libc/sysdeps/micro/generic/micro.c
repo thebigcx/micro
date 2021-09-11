@@ -156,75 +156,13 @@ int sys_mkdir(const char* path, mode_t mode)
 	return syscall(SYS_mkdir, path, mode);
 }
 
-/*int sys_sigaction(int signum, const struct sigaction* act, struct sigaction* old)
+int sys_ioctl(int fd, unsigned long request, void* argp)
 {
-	return syscall(SYS_SIGACTION, signum, act, old);
-}
-
-
-
-int sys_readdir(int fd, struct dirent** dirents)
-{
-	return -1;
-}
-
-int sys_opendir(const char* name, int* dir)
-{
-	return sys_open(name, 0, 0, dir);
-}
-
-int sys_closedir(int dir)
-{
-	return sys_close(dir);
+	return syscall(SYS_ioctl, fd, request, argp);
 }
 
 int sys_nanosleep(const struct timespec* req, struct timespec* rem)
 {
-	return syscall(SYS_NANOSLEEP, req, rem);	
+	// TODO
+	return 0;
 }
-
-int sys_lseek(int fd, off_t off, int whence, off_t* noff)
-{
-    off_t ret = syscall(SYS_lseek, fd, off, whence);
-    
-    *noff = ret;
-    
-    if (ret < 0)
-        return ret;
-
-    return 0;
-}
-
-int sys_ioctl(int fd, unsigned long request, void* argp)
-{
-    return syscall(SYS_ioctl, fd, request, argp);
-}
-
-int sys_mmap(void* addr, size_t length, int prot, int flags, int fd, off_t offset, void** ret)
-{
-    void* mapped_addr = (void*)syscall(SYS_mmap, addr, length, prot, flags, fd, offset);
-
-    *ret = mapped_addr;
-
-    return 0;
-}
-
-int sys_munmap(void* addr, size_t length)
-{
-    return syscall(SYS_munmap, addr, length);
-}
-
-int sys_chdir(const char* path)
-{
-    return syscall(SYS_chdir, path);
-}
-
-int sys_getcwd(char* buf, size_t size, char** ret)
-{
-    char* wd = (char*)syscall(SYS_getcwd, buf, size);
-    *ret = wd;
-
-    // TODO: error check
-    return 0;
-}
-*/

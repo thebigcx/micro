@@ -20,5 +20,6 @@
 #define SYS_getcwd          15
 #define SYS_readdir         16
 #define SYS_mkdir           17
+#define SYS_ioctl           18
 
 uint64_t syscall(uint64_t sysno, ...);
