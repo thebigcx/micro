@@ -31,14 +31,26 @@ size_t strftime(char* s, size_t max,
 	return 0;
 }
 
+void localtime_r(const time_t* timer, struct tm* tm)
+{
+
+}
+
 struct tm* localtime(const time_t* timer)
 {
-	assert(!"localtime() not implemented!\n");
-	return NULL;
+	static struct tm tm;
+	localtime_r(timer, &tm);
+	return &tm;
+}
+
+void gmtime_r(const time_t* timer, struct tm* tm)
+{
+
 }
 
 struct tm* gmtime(const time_t* timer)
 {
-	assert(!"gmtime() not implemented!\n");
-	return NULL;
+	static struct tm tm;
+	gmtime_r(timer, &tm);
+	return &tm;
 }

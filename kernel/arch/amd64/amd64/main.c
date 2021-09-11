@@ -15,6 +15,7 @@
 #include <micro/debug.h>
 #include <arch/ioapic.h>
 #include <arch/timer.h>
+#include <arch/fpu.h>
 
 void main(struct bootparams params)
 {
@@ -49,6 +50,10 @@ void main(struct bootparams params)
     gdt_init_cpu(&g_cpus[0]);
     idt_init();
     idt_init_cpu(&g_cpus[0]);
+    printk("done\n");
+
+    printk("initializing fpu...");
+    fpu_init();
     printk("done\n");
     
     printk("initializing kernel heap...");
