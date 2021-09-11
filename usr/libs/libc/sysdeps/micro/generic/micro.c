@@ -2,9 +2,9 @@
 #include <micro/syscall.h>
 #include <errno.h>
 
-int sys_open(const char* pathname, int flags, int* fd)
+int sys_open(const char* pathname, int flags, mode_t mode, int* fd)
 {
-	long ret = syscall(SYS_open, pathname, flags);
+	long ret = syscall(SYS_open, pathname, flags, mode);
 	
 	*fd = ret;
 

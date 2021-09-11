@@ -21,7 +21,7 @@ int is_valid_ptr(const void* ptr)
 
 #define PTRVALID(ptr) { if (!is_valid_ptr(ptr)) return -EFAULT; }
 
-static int sys_open(const char* path, uint32_t flags)
+static int sys_open(const char* path, uint32_t flags, mode_t mode)
 {
     PTRVALID(path);
     

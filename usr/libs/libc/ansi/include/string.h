@@ -18,3 +18,6 @@ char* strtok_r(char* str, const char* delim, char** saveptr);
 char* strdup(const char* s);
 size_t strspn(const char* str, const char* delim);
 size_t strcspn(const char* str, const char* delim);
+char* strchr(const char* str, int c);
+char* strstr(const char* str, const char* substr);
+char* strerror(int errnum);

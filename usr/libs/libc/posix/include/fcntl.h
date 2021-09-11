@@ -10,4 +10,4 @@
 #define O_APPEND __LIBC_O_APPEND
 #define O_CREAT  __LIBC_O_CREAT
 
-int open(const char* pathname, int flags);
+int open(const char* pathname, int flags, mode_t mode);

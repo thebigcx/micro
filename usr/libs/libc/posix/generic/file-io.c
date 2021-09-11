@@ -5,10 +5,10 @@
 #include <stdlib.h>
 #include <libc/sysdeps-internal.h>
 
-int open(const char* filename, int flags)
+int open(const char* filename, int flags, mode_t mode)
 {
 	int fd;
-	int err = sys_open(filename, flags, &fd);
+	int err = sys_open(filename, flags, mode, &fd);
 
 	if (err)
 	{
@@ -102,7 +102,7 @@ DIR* opendir(const char* name)
 {
 	DIR* dir = malloc(sizeof(DIR));
 	dir->pos = 0;
-	dir->fd = open(name, 0);
+	dir->fd = open(name, 0, 0);
 	return dir;
 }
 

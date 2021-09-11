@@ -35,3 +35,8 @@ int fseek(FILE* stream, long int offset, int whence);
 int fflush(FILE* stream);
 long int ftell(FILE* stream);
 void setbuf(FILE* stream, char* buf);
+size_t getline(char** lineptr, size_t* n, FILE* stream);
+
+int sscanf(const char* str, const char* format, ...);
+
+void perror(const char* s);
