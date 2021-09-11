@@ -167,7 +167,7 @@ static void backspace()
     for (uint64_t j = y; j < y + 16; j++)
     for (uint64_t i = x; i < x + 16; i++)
     {
-        *((uint32_t*)fb.addr + i + (j * fb.width)) = 0;    
+        *((uint32_t*)fb.addr + i + (j * fb.width)) = 0;
     }
 }
 

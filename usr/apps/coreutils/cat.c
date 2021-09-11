@@ -12,7 +12,7 @@ int main(int argc, char** argv)
     }
 
     int fd;
-    if ((fd = open(argv[1], 0)) < 0)
+    if ((fd = open(argv[1], 0, 0)) < 0)
     {
         printf("cat: %s: no such file or directory\n", argv[1]);
         return 0;

@@ -1,7 +1,5 @@
 #pragma once
 
-#include <stdint.h>
-
 #define SYS_open        	0
 #define SYS_close       	1
 #define SYS_read        	2
@@ -22,4 +20,4 @@
 #define SYS_mkdir           17
 #define SYS_ioctl           18
 
-uint64_t syscall(uint64_t sysno, ...);
+extern unsigned long syscall(unsigned long sysno, ...);

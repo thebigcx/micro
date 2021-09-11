@@ -1,12 +1,25 @@
 #include <termios.h>
+#include <errno.h>
+#include <sys/ioctl.h>
 
 int tcsetattr(int fd, int optional_actions,
               const struct termios* termios_p)
 {
-    return 0;
+    switch (optional_actions)
+    {
+        case TCSANOW:
+            return ioctl(fd, TCSETS, termios_p);
+        case TCSADRAIN:
+            return ioctl(fd, TCSETSW, termios_p);
+        case TCSAFLUSH:
+            return ioctl(fd, TCSETSF, termios_p);
+    }
+
+    errno = EINVAL;
+    return -1;
 }
 
 int tcgetattr(int fd, struct termios* termios_p)
 {
-    return 0;
+    return ioctl(fd, TCGETS, termios_p);
 }

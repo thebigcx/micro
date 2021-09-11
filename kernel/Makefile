@@ -13,7 +13,7 @@ release: $(TARGET) dev
 debug: CFLAGS += -g -DDEBUG -fsanitize=undefined
 debug: $(TARGET) dev
 
-.PHONY: clean dev
+.PHONY: clean dev install
 
 $(TARGET): $(OBJ)
 	@echo "    LD $@"
@@ -30,6 +30,9 @@ dev:
 %.o: %.S
 	@echo "    AS $@"
 	@gcc $(CFLAGS) -c $< -o $@
+
+install:
+	cp -r include/uapi/* $(DESTDIR)/usr/include/
 
 clean:
 	@echo "    RM $(TARGET)"

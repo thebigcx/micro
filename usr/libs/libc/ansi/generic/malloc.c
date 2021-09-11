@@ -127,6 +127,12 @@ void free(void* ptr)
 
 void* realloc(void* ptr, size_t size)
 {
+    if (!size)
+    {
+        free(ptr);
+        return NULL;
+    }
+
 	void* new = malloc(size);
     if (!new)
     {
@@ -134,7 +140,10 @@ void* realloc(void* ptr, size_t size)
         return NULL;
     }
 
-    memcpy(new, ptr, size);
+    if (!ptr) return new;
+
+    size_t osize = ((struct block*)ptr - 1)->size;
+    memcpy(new, ptr, osize);
     free(ptr);
 
     return new;

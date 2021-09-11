@@ -4,11 +4,15 @@
 #include <stdarg.h>
 #include <stdint.h>
 
+// FIXME:
+#include <sys/types.h>
+
 #define BUFSIZ 4096
 
 typedef struct FILE
 {
     int fd;
+    int eof;
 
 } FILE;
 
@@ -35,7 +39,9 @@ int fseek(FILE* stream, long int offset, int whence);
 int fflush(FILE* stream);
 long int ftell(FILE* stream);
 void setbuf(FILE* stream, char* buf);
-size_t getline(char** lineptr, size_t* n, FILE* stream);
+ssize_t getline(char** lineptr, size_t* n, FILE* stream);
+char* fgets(char* str, int n, FILE* stream);
+int feof(FILE* stream);
 
 int sscanf(const char* str, const char* format, ...);
 

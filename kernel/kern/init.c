@@ -11,6 +11,9 @@
 #include <micro/sys.h>
 #include <micro/fat.h>
 #include <micro/ext2.h>
+#include <micro/errno.h>
+#include <micro/ioctls.h>
+#include <micro/termios.h>
 
 /*struct fheader
 {
@@ -119,6 +122,8 @@ static char ascii[] =
     'c', 'c', 'c', 'c', 'c', 'c', 'c'
 };
 
+// TODO: move tty stuff to a separate file
+
 // FIXME: this is terrible - but at least it works
 ssize_t tty_read(struct file* file, void* buf, off_t off, size_t size)
 {
@@ -154,6 +159,38 @@ ssize_t tty_write(struct file* file, const void* buf, off_t off, size_t size)
     }
     
     return size;
+}
+
+int tty_ioctl(struct file* file, unsigned long req, void* argp)
+{
+    switch (req)
+    {
+        case TIOCGWINSZ:
+        {
+            // TODO: this is bad and hacky
+            struct winsize* ws = argp;
+            ws->ws_row = 1024 / 16;
+            ws->ws_col = 768 / 16;
+            break;
+        }
+        case TCSETS:
+        case TCSETSW:
+        case TCSETSF:
+        {
+            struct termios* termios = argp;
+
+
+
+            break;
+        }
+
+        default:
+        {
+            return -EINVAL;
+        }
+    }
+
+    return 0;
 }
 
 void generic_init(struct genbootparams params)
@@ -228,6 +265,7 @@ void generic_init(struct genbootparams params)
     struct file* tty = kmalloc(sizeof(struct file));
     tty->ops.read = tty_read;
     tty->ops.write = tty_write;
+    tty->ops.ioctl = tty_ioctl;
     tty->flags = FL_CHARDEV;
     vfs_addnode(tty, "/dev/tty");
 

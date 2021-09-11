@@ -22,7 +22,7 @@ void exit(int status)
 
 int atexit(void (*function)(void))
 {
-    assert(!"atexit() not implemented!\n");
+    //assert(!"atexit() not implemented!\n");
     return 0;
 }
 
