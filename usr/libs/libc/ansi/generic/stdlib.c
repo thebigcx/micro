@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <assert.h>
+#include <string.h>
 #include <libc/sysdeps-internal.h>
 #include <libc/libc-internal.h>
 
@@ -34,7 +35,22 @@ int atoi(const char* str)
 
 char* getenv(const char* name)
 {
-    assert(!"getenv() not implemented\n");
+    char** env = environ;
+
+    while (*env != NULL)
+    {
+        size_t len = strlen(name);
+        char* equ = strchr(*env, '=');
+
+        if (!strncmp(*env, name, len)
+          && equ - *env == len)
+        {
+            return equ + 1;
+        }
+
+        env++;
+    }
+
     return NULL;
 }
 

@@ -4,6 +4,9 @@
 
 #define RAND_MAX 0x7FFFFFFF
 
+#define EXIT_SUCCESS  0
+#define EXIT_FAILURE -1
+
 void* malloc(size_t size);
 void free(void* ptr);
 void* realloc(void* ptr, size_t size);

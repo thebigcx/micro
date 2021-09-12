@@ -124,8 +124,20 @@ static int sys_execve(const char* path, const char* argv[], const char* envp[])
     }
     argv_copy[argc] = NULL;
 
+    char* env_copy[32];
+    size_t envc = 0;
+    while (env_copy[envc] != NULL)
+    {
+        PTRVALID(envp[envc]);
+
+        env_copy[envc] = kmalloc(strlen(envp[envc]) + 1);
+        strcpy(env_copy[envc], envp[envc]);
+        envc++;
+    }
+    env_copy[envc] = NULL;
+
     // TODO: copy envp
-    task_execve(task_curr(), canon, (const char**)argv_copy, envp);
+    task_execve(task_curr(), canon, (const char**)argv_copy, (const char**)env_copy);
     sched_yield();
     return -1;
 }

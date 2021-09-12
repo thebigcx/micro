@@ -43,8 +43,8 @@ static struct task* mktask(struct task* parent, struct vm_map* vm_map)
 
 static void setup_user_stack(struct task* task, const char* path, const char* argv[], const char* envp[])
 {
-    int argc = 0;
-    uintptr_t args[64];
+    int argc = 0, envc = 0;
+    uintptr_t args[64], envs[64];
 
     uintptr_t cr3 = rcr3();
 
@@ -58,19 +58,38 @@ static void setup_user_stack(struct task* task, const char* path, const char* ar
         argc++;
     }
 
+    while (envp[envc])
+    {
+        PUSH_STR(task->main->regs.rsp, envp[envc]);
+        envs[envc] = task->main->regs.rsp;
+        envc++;
+    }
+
     // Pointer-align the stack for char* argv[]
     task->main->regs.rsp -= (task->main->regs.rsp % 8);
 
+    // Null-terminate the argv[] array (reverse-order)
+    PUSH(task->main->regs.rsp, uintptr_t, (uintptr_t)NULL);
+
     // Push pointers in reverse order
     for (int i = argc - 1; i >= 0; i--)
-    {
         PUSH(task->main->regs.rsp, uintptr_t, args[i]);
-    }
+
+    uintptr_t argv_ptr = task->main->regs.rsp;
+
+    // Null-terminate the envp[] array (reverse-order)
+    PUSH(task->main->regs.rsp, uintptr_t, (uintptr_t)NULL);
+
+    for (int i = envc - 1; i >= 0; i--)
+        PUSH(task->main->regs.rsp, uintptr_t, envs[i]);
+
+    uintptr_t envp_ptr = task->main->regs.rsp;
 
     lcr3(cr3);
 
     task->main->regs.rdi = argc;
-    task->main->regs.rsi = task->main->regs.rsp;
+    task->main->regs.rsi = argv_ptr;
+    task->main->regs.rdx = envp_ptr;
 }
 
 static void init_user_task(struct task* task, const char* path, const char* argv[], const char* envp[])

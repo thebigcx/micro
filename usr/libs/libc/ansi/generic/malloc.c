@@ -67,10 +67,10 @@ void* _heap_expand(size_t size)
 
 void __malloc_init()
 {
-    first = (struct block*)_heap_expand(0x10000);
+    first = (struct block*)_heap_expand(0x100000);
     first->next = NULL;
     first->prev = NULL;
-    first->size = 0x10000;
+    first->size = 0x100000;
     first->used = 0;
 }
 
@@ -106,7 +106,7 @@ void* malloc(size_t n)
 
     // TODO: try to expand the heap
 
-    printf("malloc(): unable to allocate memory\n");
+    printf("malloc(): unable to allocate 0x%x bytes (out of memory)\n", n);
    	return NULL; 
 }
 

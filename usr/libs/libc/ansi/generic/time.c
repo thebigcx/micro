@@ -27,8 +27,12 @@ size_t strftime(char* s, size_t max,
                 const char* format,
 				const struct tm* tm)
 {
-	assert(!"strftime() not implemented!\n");
-	return 0;
+	// TODO: implement all of these time functions
+
+	strcpy(s, "unimpl");
+
+	//assert(!"strftime() not implemented!\n");
+	return max;
 }
 
 void localtime_r(const time_t* timer, struct tm* tm)

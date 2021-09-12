@@ -26,13 +26,40 @@ FILE* stdout = &_stdout;
 FILE* stdin = &_stdin;
 FILE* stderr = &_stderr;
 
+static uint32_t fopen_flags(const char* str)
+{
+    uint32_t flags = 0;
+
+    while (*str != 0)
+    {
+        switch (*str)
+        {
+            case 'r':
+                flags |= (*str++ == '+' ? O_RDWR : O_RDONLY);
+                break;
+            case 'w':
+                flags |= O_TRUNC | O_CREAT;
+                flags |= (*str++ == '+' ? O_RDWR : O_WRONLY);
+                break;
+            case 'a':
+                flags |= O_APPEND | O_CREAT;
+                flags |= (*str++ == '+' ? O_RDWR : O_WRONLY);
+                break;
+        }
+        
+        str++;
+    }
+
+    return flags;
+}
+
 // TODO: move to stdio.c
 FILE* fopen(const char* path, const char* mode)
 {
-    // TODO: parse 'mode' string
+    uint32_t flags = fopen_flags(mode);
 
     int fd;
-    if (!(open(path, 0, 0))) return NULL;
+    if ((fd = open(path, flags, 0)) == -1) return NULL;
     
     FILE* file = malloc(sizeof(FILE));
     file->fd   = fd;
@@ -43,8 +70,10 @@ FILE* fopen(const char* path, const char* mode)
 
 FILE* freopen(const char* path, const char* mode, FILE* stream)
 {
+    uint32_t flags = fopen_flags(mode);
+
     int fd;
-    if (!(open(path, 0, 0))) return NULL;
+    if ((fd = open(path, flags, 0)) == -1) return NULL;
 
     close(stream->fd);
 

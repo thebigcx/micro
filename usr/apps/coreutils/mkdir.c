@@ -11,6 +11,7 @@ int main(int argc, char** argv)
         return 0;
     }
 
+    printf("argv[1] == %s\n", argv[1]);
     if (!mkdir(argv[1], 0))
     {
         if (errno == EEXIST)
