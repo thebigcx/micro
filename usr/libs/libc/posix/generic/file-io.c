@@ -151,17 +151,28 @@ int isatty(int fd)
 	return 1;
 }
 
-/*
-int ioctl(int fd, unsigned long request, void* argp)
+int dup(int oldfd)
 {
-    int ret = sys_ioctl(fd, request, argp);
+	int e = sys_dup(oldfd);
+	
+	if (e)
+	{
+		errno = e;
+		return -1;
+	}
 
-    if (ret < 0)
-    {
-        errno = ret;
-        return -1;
-    }
-    
-    return ret; // Some ioctl's return non-negative outputs
+	return 0;
 }
-*/
+
+int dup2(int oldfd, int newfd)
+{
+	int e = sys_dup2(oldfd, newfd);
+	
+	if (e)
+	{
+		errno = e;
+		return -1;
+	}
+
+	return 0;
+}

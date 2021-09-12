@@ -20,5 +20,7 @@
 #define SYS_mkdir           17
 #define SYS_ioctl           18
 #define SYS_time            19
+#define SYS_dup             20
+#define SYS_dup2            21
 
 extern unsigned long syscall(unsigned long sysno, ...);

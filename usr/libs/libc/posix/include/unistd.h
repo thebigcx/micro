@@ -33,3 +33,6 @@ int access(const char* pathname, int mode);
 int truncate(const char* path, off_t len);
 int ftruncate(int fd, off_t len);
 int isatty(int fd);
+
+int dup(int oldfd);
+int dup2(int oldfd, int newfd);

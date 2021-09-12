@@ -171,3 +171,13 @@ int sys_time(time_t* timer)
 {
 	return syscall(SYS_time, timer);
 }
+
+int sys_dup(int oldfd)
+{
+	return syscall(SYS_dup);
+}
+
+int sys_dup2(int oldfd, int newfd)
+{
+	return syscall(SYS_dup2);
+}

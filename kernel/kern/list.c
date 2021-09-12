@@ -92,6 +92,12 @@ void* list_get(struct list* self, size_t i)
     return _list_get_impl(self, i)->data;
 }
 
+void* list_set(struct list* self, size_t i, void* data)
+{
+    _list_get_impl(self, i)->data = data;
+    return data;
+}
+
 void* list_remove(struct list* self, size_t i)
 {
     struct lnode* lnode = _list_get_impl(self, i);

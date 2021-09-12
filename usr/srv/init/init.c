@@ -7,7 +7,7 @@ int main(int argc, char** argv)
     if (fork() == 0)
     {
         // Run the shell
-        const char* argv[] = { "/usr/bin/sh", NULL };
+        const char* argv[] = { "/usr/bin/term", NULL };
         const char* envp[] = { NULL };
         execve(argv[0], argv, envp);
     }

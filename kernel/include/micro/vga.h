@@ -25,3 +25,4 @@ enum VGA_COLS
 void vga_set_addr(uintptr_t addr);
 void vga_putc(char c);
 void vga_set_color(int fg, int bg);
+void vga_init();

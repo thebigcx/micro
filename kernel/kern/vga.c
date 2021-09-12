@@ -1,4 +1,6 @@
 #include <micro/vga.h>
+#include <micro/vfs.h>
+#include <micro/stdlib.h>
 
 #define COLS 80
 #define ROWS 25
@@ -98,4 +100,33 @@ void vga_putc(char c)
 void vga_set_color(int fg, int bg)
 {
     col = (bg << 4) | fg;
+}
+
+ssize_t vga_read(struct file* file, void* ptr, off_t off, size_t size)
+{
+    if (off + size >= ROWS * COLS)
+        size -= ((off + size) - ROWS * COLS);
+
+    memcpy(ptr, buf + off, size);
+
+    return size;
+}
+
+ssize_t vga_write(struct file* file, const void* ptr, off_t off, size_t size)
+{
+    if (off + size >= ROWS * COLS)
+        size -= ((off + size) - ROWS * COLS);
+
+    memcpy(buf + off, ptr, size * sizeof(struct vga_char));
+
+    return size;
+}
+
+void vga_init()
+{
+    struct file* vga = kmalloc(sizeof(struct file));
+    vga->ops.read = vga_read;
+    vga->ops.write = vga_write;
+    vga->flags = FL_CHARDEV;
+    vfs_addnode(vga, "/dev/vga0");
 }

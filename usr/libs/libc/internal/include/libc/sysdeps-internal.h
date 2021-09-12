@@ -31,3 +31,5 @@ int sys_wait(pid_t pid, int* wstatus, int options, pid_t* ret);
 int sys_readdir(int fd, size_t idx, struct dirent* dirent);
 int sys_mkdir(const char* path, mode_t mode);
 int sys_time(time_t* timer);
+int sys_dup(int oldfd);
+int sys_dup2(int oldfd, int newfd);

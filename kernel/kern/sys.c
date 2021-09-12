@@ -335,6 +335,26 @@ static int sys_time(time_t* time)
     return 0;
 }
 
+static int dup(int oldfd)
+{
+    struct task* task = task_curr();
+    if (oldfd < 0 || oldfd >= task->fds.size) return -EBADF;
+
+    list_push_back(&task->fds, list_get(&task->fds, oldfd));
+    return task->fds.size - 1;
+}
+
+static int dup2(int oldfd, int newfd)
+{
+    struct task* task = task_curr();
+    if (oldfd < 0 || oldfd >= task->fds.size) return -EBADF;
+
+    struct fd* old = list_get(&task->fds, oldfd);
+    list_set(&task->fds, newfd, old);
+
+    return newfd;
+}
+
 typedef uintptr_t (*syscall_t)();
 
 static uintptr_t syscalls[] =
@@ -359,6 +379,8 @@ static uintptr_t syscalls[] =
     (uintptr_t)sys_mkdir,
     (uintptr_t)sys_ioctl,
     (uintptr_t)sys_time
+    (uintptr_t)sys_dup,
+    (uintptr_t)sys_dup2
 };
 
 void syscall_handler(struct regs* r)

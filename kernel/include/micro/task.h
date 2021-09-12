@@ -9,6 +9,7 @@ struct task
     unsigned int id;
 
     struct list threads;  // struct thread*[]
+    // TODO: use a fixed-length array for file descriptors
     struct list fds;      // struct fd*[]
     struct list children; // struct task*[]
     struct task* parent;
