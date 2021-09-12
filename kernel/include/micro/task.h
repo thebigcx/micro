@@ -24,6 +24,7 @@ struct task
     uint32_t sigmask;
 
     int dead;
+    int status;
 
     volatile int waiting;
 };

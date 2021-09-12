@@ -28,7 +28,7 @@ static struct st2_header_term termtag =
     .flags = 0
 };
 
-static struct st2_header_fb fbtag =
+/*static struct st2_header_fb fbtag =
 {
     .tag =
     {
@@ -38,7 +38,7 @@ static struct st2_header_fb fbtag =
     .width  = 0,
     .height = 0,
     .bpp    = 0
-};
+};*/
 
 __attribute__((section(".stivale2hdr"), used))
 static struct st2header header =
@@ -46,7 +46,8 @@ static struct st2header header =
     .entry = 0,
     .stack = (uintptr_t)stack + sizeof(stack),
     .flags = 0,
-    .tags = (uintptr_t)&fbtag
+    //.tags = (uintptr_t)&fbtag
+    .tags = (uintptr_t)&termtag
 };
 
 term_write_t term_write;
@@ -67,13 +68,14 @@ term_write_t find_term(struct st2_tag* tag)
 
 void kmain_st2(struct st2struct* st2)
 {
-    //while (1);
+    vga_set_addr(0xb8000);
+
     struct bootparams params;
  
     mmu_phys_init();
 
     term_write = find_term((struct st2_tag*)st2->tags);
-    use_boot_term = 1;
+    use_boot_term = 0;
     term_write("found terminal tag\n", 19);
 
     struct st2_tag* tag = (struct st2_tag*)st2->tags;

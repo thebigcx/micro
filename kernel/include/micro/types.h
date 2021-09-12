@@ -32,6 +32,7 @@ typedef unsigned int mode_t;
 #define INT16_MIN -INT16_MAX - 1
 #define INT32_MIN -INT32_MAX - 1
 #define INT64_MIN -INT64_MAX - 1
+#define INT_MIN   -INT32_MAX - 1
 
 #define UINT8_MAX  0xFF
 #define UINT16_MAX 0xFFFF

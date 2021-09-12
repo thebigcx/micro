@@ -60,7 +60,8 @@ ssize_t tty_write(struct file* file, const void* buf, off_t off, size_t size)
     const char* cbuf = buf;
     while (size && size--)
     {
-        fb_putch(*cbuf++, 0xffffffff, 0x0);
+        vga_putc(*cbuf++);
+        //fb_putch(*cbuf++, 0xffffffff, 0x0);
     }
     
     return size;

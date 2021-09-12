@@ -6,6 +6,7 @@
 #include <arch/pio.h>
 #include <micro/fb.h>
 #include <arch/boot.h>
+#include <micro/vga.h>
 
 //#if DEBUG
 
@@ -32,7 +33,8 @@ static void serial_putch(char c)
         ready = 1;
     }
 
-    fb_putch(c, 0xffffffff, 0x0);
+    //fb_putch(c, 0xffffffff, 0x0);
+    vga_putc(c);
 
     // Wait for trasmit to be empty
     while ((inb(PORT + 5) & 0x20) == 0);

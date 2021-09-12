@@ -27,6 +27,7 @@ static struct task* mktask(struct task* parent, struct vm_map* vm_map)
     task->sigqueue = list_create();
     task->waiting  = 0;
     task->dead     = 0;
+    task->status   = 0;
     
     strcpy(task->workd, "/");
     
@@ -223,6 +224,7 @@ void task_exit(int status)
 
     if (task->parent) task_send(task->parent, SIGCHLD);
     task->dead = 1;
+    task->status = status;
 
     switch_next();
 }

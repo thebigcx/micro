@@ -113,8 +113,8 @@ static void invalid_opcode(struct regs* regs)
 {
     if (regs->cs & 3)
     {
-        dump(regs);
-        backtrace(regs->rip, regs->rbp, 32);
+        //dump(regs);
+        //backtrace(regs->rip, regs->rbp, 32);
         task_send(task_curr(), SIGILL);
         sched_yield();
     }
@@ -136,8 +136,8 @@ static void gp(struct regs* regs, uint32_t e)
 {
     if (regs->cs & 3)
     {
-        dump(regs);
-        backtrace(regs->rip, regs->rbp, 32);
+        //dump(regs);
+        //backtrace(regs->rip, regs->rbp, 32);
         task_send(task_curr(), SIGSEGV);
         sched_yield();
     }
@@ -152,8 +152,8 @@ static void pf(struct regs* regs, uint32_t e)
 {
     if (regs->cs & 3)
     {
-        dump(regs);
-        backtrace(regs->rip, regs->rbp, 32);
+        //dump(regs);
+        //backtrace(regs->rip, regs->rbp, 32);
         task_send(task_curr(), SIGSEGV);
         sched_yield();
     }

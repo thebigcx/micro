@@ -65,35 +65,35 @@ struct thread* thread_curr()
 // Signal Defaults 
 static int defaults[] =
 {
-    [SIGABRT  ] = SIGDEF_TERM,
-    [SIGALRM  ] = SIGDEF_TERM, 
-    [SIGBUS   ] = SIGDEF_TERM,
+    [SIGABRT  ] = SIGDEF_CORE,
+    [SIGALRM  ] = SIGDEF_TERM,
+    [SIGBUS   ] = SIGDEF_CORE,
     [SIGCHLD  ] = SIGDEF_IGN,
-    [SIGCONT  ] = SIGDEF_TERM,
-    [SIGFPE   ] = SIGDEF_TERM,
+    [SIGCONT  ] = SIGDEF_CONT,
+    [SIGFPE   ] = SIGDEF_CORE,
     [SIGHUP   ] = SIGDEF_TERM,
-    [SIGILL   ] = SIGDEF_TERM,
-    [SIGINFO  ] = SIGDEF_TERM,
+    [SIGILL   ] = SIGDEF_CORE,
     [SIGINT   ] = SIGDEF_TERM,
     [SIGKILL  ] = SIGDEF_TERM,
     [SIGPIPE  ] = SIGDEF_TERM,
     [SIGPOLL  ] = SIGDEF_TERM,
     [SIGPROF  ] = SIGDEF_TERM,
-    [SIGQUIT  ] = SIGDEF_TERM,
-    [SIGSEGV  ] = SIGDEF_TERM,
-    [SIGSTOP  ] = SIGDEF_TERM,
-    [SIGTSTP  ] = SIGDEF_TERM,
-    [SIGSYS   ] = SIGDEF_TERM,
+    [SIGQUIT  ] = SIGDEF_CORE,
+    [SIGSEGV  ] = SIGDEF_CORE,
+    [SIGSTOP  ] = SIGDEF_STOP,
+    [SIGTSTP  ] = SIGDEF_STOP,
+    [SIGSYS   ] = SIGDEF_CORE,
     [SIGTERM  ] = SIGDEF_TERM,
-    [SIGTRAP  ] = SIGDEF_TERM,
-    [SIGTTIN  ] = SIGDEF_TERM,
-    [SIGTTOU  ] = SIGDEF_TERM,
-    [SIGURG   ] = SIGDEF_TERM,
+    [SIGTRAP  ] = SIGDEF_CORE,
+    [SIGTTIN  ] = SIGDEF_STOP,
+    [SIGTTOU  ] = SIGDEF_STOP,
+    [SIGURG   ] = SIGDEF_IGN,
     [SIGUSR1  ] = SIGDEF_TERM,
     [SIGUSR2  ] = SIGDEF_TERM,
     [SIGVTALRM] = SIGDEF_TERM,
-    [SIGXCPU  ] = SIGDEF_TERM,
-    [SIGXFSZ  ] = SIGDEF_TERM
+    [SIGXCPU  ] = SIGDEF_CORE,
+    [SIGXFSZ  ] = SIGDEF_CORE,
+    [SIGWINCH ] = SIGDEF_IGN
 };
 
 void thread_handle_signals(struct thread* thread)
@@ -109,11 +109,11 @@ void thread_handle_signals(struct thread* thread)
         switch (defaults[sig])
         {
             case SIGDEF_TERM:
-                printk("Terminating from signal %d\n", sig);
-                task_exit(sig + 128);
+                task_exit(sig);
                 break;
 
             case SIGDEF_CORE:
+                task_exit(sig);
                 break;
 
             case SIGDEF_STOP:
