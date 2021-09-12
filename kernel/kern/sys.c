@@ -23,6 +23,13 @@ int is_valid_ptr(const void* ptr)
 
 #define PTRVALID(ptr) { if (!is_valid_ptr(ptr)) return -EFAULT; }
 
+static int is_valid_fd(struct task* task, int fd)
+{
+    return task->fds[fd];
+}
+
+#define FDVALID(fd) { if (!is_valid_fd(task_curr(), fd)) return -EBADF; }
+
 static int sys_open(const char* path, uint32_t flags, mode_t mode)
 {
     PTRVALID(path);
@@ -44,44 +51,55 @@ static int sys_open(const char* path, uint32_t flags, mode_t mode)
 
     kfree(canon);
 
-    list_push_back(&task->fds, vfs_open(file));
-    return task->fds.size - 1;
+    for (unsigned int i = 0; i < FD_MAX; i++)
+    {
+        if (!task->fds[i])
+        {
+            task->fds[i] = vfs_open(file);
+            return i;
+        }
+    }
+
+    return -EMFILE;
 }
 
-static int sys_close(int fdno)
+static int sys_close(int fd)
 {
-    struct task* task = task_curr();
-    if (fdno < 0 || (size_t)fdno >= task->fds.size) return -EBADF;
+    FDVALID(fd);
 
-    // TODO: close without changing other indices
-    //vfs_close(list_remove(&task->fds, fdno));
+    struct task* task = task_curr();
+
+    vfs_close(task->fds[fd]);
+    task->fds[fd] = NULL;
 
     return 0;
 }
 
 static ssize_t sys_read(int fdno, void* buf, size_t size)
 {
+    FDVALID(fdno);
     PTRVALID(buf);
 
     struct task* task = task_curr();
-    if (fdno < 0 || (size_t)fdno >= task->fds.size) return -EBADF;
-
-    struct fd* fd = list_get(&task->fds, fdno);
+    
+    struct fd* fd = task->fds[fdno];
     ssize_t ret = vfs_read(fd->filp, buf, fd->off, size);
     fd->off += size;
+
     return ret;
 }
 
 static ssize_t sys_write(int fdno, const void* buf, size_t size)
 {
     PTRVALID(buf);
+    FDVALID(fdno);
 
     struct task* task = task_curr();
-    if (fdno < 0 || (size_t)fdno >= task->fds.size) return -EBADF;
-
-    struct fd* fd = list_get(&task->fds, fdno);
+    
+    struct fd* fd = task->fds[fdno];
     ssize_t ret = vfs_write(fd->filp, buf, fd->off, size);
     fd->off += size;
+
     return ret;
 }
 
@@ -180,10 +198,9 @@ static int sys_access(const char* pathname, int mode)
 
 static off_t sys_lseek(int fdno, off_t offset, int whence)
 {
-    struct task* task = task_curr();
-    if (fdno < 0 || (size_t)fdno >= task->fds.size) return -EBADF;
+    FDVALID(fdno);
 
-    struct fd* fd = list_get(&task->fds, fdno);
+    struct fd* fd = task_curr()->fds[fdno];
 
     switch (whence)
     {
@@ -273,7 +290,8 @@ static int sys_chdir(const char* path)
 
 static char* sys_getcwd(char* buf, size_t size)
 {
-    if (!is_valid_ptr(buf)) return (char*)-EFAULT;
+    PTRVALID(buf);
+    
     if (size == 0) return (char*)-EINVAL;
 
     struct task* task = task_curr();
@@ -287,11 +305,9 @@ static char* sys_getcwd(char* buf, size_t size)
 static int sys_readdir(int fdno, size_t idx, struct dirent* dirent)
 {
     PTRVALID(dirent);
+    FDVALID(fdno);
 
-    struct task* task = task_curr();
-    if (fdno < 0 || (size_t)fdno >= task->fds.size) return -EBADF;
-
-    struct fd* fd = list_get(&task->fds, fdno);
+    struct fd* fd = task_curr()->fds[fdno];
 
     if (fd->filp->flags != FL_DIR && fd->filp->flags != FL_MNTPT) return -ENOTDIR;
 
@@ -315,12 +331,10 @@ static int sys_mkdir(const char* path)
 
 static int sys_ioctl(int fdno, unsigned long req, void* argp)
 {
+    FDVALID(fdno);
     PTRVALID(argp);
-
-    struct task* task = task_curr();
-    if (fdno < 0 || (size_t)fdno >= task->fds.size) return -EBADF;
-
-    struct fd* fd = list_get(&task->fds, fdno);
+    
+    struct fd* fd = task_curr()->fds[fdno];
 
     if (fd->filp->flags == FL_FILE || fd->filp->flags == FL_DIR) return -ENOTTY;
 
@@ -335,23 +349,31 @@ static int sys_time(time_t* time)
     return 0;
 }
 
-static int dup(int oldfd)
+static int sys_dup(int oldfd)
 {
+    FDVALID(oldfd);
+    
     struct task* task = task_curr();
-    if (oldfd < 0 || oldfd >= task->fds.size) return -EBADF;
 
-    list_push_back(&task->fds, list_get(&task->fds, oldfd));
-    return task->fds.size - 1;
+    for (unsigned int i = 0; i < FD_MAX; i++)
+    {
+        if (!task->fds[i])
+        {
+            task->fds[i] = oldfd;
+            return i;
+        }
+    }
+
+    return -EMFILE;
 }
 
-static int dup2(int oldfd, int newfd)
+static int sys_dup2(int oldfd, int newfd)
 {
+    FDVALID(oldfd);
+
     struct task* task = task_curr();
-    if (oldfd < 0 || oldfd >= task->fds.size) return -EBADF;
 
-    struct fd* old = list_get(&task->fds, oldfd);
-    list_set(&task->fds, newfd, old);
-
+    task->fds[newfd] = task->fds[oldfd];
     return newfd;
 }
 
@@ -378,7 +400,7 @@ static uintptr_t syscalls[] =
     (uintptr_t)sys_readdir,
     (uintptr_t)sys_mkdir,
     (uintptr_t)sys_ioctl,
-    (uintptr_t)sys_time
+    (uintptr_t)sys_time,
     (uintptr_t)sys_dup,
     (uintptr_t)sys_dup2
 };

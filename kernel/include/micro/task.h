@@ -4,15 +4,18 @@
 #include <micro/list.h>
 #include <micro/signal.h>
 
+#define FD_MAX 64
+
 struct task
 {
     unsigned int id;
 
     struct list threads;  // struct thread*[]
-    // TODO: use a fixed-length array for file descriptors
-    struct list fds;      // struct fd*[]
     struct list children; // struct task*[]
     struct task* parent;
+
+    // Array of FD_MAX file descriptors
+    struct fd** fds;
 
     struct thread* main;
 

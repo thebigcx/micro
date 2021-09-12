@@ -17,7 +17,7 @@ static struct task* mktask(struct task* parent, struct vm_map* vm_map)
     struct task* task = kmalloc(sizeof(struct task));
 
     task->threads  = list_create();
-    task->fds      = list_create();
+    task->fds      = kmalloc(sizeof(struct fd*) * FD_MAX);
     task->id       = s_id++;
     task->vm_map   = vm_map;
     task->children = list_create();
@@ -32,6 +32,7 @@ static struct task* mktask(struct task* parent, struct vm_map* vm_map)
     strcpy(task->workd, "/");
     
     memset(task->signals, 0, sizeof(task->signals));
+    memset(task->fds, 0, sizeof(struct fd*) * FD_MAX);
 
     if (parent)
         list_push_back(&parent->children, task);
@@ -113,9 +114,10 @@ static void init_user_task(struct task* task, const char* path, const char* argv
 
     list_push_back(&task->threads, task->main);
 
-    list_push_back(&task->fds, vfs_open(vfs_resolve("/dev/tty")));
-    list_push_back(&task->fds, vfs_open(vfs_resolve("/dev/tty")));
-    list_push_back(&task->fds, vfs_open(vfs_resolve("/dev/tty")));
+    // TEMP: DEBUG
+    task->fds[0] = vfs_open(vfs_resolve("/dev/tty"));
+    task->fds[1] = vfs_open(vfs_resolve("/dev/tty"));
+    task->fds[2] = vfs_open(vfs_resolve("/dev/tty"));
 }
 
 static void idle()
@@ -165,10 +167,12 @@ struct task* task_clone(struct task* src, struct thread* calling)
 
     list_push_back(&task->threads, task->main);
 
-    LIST_FOREACH(&src->fds)
+    for (unsigned int i = 0; i < FD_MAX; i++)
     {
-        struct fd* fd = node->data;
-        list_push_back(&task->fds, vfs_open(fd->filp));
+        if (src->fds[i])
+        {
+            task->fds[i] = vfs_open(src->fds[i]->filp);
+        }
     }
 
     strcpy(task->workd, src->workd);
@@ -193,11 +197,14 @@ void task_execve(struct task* task, const char* path, const char* argv[], const 
     list_clear(&task->threads);
 
     // Clean fd's
-    LIST_FOREACH(&task->fds)
+    for (unsigned int i = 0; i < FD_MAX; i++)
     {
-        vfs_close((struct fd*)node->data);
+        if (task->fds[i])
+        {
+            vfs_close(task->fds[i]);
+            task->fds[i] = NULL;
+        }
     }
-    list_clear(&task->fds);
     
     init_user_task(task, path, argv, envp);
 
@@ -214,11 +221,14 @@ void task_exit(int status)
         thread->state = THREAD_DEAD;
     }
 
-    LIST_FOREACH(&task->fds)
+    for (unsigned int i = 0; i < FD_MAX; i++)
     {
-        vfs_close((struct fd*)node->data);
+        if (task->fds[i])
+        {
+            vfs_close(task->fds[i]);
+            task->fds[i] = NULL;
+        }
     }
-    list_clear(&task->fds);
 
     task->main = NULL;
 
