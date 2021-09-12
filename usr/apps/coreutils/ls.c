@@ -4,7 +4,9 @@
 
 int main(int argc, char** argv)
 {
-    DIR* dir = opendir(".");
+    char* path = argc == 1 ? "." : argv[1];
+
+    DIR* dir = opendir(path);
 
     struct dirent* dirent;
     while ((dirent = readdir(dir)))

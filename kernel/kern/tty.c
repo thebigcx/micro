@@ -80,8 +80,8 @@ int tty_ioctl(struct file* file, unsigned long req, void* argp)
         {
             // TODO: this is bad and hacky
             struct winsize* ws = argp;
-            ws->ws_row = 1024 / 16;
-            ws->ws_col = 768 / 16;
+            ws->ws_row = 25;
+            ws->ws_col = 80;
             break;
         }
         case TCSETS:
