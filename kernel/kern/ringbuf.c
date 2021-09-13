@@ -24,7 +24,7 @@ void ringbuf_read(struct ringbuf* buf, void* ptr, size_t size)
 {
     for (size_t i = 0; i < size; i++)
     {
-        memcpy(ptr++, buf->buffer + buf->read++, size);
+        *((uint8_t*)ptr++) = *((uint8_t*)(buf->buffer + buf->read++));
 
         if (buf->read == buf->size)
             buf->read = 0;
@@ -35,9 +35,9 @@ void ringbuf_write(struct ringbuf* buf, const void* ptr, size_t size)
 {
     for (size_t i = 0; i < size; i++)
     {
-        memcpy(ptr++, buf->buffer + buf->read++, size);
+        *((uint8_t*)(buf->buffer + buf->write++)) = *((uint8_t*)ptr++);
 
-        if (buf->read == buf->size)
-            buf->read = 0;
+        if (buf->write == buf->size)
+            buf->write = 0;
     }
 }

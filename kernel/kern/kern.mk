@@ -18,4 +18,5 @@ SRC += kern/init.c           \
        kern/fs/fat.c         \
        kern/fb.c             \
        kern/tty.c            \
-       kern/vga.c
+       kern/vga.c            \
+       kern/ringbuf.c

@@ -167,7 +167,7 @@ char* fgets(char* str, int n, FILE* stream)
     char* ptr = str;
 
     char c;
-    while (fread(&c, 1, 1, stream) == 1)
+    while ((c = fgetc(stream)) != EOF)
     {
         if (ptr - str >= n - 1) return str;
 
@@ -183,8 +183,8 @@ char* fgets(char* str, int n, FILE* stream)
 int fgetc(FILE* stream)
 {
     char c;
-    if (fread(&c, 1, 1, stream) == 1) return c;
-    return EOF;
+    while (fread(&c, 1, 1, stream) == 0);
+    return c;
 }
 
 // TODO: ungetc will be possible when I add buffering

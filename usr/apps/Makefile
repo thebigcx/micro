@@ -1,2 +1,2 @@
-SUBDIRS = coreutils sh term
+SUBDIRS = coreutils sh term ed
 include subdir.mk

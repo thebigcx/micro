@@ -244,7 +244,9 @@ ssize_t fat_write(struct file* file, const void* buf, off_t off, size_t size)
 {
     struct fat32_volume* vol = file->device;
     
-    fat_resize_file(file, off + size);
+    // TEMP
+    if (off + size > file->size)
+        fat_resize_file(file, off + size);
 
     unsigned int clus = file->inode;
     
@@ -263,25 +265,22 @@ ssize_t fat_write(struct file* file, const void* buf, off_t off, size_t size)
 
         if (pos >= start)
         {
-            size_t bytes = 0;
             vfs_read(vol->device, fullbuf, lba * 512, 512);
+
+            unsigned int start = 0;
+            size_t bytes = 512;
 
             if (pos == start)
             {
-                bytes = (512 - (off % 512));
-                memcpy(fullbuf + (off % 512), buf, bytes);
+                start = off % 512;
+                bytes -= off % 512;
             }
-            else if (pos == end)
+            if (pos == end)
             {
-                bytes = ((off + size) % 512);
-                memcpy(fullbuf, buf, bytes);
+                bytes -= 512 - ((off + size) % 512);
             }
-            else
-            {
-                bytes = 512;
-                memcpy(fullbuf, buf, bytes);
-            }
-
+            
+            memcpy(fullbuf, buf + start, bytes);
             vfs_write(vol->device, fullbuf, lba * 512, 512);
 
             buf = (void*)((uintptr_t)buf + bytes);

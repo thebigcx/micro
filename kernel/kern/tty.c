@@ -6,6 +6,7 @@
 #include <micro/heap.h>
 #include <micro/ps2.h>
 #include <micro/fb.h>
+#include <micro/ringbuf.h>
 
 static char ascii[] =
 {
@@ -29,10 +30,30 @@ static char ascii[] =
     'c', 'c', 'c', 'c', 'c', 'c', 'c'
 };
 
+//static char tty_line[100];
+//static size_t tty_line_idx = 0;
+
+static struct ringbuf* tty_buffer = NULL;
+
+void tty_keypress(int scancode)
+{
+    char c = ascii[scancode];
+    //tty_line[tty_line_idx++] = c;
+    vga_putc(c);
+
+    if (c == '\b')
+    {
+        if (tty_buffer->write == 0) tty_buffer->write = tty_buffer->size - 1;
+        else tty_buffer->write--;
+        return;
+    }
+    ringbuf_write(tty_buffer, &c, 1);
+}
+
 // FIXME: this is terrible - but at least it works
 ssize_t tty_read(struct file* file, void* buf, off_t off, size_t size)
 {
-    uint8_t* raw = kmalloc(size);
+    /*uint8_t* raw = kmalloc(size);
     ssize_t bytes = kb_read(file, raw, off, size);
     if (bytes <= 0) return bytes;
 
@@ -52,16 +73,23 @@ ssize_t tty_read(struct file* file, void* buf, off_t off, size_t size)
 
     kfree(raw);
 
-    return kbsize;
+    return kbsize;*/
+    ssize_t bytes = (ssize_t)tty_buffer->write - (ssize_t)tty_buffer->read;
+    //printk("%d ", bytes);
+    if (bytes <= 0) return 0;
+    if (size < bytes) bytes = size;
+
+    ringbuf_read(tty_buffer, buf, bytes);
+
+    return bytes;
 }
 
 ssize_t tty_write(struct file* file, const void* buf, off_t off, size_t size)
 {
     const char* cbuf = buf;
-    while (size && size--)
+    for (size_t i = 0; i < size; i++)
     {
-        vga_putc(*cbuf++);
-        //fb_putch(*cbuf++, 0xffffffff, 0x0);
+        vga_putc(cbuf[i]);
     }
     
     return size;
@@ -100,6 +128,8 @@ int tty_ioctl(struct file* file, unsigned long req, void* argp)
 
 void tty_init()
 {
+    tty_buffer = ringbuf_create(1024);
+
     struct file* tty = vfs_create_file();
     tty->ops.read = tty_read;
     tty->ops.write = tty_write;
