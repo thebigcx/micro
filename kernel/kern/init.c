@@ -38,7 +38,7 @@ ssize_t initrd_write(struct file* file, const void* buf, off_t off, size_t size)
 void initrd_init(uintptr_t start, uintptr_t end)
 {
     printk("mounting initial ramdisk\n");
-    struct file* file = kmalloc(sizeof(struct file));
+    struct file* file = vfs_create_file();
     struct initrd* initrd = kmalloc(sizeof(struct initrd));
     initrd->start = start;
     initrd->end = end;

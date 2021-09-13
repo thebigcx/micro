@@ -483,7 +483,7 @@ struct file* fat_find(struct file* dir, const char* name)
             {
                 if (fat_name_cmp(&buf[i], name))
                 {
-                    struct file* file = kmalloc(sizeof(struct file));
+                    struct file* file = vfs_create_file();
 
                     file->parent = dir;
                     file->device = vol;
@@ -530,7 +530,7 @@ struct file* fat_mount(const char* dev, void* data)
 
     kfree(buf);
 
-    struct file* file = kmalloc(sizeof(struct file));
+    struct file* file = vfs_create_file();
     memset(file, 0, sizeof(struct file));
 
     file->flags       = FL_MNTPT;

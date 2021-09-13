@@ -8,11 +8,10 @@
 
 struct tree root;
 
-static struct file* file_create(const char* name)
+struct file* vfs_create_file()
 {
     struct file* file = kmalloc(sizeof(struct file));
     
-    strcpy(file->name, name);
     file->device = NULL;
     file->inode = 0;
     file->flags = 0;
@@ -164,7 +163,8 @@ int vfs_addnode(struct file* file, const char* path)
             struct file* nfile;
             if (token) // Create a new directory
             {
-                nfile = file_create(old);
+                nfile = vfs_create_file();
+                strcpy(nfile->name, old);
                 nfile->flags = FL_DIR;
             }
             else
@@ -344,8 +344,10 @@ struct file* vfs_resolve(const char* path)
     return file;
 }
 
-struct fd* vfs_open(struct file* file)
+struct fd* vfs_open(struct file* file, uint32_t flags, mode_t mode)
 {
+    if (file->ops.open) return file->ops.open(file, flags, mode);
+
     struct fd* fd = kmalloc(sizeof(struct fd));
     fd->filp = file;
     fd->off = 0;
@@ -354,6 +356,14 @@ struct fd* vfs_open(struct file* file)
 
 void vfs_close(struct fd* fd)
 {
+    if (fd->filp->ops.close)
+    {
+        fd->filp->ops.close(fd);
+        return;
+    }
+
+    //kfree(fd->filp);
+    //kfree(fd);
     // TODO: free memory
 }
 

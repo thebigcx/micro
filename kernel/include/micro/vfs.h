@@ -5,6 +5,8 @@
 
 struct file;
 
+typedef struct fd*   (*open_t   )(struct file* file, uint32_t flags, mode_t mode);
+typedef void         (*close_t  )(struct fd* fd);
 typedef ssize_t      (*read_t   )(struct file* file, void* buf, off_t off, size_t size);
 typedef ssize_t      (*write_t  )(struct file* file, const void* buf, off_t off, size_t size);
 typedef struct file* (*find_t   )(struct file* dir, const char* name);
@@ -16,6 +18,8 @@ typedef int          (*ioctl_t  )(struct file* file, unsigned long req, void* ar
 
 struct file_ops
 {
+    open_t    open;
+    close_t   close;
     read_t    read;
     write_t   write;
     find_t    find;
@@ -57,6 +61,8 @@ struct file
 
 struct dirent;
 
+struct file* vfs_create_file();
+
 void vfs_init();
 
 ssize_t vfs_read(struct file* file, void* buf, off_t off, size_t size);
@@ -77,7 +83,7 @@ struct file* vfs_getmnt(const char* path, char** relat);
 
 void vfs_mount_fs(const char* dev, const char* mnt, const char* fs, void* data);
 
-struct fd* vfs_open(struct file* file);
+struct fd* vfs_open(struct file* file, uint32_t flags, mode_t mode);
 void vfs_close(struct fd* fd);
 
 char* vfs_mkcanon(const char* path, const char* work);

@@ -115,9 +115,9 @@ static void init_user_task(struct task* task, const char* path, const char* argv
     list_push_back(&task->threads, task->main);
 
     // TEMP: DEBUG
-    task->fds[0] = vfs_open(vfs_resolve("/dev/tty"));
-    task->fds[1] = vfs_open(vfs_resolve("/dev/tty"));
-    task->fds[2] = vfs_open(vfs_resolve("/dev/tty"));
+    task->fds[0] = vfs_open(vfs_resolve("/dev/tty"), 0, 0);
+    task->fds[1] = vfs_open(vfs_resolve("/dev/tty"), 0, 0);
+    task->fds[2] = vfs_open(vfs_resolve("/dev/tty"), 0, 0);
 }
 
 static void idle()
@@ -171,7 +171,7 @@ struct task* task_clone(struct task* src, struct thread* calling)
     {
         if (src->fds[i])
         {
-            task->fds[i] = vfs_open(src->fds[i]->filp);
+            task->fds[i] = vfs_open(src->fds[i]->filp, 0, 0);
         }
     }
 

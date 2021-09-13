@@ -100,7 +100,7 @@ int tty_ioctl(struct file* file, unsigned long req, void* argp)
 
 void tty_init()
 {
-    struct file* tty = kmalloc(sizeof(struct file));
+    struct file* tty = vfs_create_file();
     tty->ops.read = tty_read;
     tty->ops.write = tty_write;
     tty->ops.ioctl = tty_ioctl;

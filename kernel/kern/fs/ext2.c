@@ -78,7 +78,7 @@ static struct file* dirent2file(struct ext2_volume* vol, struct file* parent, st
     struct ext2_inode ino;
     ext2_read_inode(vol, dirent->inode, &ino);
     
-    struct file* file = kmalloc(sizeof(struct file));
+    struct file* file = vfs_create_file();
 
     file->ops.read    = ext2_read;
     file->ops.write   = ext2_write;
@@ -454,7 +454,7 @@ static struct file* ext2_mount(const char* dev, void* data)
 
     read_blocks(vol, vol->groups, SUPER_BLK + 1, vol->group_cnt * sizeof(struct ext2_bgd) / vol->blksize + 1);
 
-    struct file* file = kmalloc(sizeof(struct file));
+    struct file* file = vfs_create_file();
 
     file->device      = vol;
     file->flags       = FL_MNTPT;

@@ -30,6 +30,7 @@ static int is_valid_fd(struct task* task, int fd)
 
 #define FDVALID(fd) { if (!is_valid_fd(task_curr(), fd)) return -EBADF; }
 
+// TODO: make opening files better and more organized
 static int sys_open(const char* path, uint32_t flags, mode_t mode)
 {
     PTRVALID(path);
@@ -55,7 +56,7 @@ static int sys_open(const char* path, uint32_t flags, mode_t mode)
     {
         if (!task->fds[i])
         {
-            task->fds[i] = vfs_open(file);
+            task->fds[i] = vfs_open(file, flags, mode);
             return i;
         }
     }
