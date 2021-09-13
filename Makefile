@@ -1,3 +1,3 @@
 SUBDIRS = kernel usr
 
-include subdir.mk
+include share/subdir.mk

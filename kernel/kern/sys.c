@@ -13,7 +13,6 @@
 #include <micro/stdlib.h>
 #include <micro/heap.h>
 #include <micro/wait.h>
-#include <micro/time.h>
 
 int is_valid_ptr(const void* ptr)
 {
@@ -34,9 +33,9 @@ static int is_valid_fd(struct task* task, int fd)
 static int sys_open(const char* path, uint32_t flags, mode_t mode)
 {
     PTRVALID(path);
-    
+
     // Must specify an access mode
-    //if (!(flags & 3)) return -EINVAL;
+    if (!(flags & 3)) return -EINVAL;
 
     struct task* task = task_curr();
 

@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <fcntl.h>
 #include <libc/sysdeps-internal.h>
 
 int open(const char* filename, int flags, mode_t mode)
@@ -114,7 +115,7 @@ DIR* opendir(const char* name)
 {
 	DIR* dir = malloc(sizeof(DIR));
 	dir->pos = 0;
-	dir->fd = open(name, 0, 0);
+	dir->fd = open(name, O_RDONLY | O_DIRECTORY, 0);
 	return dir;
 }
 

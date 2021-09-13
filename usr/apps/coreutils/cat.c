@@ -11,8 +11,8 @@ int main(int argc, char** argv)
         return 0;
     }
 
-    /*int fd;
-    if ((fd = open(argv[1], 0, 0)) < 0)
+    int fd;
+    if ((fd = open(argv[1], O_RDONLY, 0)) < 0)
     {
         printf("cat: %s: no such file or directory\n", argv[1]);
         return 0;
@@ -30,8 +30,8 @@ int main(int argc, char** argv)
     for (size_t i = 0; i < len; i++)
         printf("%c", buffer[i]);
 
-    free(buffer);*/
-    FILE* f = fopen(argv[1], "r");
+    free(buffer);
+    /*FILE* f = fopen(argv[1], "r");
     if (!f)
     {
         perror("cat: ");
@@ -51,7 +51,7 @@ int main(int argc, char** argv)
         printf("%c", buffer[i]);
 
     free(buffer);
-    fclose(f);
+    fclose(f);*/
 
     return 0;
 }
