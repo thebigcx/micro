@@ -2,7 +2,7 @@
 #include <micro/debug.h>
 #include <arch/panic.h>
 
-#if DEBUG
+//#ifdef DEBUG
 
 #define is_aligned(value, alignment) !(value & (alignment - 1))
 
@@ -181,4 +181,4 @@ void __stack_chk_fail()
     panic("Stack smashing detected");
 }
 
-#endif
+//#endif

@@ -51,7 +51,7 @@ void ioapic_init()
                 struct ioapic* ioapic = (struct ioapic*)ent;
                 if (!ioapic->gsib)
                 {
-                    mmio_base = mmu_map_mmio(ioapic->addr);
+                    mmio_base = mmu_map_mmio(ioapic->addr, 1);
                 }
             }
             break;

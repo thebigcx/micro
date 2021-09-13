@@ -129,7 +129,7 @@ uintptr_t mmu_kalloc(size_t n)
                     kheap_dir[pdidx] = ((uintptr_t)&kheap_tbls[pdidx] - KBASE) | PAGE_PR | PAGE_RW;
                 }
 
-                kheap_tbls[pdidx][ptidx] = PAGE_PR; // TODO: the physical address isn't actually present
+                kheap_tbls[pdidx][ptidx] = PAGE_PR;
                 ptidx++;
             }
 
@@ -183,11 +183,13 @@ void mmu_map(struct vm_map* map, uintptr_t virt, uintptr_t phys, unsigned int fl
     invlpg(virt);
 }
 
-// TODO: size parameter for MMIO larger than a page
-uintptr_t mmu_map_mmio(uintptr_t mmio)
+uintptr_t mmu_map_mmio(uintptr_t mmio, size_t cnt)
 {
-    uintptr_t v = mmu_kalloc(1);
-    mmu_kmap(v, mmio, PAGE_PR | PAGE_RW | PAGE_NOCACHE | PAGE_WTHRU);
+    uintptr_t v = mmu_kalloc(cnt);
+
+    for (uintptr_t i = 0; i < cnt; i++)
+        mmu_kmap(v + i * PAGE4K, mmio, PAGE_PR | PAGE_RW | PAGE_NOCACHE | PAGE_WTHRU);
+    
     return v + mmio % PAGE4K;
 }
 

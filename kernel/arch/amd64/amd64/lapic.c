@@ -78,7 +78,7 @@ void lapic_eoi()
 // Setup LAPIC for the BSP (map the MMIO)
 void lapic_setup()
 {
-    mmio_base = mmu_map_mmio(get_base() & PAGE_FRAME);
+    mmio_base = mmu_map_mmio(get_base() & PAGE_FRAME, 1);
     lapic_enable();
 }
 

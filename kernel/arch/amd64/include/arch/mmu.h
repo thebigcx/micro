@@ -24,7 +24,7 @@ void mmu_kmap(uintptr_t virt, uintptr_t phys, unsigned int flags);
 
 void mmu_map(struct vm_map* map, uintptr_t virt, uintptr_t phys, unsigned int flags);
 
-uintptr_t mmu_map_mmio(uintptr_t mmio);
+uintptr_t mmu_map_mmio(uintptr_t mmio, size_t cnt);
 
 void mmu_phys_init();
 uintptr_t mmu_alloc_phys_at(uintptr_t p, unsigned int cnt);

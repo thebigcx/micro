@@ -7,10 +7,10 @@ include kern/kern.mk
 OBJ = $(patsubst %.c, %.o, $(SRC)) $(patsubst %.S, %.o, $(ASM))
 TARGET = dist/vmkernel
 
-release: CFLAGS += -g -O3
+release: CFLAGS += -g -O3 -fno-omit-frame-pointer
 release: $(TARGET) dev
 
-debug: CFLAGS += -g -DDEBUG -fsanitize=undefined
+debug: CFLAGS += -g -DDEBUG -fsanitize=undefined -fsanitize=kernel-address
 debug: $(TARGET) dev
 
 .PHONY: clean dev install

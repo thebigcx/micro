@@ -3,6 +3,7 @@ SRC += kern/init.c           \
        kern/acpi.c           \
        kern/debug/ubsan.c    \
        kern/debug/serial.c   \
+       kern/debug/kasan.c    \
        kern/heap.c           \
        kern/list.c           \
        kern/sched.c          \
