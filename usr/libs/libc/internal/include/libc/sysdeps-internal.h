@@ -14,7 +14,6 @@ int sys_write(int fd, const void* buf, size_t cnt, ssize_t* bytes_written);
 int sys_exit(int status);
 int sys_kill(pid_t pid, int sig);
 int sys_sigaction(int signum, const struct sigaction* act, struct sigaction* old);
-pid_t sys_getpid();
 int sys_fork(pid_t* pid);
 int sys_execve(const char* pathname, const char* argv[], const char* envp[]);
 int sys_chdir(const char* path);
@@ -33,3 +32,9 @@ int sys_mkdir(const char* path, mode_t mode);
 int sys_time(time_t* timer);
 int sys_dup(int oldfd);
 int sys_dup2(int oldfd, int newfd);
+int sys_mount(const char* src, const char* dst,
+              const char* fstype, unsigned long flags,
+              const void* data);
+int sys_umount(const char* target);
+
+pid_t sys_getpid();

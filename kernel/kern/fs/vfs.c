@@ -303,6 +303,8 @@ char* vfs_mkcanon(const char* path, const char* work)
     return ret;
 }
 
+// TODO: vfs_resolve should return an error code
+
 // Will always return a file that can be kfree'd
 struct file* vfs_resolve(const char* path)
 {
@@ -379,7 +381,7 @@ int vfs_access(const char* path, int mode)
 static struct fs_type fs_types[64];
 static unsigned int fs_count;
 
-void vfs_mount_fs(const char* dev, const char* mnt, const char* fs, void* data)
+int vfs_mount_fs(const char* dev, const char* mnt, const char* fs, void* data)
 {
     for (unsigned int i = 0; i < fs_count; i++)
     {
@@ -391,7 +393,13 @@ void vfs_mount_fs(const char* dev, const char* mnt, const char* fs, void* data)
         }
     }
 
-    printk("could not mount filesystem %s. dev=%s mount=%s", fs, dev, mnt);
+    return -ENODEV;
+}
+
+int vfs_umount_fs(const char* mnt)
+{
+    // TODO: implement
+    return 0;
 }
 
 // mount: mount callback

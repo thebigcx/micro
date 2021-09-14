@@ -81,7 +81,8 @@ int vfs_addnode(struct file* file, const char* path);
 void* vfs_rmnode(const char* path);
 struct file* vfs_getmnt(const char* path, char** relat);
 
-void vfs_mount_fs(const char* dev, const char* mnt, const char* fs, void* data);
+int vfs_mount_fs(const char* dev, const char* mnt, const char* fs, void* data);
+int vfs_umount_fs(const char* mnt);
 
 struct fd* vfs_open(struct file* file, uint32_t flags, mode_t mode);
 void vfs_close(struct fd* fd);

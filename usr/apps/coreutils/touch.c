@@ -4,12 +4,17 @@
 
 int main(int argc, char** argv)
 {
-    assert(argc > 1);
+    if (argc != 2)
+    {
+        printf("usage: touch <file>\n");
+        return -1;
+    }
 
     int fd;
     if (!(fd = open(argv[1], O_CREAT | O_RDONLY, 0)))
     {
-        printf("touch: %s: no such file or directory\n", argv[1]);
+        perror("touch: ");
+        return -1;
     }
 
     close(fd);

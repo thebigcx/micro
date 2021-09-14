@@ -7,7 +7,7 @@ int main(int argc, char** argv)
 {
     if (argc != 2)
     {
-        printf("usage: insmod [filename]\n");
+        printf("usage: insmod <filename>\n");
         return 0;
     }
 

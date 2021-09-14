@@ -181,3 +181,15 @@ int sys_dup2(int oldfd, int newfd)
 {
 	return syscall(SYS_dup2);
 }
+
+int sys_mount(const char* src, const char* dst,
+              const char* fstype, unsigned long flags,
+              const void* data)
+{
+	return syscall(SYS_mount, src, dst, fstype, flags, data);
+}
+
+int sys_umount(const char* target)
+{
+	return syscall(SYS_umount, target);
+}

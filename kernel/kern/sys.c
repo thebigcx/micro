@@ -392,6 +392,24 @@ static int sys_rmmod(const char* name)
     return module_free(name);
 }
 
+static int sys_mount(const char* src, const char* dst,
+                     const char* fs, unsigned long flags,
+                     const void* data)
+{
+    PTRVALID(src);
+    PTRVALID(dst);
+    PTRVALID(fs);
+
+    // TODO: vfs_mount_fs should return an error code
+    return vfs_mount_fs(src, dst, fs, data);
+}
+
+static int sys_umount(const char* target)
+{
+    PTRVALID(target);
+    return vfs_umount_fs(target);
+}
+
 typedef uintptr_t (*syscall_t)();
 
 static uintptr_t syscalls[] =
@@ -419,7 +437,9 @@ static uintptr_t syscalls[] =
     (uintptr_t)sys_dup,
     (uintptr_t)sys_dup2,
     (uintptr_t)sys_insmod,
-    (uintptr_t)sys_rmmod
+    (uintptr_t)sys_rmmod,
+    (uintptr_t)sys_mount,
+    (uintptr_t)sys_umount
 };
 
 void syscall_handler(struct regs* r)

@@ -24,3 +24,5 @@
 #define SYS_dup2            21
 #define SYS_insmod          22
 #define SYS_rmmod           23
+#define SYS_mount           24
+#define SYS_umount          25

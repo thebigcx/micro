@@ -1,4 +1,13 @@
-SRCS := cat.c pwd.c ls.c touch.c mkdir.c insmod.c rmmod.c
+SRCS := cat.c 		\
+		pwd.c 		\
+		ls.c 		\
+		touch.c 	\
+		mkdir.c 	\
+		insmod.c 	\
+		rmmod.c 	\
+		mount.c 	\
+		umount.c
+
 OBJS := $(patsubst %.c, %.o, $(SRCS))
 TARGS := $(patsubst %.c, %, $(SRCS))
 CFLAGS := -ffreestanding -fshort-wchar -mno-red-zone -Wall -fno-stack-protector
@@ -17,13 +26,16 @@ all: $(TARGS)
 
 install:
 	@mkdir -p $(DESTDIR)/usr/bin
-	@cp cat $(DESTDIR)/usr/bin
-	@cp pwd $(DESTDIR)/usr/bin
-	@cp ls $(DESTDIR)/usr/bin
-	@cp touch $(DESTDIR)/usr/bin
-	@cp mkdir $(DESTDIR)/usr/bin
-	@cp insmod $(DESTDIR)/usr/bin
-	@cp rmmod $(DESTDIR)/usr/bin
+	$(foreach targ, $(TARGS), cp $(targ) $(DESTDIR)/usr/bin/;)
+
+#	@mkdir -p $(DESTDIR)/usr/bin
+#	@cp cat $(DESTDIR)/usr/bin
+#	@cp pwd $(DESTDIR)/usr/bin
+#	@cp ls $(DESTDIR)/usr/bin
+#	@cp touch $(DESTDIR)/usr/bin
+#	@cp mkdir $(DESTDIR)/usr/bin
+#	@cp insmod $(DESTDIR)/usr/bin
+#	@cp rmmod $(DESTDIR)/usr/bin
 
 clean:
 	@echo "    RM    $(TARGS)"
