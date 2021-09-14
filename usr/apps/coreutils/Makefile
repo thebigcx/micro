@@ -1,4 +1,4 @@
-SRCS := cat.c pwd.c ls.c touch.c mkdir.c
+SRCS := cat.c pwd.c ls.c touch.c mkdir.c insmod.c rmmod.c
 OBJS := $(patsubst %.c, %.o, $(SRCS))
 TARGS := $(patsubst %.c, %, $(SRCS))
 CFLAGS := -ffreestanding -fshort-wchar -mno-red-zone -Wall -fno-stack-protector
@@ -22,6 +22,8 @@ install:
 	@cp ls $(DESTDIR)/usr/bin
 	@cp touch $(DESTDIR)/usr/bin
 	@cp mkdir $(DESTDIR)/usr/bin
+	@cp insmod $(DESTDIR)/usr/bin
+	@cp rmmod $(DESTDIR)/usr/bin
 
 clean:
 	@echo "    RM    $(TARGS)"

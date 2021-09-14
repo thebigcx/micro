@@ -15,11 +15,19 @@ static unsigned int count;
 
 static void keyboard_handler(struct regs* r)
 {
-    queue[count++] = inb(0x60);
+    uint8_t sc = inb(0x60);
 
     // TEMP
-    if (queue[count - 1] < 88)
-        tty_keypress(queue[count - 1]);
+    if (sc < 88)
+        tty_keypress(sc);
+
+    if (count >= 128)
+    {
+        // TODO: use ringbuffer and begin writing at the start again
+        return;
+    }
+    
+    queue[count++] = sc;
 }
 
 ssize_t kb_read(struct file* file, void* buf, off_t off, size_t size)

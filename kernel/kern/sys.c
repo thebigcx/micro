@@ -13,6 +13,9 @@
 #include <micro/stdlib.h>
 #include <micro/heap.h>
 #include <micro/wait.h>
+#include <micro/module.h>
+
+// TODO: move syscalls into their own files
 
 int is_valid_ptr(const void* ptr)
 {
@@ -377,6 +380,18 @@ static int sys_dup2(int oldfd, int newfd)
     return newfd;
 }
 
+static int sys_insmod(void* data, size_t len)
+{
+    PTRVALID(data);
+    return module_load(data, len);
+}
+
+static int sys_rmmod(const char* name)
+{
+    PTRVALID(name);
+    return module_free(name);
+}
+
 typedef uintptr_t (*syscall_t)();
 
 static uintptr_t syscalls[] =
@@ -402,7 +417,9 @@ static uintptr_t syscalls[] =
     (uintptr_t)sys_ioctl,
     (uintptr_t)sys_time,
     (uintptr_t)sys_dup,
-    (uintptr_t)sys_dup2
+    (uintptr_t)sys_dup2,
+    (uintptr_t)sys_insmod,
+    (uintptr_t)sys_rmmod
 };
 
 void syscall_handler(struct regs* r)

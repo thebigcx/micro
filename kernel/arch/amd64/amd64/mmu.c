@@ -196,7 +196,7 @@ uintptr_t mmu_map_mmio(uintptr_t mmio, size_t cnt)
 uintptr_t mmu_map_module(size_t size)
 {
     // Assure page-alignment
-    if (!(size % PAGE4K)) size += PAGE4K - (size % PAGE4K);
+    if (size % PAGE4K) size += PAGE4K - (size % PAGE4K);
 
     size_t cnt = size / PAGE4K;
 
@@ -211,7 +211,7 @@ uintptr_t mmu_map_module(size_t size)
 void mmu_unmap_module(uintptr_t base, size_t size)
 {
     // Assure page-alignment
-    if (!(size % PAGE4K)) size += PAGE4K - (size % PAGE4K);
+    if (size % PAGE4K) size += PAGE4K - (size % PAGE4K);
 
     size_t cnt = size / PAGE4K;
 

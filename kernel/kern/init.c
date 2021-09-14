@@ -73,15 +73,6 @@ void generic_init(struct genbootparams params)
 
     modules_init();
 
-    struct file* test = vfs_resolve("/lib/modules/test.ko");
-
-    void* data = kmalloc(test->size);
-    vfs_read(test, data, 0, test->size);
-
-    module_load(data, test->size);
-    printk("%d\n", module_free("test"));
-    //for (;;);
-
     printk("starting scheduler\n");
     sched_init();
 }

@@ -1,5 +1,5 @@
 #include <libc/sysdeps-internal.h>
-#include <micro/syscall.h>
+#include <sys/syscall.h>
 #include <errno.h>
 
 int sys_open(const char* pathname, int flags, mode_t mode, int* fd)
