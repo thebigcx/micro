@@ -30,52 +30,36 @@ static char ascii[] =
     'c', 'c', 'c', 'c', 'c', 'c', 'c'
 };
 
-//static char tty_line[100];
-//static size_t tty_line_idx = 0;
-
 static struct ringbuf* tty_buffer = NULL;
+
+static char tty_line_buffer[128];
+static size_t tty_line_idx = 0;
 
 void tty_keypress(int scancode)
 {
     char c = ascii[scancode];
-    //tty_line[tty_line_idx++] = c;
     vga_putc(c);
 
     if (c == '\b')
     {
-        if (tty_buffer->write == 0) tty_buffer->write = tty_buffer->size - 1;
-        else tty_buffer->write--;
+        if (tty_line_idx) tty_line_idx--;
         return;
     }
-    ringbuf_write(tty_buffer, &c, 1);
+    
+    tty_line_buffer[tty_line_idx++] = c;
+
+    if (c == '\n')
+    {
+        ringbuf_write(tty_buffer, tty_line_buffer, tty_line_idx);
+        tty_line_idx = 0;
+    }
 }
 
 // FIXME: this is terrible - but at least it works
 ssize_t tty_read(struct file* file, void* buf, off_t off, size_t size)
 {
-    /*uint8_t* raw = kmalloc(size);
-    ssize_t bytes = kb_read(file, raw, off, size);
-    if (bytes <= 0) return bytes;
+    ssize_t bytes = ringbuf_size(tty_buffer);
 
-    ssize_t kbsize = 0;
-
-    char* cbuf = buf;
-
-    for (size_t i = 0; i < size && i < (size_t)bytes; i++)
-    {
-        if (raw[i] < 88)
-        {
-            cbuf[kbsize++] = ascii[*raw];
-        }
-
-        cbuf++;
-    }
-
-    kfree(raw);
-
-    return kbsize;*/
-    ssize_t bytes = (ssize_t)tty_buffer->write - (ssize_t)tty_buffer->read;
-    //printk("%d ", bytes);
     if (bytes <= 0) return 0;
     if (size < bytes) bytes = size;
 

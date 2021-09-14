@@ -8,6 +8,7 @@ struct ringbuf
     uintptr_t write;
     size_t    size;
     void*     buffer;
+    int       full;
 };
 
 struct ringbuf* ringbuf_create(size_t size);
@@ -15,3 +16,4 @@ void ringbuf_free(struct ringbuf* buf);
 
 void ringbuf_read(struct ringbuf* buf, void* ptr, size_t size);
 void ringbuf_write(struct ringbuf* buf, const void* ptr, size_t size);
+size_t ringbuf_size(struct ringbuf* buf);
