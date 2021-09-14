@@ -1,15 +1,19 @@
 OBJ = $(patsubst %.c, %.ko, $(SRC))
 
-CFLAGS = -Wall -Wextra -ffreestanding -fno-stack-protector -mno-red-zone -nostdinc -I../../include -I../include/uapi
-LDFLAGS = -T../linker.ld -static -Bsymbolic
+CFLAGS = -Wall -Wextra -ffreestanding -fno-stack-protector -mno-red-zone -nostdinc -I../../include -I../include/uapi -static -nostdlib -mcmodel=large
 
 all: $(TARG)
 
-.PHONY: clean all
+.PHONY: clean all install
 
 %.ko: %.c
 	@echo "    CC $@"
-	@gcc -c $< -o $@ $(CFLAGS)
+	@x86_64-micro-gcc -c $< -o $@ $(CFLAGS)
+
+install:
+	mkdir -p $(DESTDIR)/lib
+	mkdir -p $(DESTDIR)/lib/modules
+	cp $(TARG) $(DESTDIR)/lib/modules/
 
 clean:
 	@echo "    RM $(TARG)"

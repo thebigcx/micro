@@ -193,6 +193,21 @@ uintptr_t mmu_map_mmio(uintptr_t mmio, size_t cnt)
     return v + mmio % PAGE4K;
 }
 
+uintptr_t mmu_map_module(size_t size)
+{
+    // Assure page-alignment
+    if (!(size % PAGE4K)) size += PAGE4K - (size % PAGE4K);
+
+    size_t cnt = size / PAGE4K;
+
+    uintptr_t v = mmu_kalloc(cnt);
+
+    for (uintptr_t i = 0; i < cnt; i++)
+        mmu_kmap(v + i * PAGE4K, mmu_alloc_phys(), PAGE_PR | PAGE_RW);
+    
+    return v;
+}
+
 // TODO: detect memory and resize buffer
 #define BUF_SZ 200000
 static uint8_t phys_bmp[BUF_SZ]; // 0 = free, 1 = used

@@ -33,7 +33,9 @@ dev:
 
 install:
 	cp -r include/uapi/* $(DESTDIR)/usr/include/
+	$(MAKE) -C dev install
 
 clean:
 	@echo "    RM $(TARGET)"
 	@rm -f $(OBJ) $(TARGET)
+	$(MAKE) -C dev clean

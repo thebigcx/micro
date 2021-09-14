@@ -70,6 +70,9 @@ void generic_init(struct genbootparams params)
 
     vga_init();
 
+    module_load("/lib/modules/test.ko");
+    for (;;);
+
     printk("starting scheduler\n");
     sched_init();
 }

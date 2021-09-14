@@ -1,3 +1,7 @@
+/*
+ *  ELF (Executable and Linker Format) definitions
+ */
+
 #pragma once
 
 #include <micro/types.h>
@@ -65,8 +69,8 @@ struct elf_shdr
 struct elf_sym
 {
     uint32_t name;
-    uint8_t info;
-    uint8_t other;
+    uint8_t  info;
+    uint8_t  other;
     uint16_t shndx;
     uint64_t value;
     uint64_t size;
@@ -78,3 +82,17 @@ struct elf_sym
 
 #define PT_NULL 0
 #define PT_LOAD 1
+
+struct elf_rela
+{
+    uint64_t offset;
+    uint64_t info;
+    int64_t  addend; 
+};
+
+#define R_X86_64_64	    1	/* Direct 64 bit  */
+#define R_X86_64_PC32   2	/* PC relative 32 bit signed */
+#define R_X86_64_32		10	/* Direct 32 bit zero extended */
+
+#define ELF64_R_SYM(i)  ((i) >> 32)
+#define ELF64_R_TYPE(i) ((i) & 0xffffffff)
