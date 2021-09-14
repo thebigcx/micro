@@ -1,6 +1,6 @@
 # Chistian's Operating System
 
-Includes the kernel, userspace and bootloader.
+Includes the kernel and userspace libraries/applications.
 
 # Building
 
@@ -19,12 +19,15 @@ Run ```sh build-initrd``` in /build to generate an ```initrd.img``` to pass to t
 - Amd64 architecture
 - Virtual File System
 - FAT32 filesystem driver
+- Ext2 filesystem driver
 - Multithreading with a pre-emptive scheduler
+- User mode (ring 3)
 - Syscalls
 - ELF loading
 - Module loading
+- Framebuffer TTY console and VGA test-mode console
 
 # Userland Features
-- Bare-bones libc
+- Respectable libc
 - Basic shell
 - Basic coreutils (cat, ls, pwd, etc)
