@@ -113,9 +113,12 @@ struct dirent* readdir(DIR* dirp)
 
 DIR* opendir(const char* name)
 {
+	int fd;
+	if ((fd = open(name, O_RDONLY | O_DIRECTORY, 0)) == -1) return NULL;
+
 	DIR* dir = malloc(sizeof(DIR));
 	dir->pos = 0;
-	dir->fd = open(name, O_RDONLY | O_DIRECTORY, 0);
+	dir->fd = fd;
 	return dir;
 }
 

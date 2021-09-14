@@ -7,6 +7,11 @@ int main(int argc, char** argv)
     char* path = argc == 1 ? "." : argv[1];
 
     DIR* dir = opendir(path);
+    if (!dir)
+    {
+        perror("ls: ");
+        return -1;
+    }
 
     struct dirent* dirent;
     while ((dirent = readdir(dir)))

@@ -27,7 +27,7 @@ int is_valid_ptr(const void* ptr)
 
 static int is_valid_fd(struct task* task, int fd)
 {
-    return task->fds[fd];
+    return fd >= 0 && task->fds[fd];
 }
 
 #define FDVALID(fd) { if (!is_valid_fd(task_curr(), fd)) return -EBADF; }
