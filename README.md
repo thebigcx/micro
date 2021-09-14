@@ -26,6 +26,7 @@ Run ```sh build-initrd``` in /build to generate an ```initrd.img``` to pass to t
 - ELF loading
 - Module loading
 - Framebuffer TTY console and VGA test-mode console
+- PS/2 keyboard driver
 
 # Userland Features
 - Respectable libc
