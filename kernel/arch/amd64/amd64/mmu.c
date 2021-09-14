@@ -208,6 +208,29 @@ uintptr_t mmu_map_module(size_t size)
     return v;
 }
 
+void mmu_unmap_module(uintptr_t base, size_t size)
+{
+    // Assure page-alignment
+    if (!(size % PAGE4K)) size += PAGE4K - (size % PAGE4K);
+
+    size_t cnt = size / PAGE4K;
+
+    for (uintptr_t i = 0; i < cnt; i++)
+        mmu_free_phys(mmu_kvirt2phys(base + i * PAGE4K), 1);
+
+    mmu_kfree(base, cnt);
+}
+
+uintptr_t mmu_kvirt2phys(uintptr_t virt)
+{
+    if (PML4_IDX(virt) != 511 || PDPT_IDX(virt) != 511) return 0;
+
+    unsigned int pdi = PD_IDX(virt);
+    unsigned int pti = PT_IDX(virt);
+
+    return kheap_tbls[pdi][pti] & PAGE_FRAME;
+}
+
 // TODO: detect memory and resize buffer
 #define BUF_SZ 200000
 static uint8_t phys_bmp[BUF_SZ]; // 0 = free, 1 = used

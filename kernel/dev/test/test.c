@@ -8,11 +8,12 @@ void mod_init()
 
 void mod_fini()
 {
-
+    printk("Finalizing\n");
 }
 
 struct modmeta meta =
 {
     .init = mod_init,
-    .fini = mod_fini
+    .fini = mod_fini,
+    .name = "test"
 };

@@ -1,27 +1,38 @@
 /*
- *  The Module Loader - takes a relocatable object
+ *  Module Loader - takes a relocatable object
  *  file (.ko) and links it to the kernel
  */
 
 #include <micro/module.h>
-#include <micro/vfs.h>
 #include <micro/elf.h>
 #include <arch/mmu.h>
+#include <micro/errno.h>
+
+#define MOD_MAX 64
+static struct module modules[MOD_MAX];
 
 static struct elf_shdr* get_section(struct elf_hdr* hdr, int idx)
 {
     return (struct elf_shdr*)((uintptr_t)hdr + hdr->sh_off + hdr->sh_ent_size * idx);
 }
 
-void module_load(const char* path)
+static int find_module(const char* name)
 {
-    struct file* file = vfs_resolve(path);
+    for (unsigned int i = 0; i < MOD_MAX; i++)
+    {
+        if (modules[i].meta && !strcmp(name, modules[i].meta->name))
+            return i;
+    }
 
-    // Load the whole module into memory
-    void* data = (void*)mmu_map_module(file->size);
-    vfs_read(file, data, 0, file->size);
+    return -1;
+}
 
-    struct elf_hdr* header = (struct elf_hdr*)data;
+int module_load(void* data, size_t len)
+{
+    uintptr_t base = mmu_map_module(len);
+    memcpy((void*)base, data, len);
+
+    struct elf_hdr* header = (struct elf_hdr*)base;
     // TODO: verify signature
 
     struct modmeta* meta = NULL;
@@ -36,18 +47,18 @@ void module_load(const char* path)
         if (shdr->type != SHT_SYMTAB) continue;
 
         struct elf_shdr* strsect = get_section(header, shdr->link);
-        struct elf_sym* symtab = (struct elf_sym*)((uintptr_t)data + shdr->offset);
+        struct elf_sym* symtab = (struct elf_sym*)(base + shdr->offset);
 
         for (unsigned int j = 0; j < shdr->size / sizeof(struct elf_sym); j++)
         {
-            char* name = (uintptr_t)data + ((char*)strsect->offset) + symtab[j].name;
+            char* name = base + ((char*)strsect->offset) + symtab[j].name;
 
             if (symtab[j].shndx == SHN_UNDEF)
                 symtab[j].value = ksym_lookup(name);
             else if (symtab[j].shndx > 0 && symtab[j].shndx < SHN_LOPROC)
             {
                 struct elf_shdr* symbol_hdr = get_section(header, symtab[j].shndx);
-                symtab[j].value = (uintptr_t)data + symtab[j].value + symbol_hdr->offset;
+                symtab[j].value = base + symtab[j].value + symbol_hdr->offset;
             }
 
             // Module metadata defining init() and fini() among other things
@@ -61,16 +72,15 @@ void module_load(const char* path)
         struct elf_shdr* shdr = get_section(header, i);
         if (shdr->type != SHT_RELA) continue;
 
-        struct elf_rela* reltab = (struct elf_rela*)((uintptr_t)data + shdr->offset);
+        struct elf_rela* reltab = (struct elf_rela*)(base + shdr->offset);
         struct elf_shdr* targsect = get_section(header, shdr->info);
 
         struct elf_shdr* symsect = get_section(header, shdr->link);
-        struct elf_sym* symtab = (struct elf_sym*)((uintptr_t)data + symsect->offset);
+        struct elf_sym* symtab = (struct elf_sym*)(base + symsect->offset);
 
         for (unsigned int j = 0; j < shdr->size / shdr->entsize; j++)
         {
-            uintptr_t targ = reltab[j].offset + ((uintptr_t)data + targsect->offset);
-            printk("relocate: %d\n", ELF64_R_TYPE(reltab[j].info));
+            uintptr_t targ = reltab[j].offset + (base + targsect->offset);
 
             switch (ELF64_R_TYPE(reltab[j].info))
             {
@@ -89,8 +99,45 @@ void module_load(const char* path)
         }
     }
 
-    printk("meta: %x\n", meta);
-    printk("init: %x\nfini: %x\n", meta->init, meta->fini);
+    if (find_module(meta->name) != -1)
+    {
+        mmu_unmap_module(base, len);
+        return -EEXIST;
+    }
 
-    meta->init();
+    for (unsigned int i = 0; i < MOD_MAX; i++)
+    {
+        if (!modules[i].addr)
+        {
+            modules[i] = (struct module)
+            {
+                .addr = base,
+                .size = len,
+                .meta = meta
+            };
+
+            meta->init();
+            return 0;
+        }
+    }
+
+    return -ENOMEM;
+}
+
+int module_free(const char* name)
+{
+    int i = find_module(name);
+    if (i == -1) return -ENOENT;
+
+    modules[i].meta->fini();
+
+    mmu_unmap_module(modules[i].addr, modules[i].size);
+    memset(&modules[i], 0, sizeof(struct module));
+    
+    return 0;
+}
+
+void modules_init()
+{
+    memset(modules, 0, sizeof(modules));
 }

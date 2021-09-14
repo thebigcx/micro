@@ -74,9 +74,8 @@ int main(int argc, char** argv)
             int status;
             waitpid(child, &status, 0);
 
-            if (WIFEXITED(status))
-                printf("Process exited normally (status %d)\n", WEXITSTATUS(status));
-            else// if (WIFSIGNALED(status))
+            //if (WIFSIGNALED(status))
+            if (!WIFEXITED(status))
             {
                 switch (WTERMSIG(status))
                 {

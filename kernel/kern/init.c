@@ -15,6 +15,7 @@
 #include <micro/ioctls.h>
 #include <micro/termios.h>
 #include <micro/tty.h>
+#include <micro/module.h>
 
 struct initrd
 {
@@ -70,8 +71,16 @@ void generic_init(struct genbootparams params)
 
     vga_init();
 
-    module_load("/lib/modules/test.ko");
-    for (;;);
+    modules_init();
+
+    struct file* test = vfs_resolve("/lib/modules/test.ko");
+
+    void* data = kmalloc(test->size);
+    vfs_read(test, data, 0, test->size);
+
+    module_load(data, test->size);
+    printk("%d\n", module_free("test"));
+    //for (;;);
 
     printk("starting scheduler\n");
     sched_init();
