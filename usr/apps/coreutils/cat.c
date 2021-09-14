@@ -14,7 +14,7 @@ int main(int argc, char** argv)
     int fd;
     if ((fd = open(argv[1], O_RDONLY, 0)) < 0)
     {
-        printf("cat: %s: no such file or directory\n", argv[1]);
+        perror("cat: ");
         return 0;
     }
 

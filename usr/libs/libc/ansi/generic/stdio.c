@@ -222,8 +222,10 @@ int sscanf(const char* str, const char* format, ...)
 
 void perror(const char* s)
 {
-    // TODO: implement
-    printf("%s\n", s);
+    char buf[32];
+    strerror_r(errno, buf, 32);
+
+    printf("%s%s\n", s, buf);
 }
 
 void puts(const char* str)

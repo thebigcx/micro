@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <sys/syscall.h>
+#include <string.h>
 
 int main(int argc, char** argv)
 {
@@ -13,9 +14,9 @@ int main(int argc, char** argv)
 
     if (err != 0)
     {
-        //char buffer[128];
-        //strerror_r(err, buffer, 128);
-        //printf("rmmod: %s", buffer);
+        char buffer[128];
+        strerror_r(err, buffer, 128);
+        printf("rmmod: %s", buffer);
     }
 
     return 0;

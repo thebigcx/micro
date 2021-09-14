@@ -19,3 +19,7 @@ extern int errno;
 #define EISDIR          14
 #define EINVAL          15
 #define EEXIST          16
+#define EMFILE          17
+#define ENODEV          18
+
+#define EMAXERRNO       19

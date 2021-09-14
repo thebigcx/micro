@@ -22,5 +22,6 @@ size_t strcspn(const char* str, const char* delim);
 char*  strchr(const char* str, int c);
 char*  strstr(const char* str, const char* substr);
 char*  strerror(int errnum);
+char*  strerror_r(int errnum, char* buf, size_t len);
 char*  strrchr(const char* str, int c);
 char*  strcat(char* dst, const char* src);

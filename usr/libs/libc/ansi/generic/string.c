@@ -269,11 +269,6 @@ char* strstr(const char* str, const char* substr)
     return NULL;
 }
 
-char* strerror(int errnum)
-{
-    return "Error\n";
-}
-
 char* strrchr(const char* str, int c)
 {
     if (!strlen(str)) return NULL;
