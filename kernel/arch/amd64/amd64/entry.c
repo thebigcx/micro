@@ -40,7 +40,8 @@ static struct st2_header_term termtag =
     .bpp    = 0
 };*/
 
-__attribute__((section(".stivale2hdr"), used))
+//__attribute__((section(".stivale2hdr"), used))
+SECTION(".stivale2hdr") USED
 static struct st2header header =
 {
     .entry = 0,

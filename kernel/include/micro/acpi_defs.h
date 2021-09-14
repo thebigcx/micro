@@ -1,8 +1,9 @@
 #pragma once
 
 #include <micro/types.h>
+#include <micro/platform.h>
 
-struct __attribute__((packed)) rsdp
+struct PACKED rsdp
 {
     uint8_t sig[8];
     uint8_t checksum;
@@ -11,7 +12,7 @@ struct __attribute__((packed)) rsdp
     uint32_t rsdt_addr;
 };
 
-struct __attribute__((packed)) xsdp
+struct PACKED xsdp
 {
     struct rsdp base;
     uint32_t len;
@@ -20,7 +21,7 @@ struct __attribute__((packed)) xsdp
     uint8_t res[3];
 };
 
-struct __attribute__((packed)) sdthdr
+struct PACKED sdthdr
 {
     uint8_t sig[4];
     uint32_t len;
@@ -33,19 +34,19 @@ struct __attribute__((packed)) sdthdr
     uint32_t creator_rev;
 };
 
-struct __attribute__((packed)) rsdt
+struct PACKED rsdt
 {
     struct sdthdr hdr;
     uint32_t sdts[];
 };
 
-struct __attribute__((packed)) xsdt 
+struct PACKED xsdt 
 {
     struct sdthdr hdr;
     uint64_t sdts[];
 };
 
-struct __attribute__((packed)) madt
+struct PACKED madt
 {
     struct sdthdr hdr;
     uint32_t lapic_addr;
@@ -60,13 +61,13 @@ struct __attribute__((packed)) madt
 #define MADT_LAPIC_ADDR     5
 #define MADT_LAPIC_X2       9
 
-struct __attribute__((packed)) madtent
+struct PACKED madtent
 {
     uint8_t type;
     uint8_t len;
 };
 
-struct __attribute__((packed)) apiciso
+struct PACKED apiciso
 {
     struct madtent ent;
     uint8_t bus;
@@ -75,7 +76,7 @@ struct __attribute__((packed)) apiciso
     uint16_t flags;
 };
 
-struct __attribute__((packed)) ioapic
+struct PACKED ioapic
 {
     struct madtent ent;
     uint8_t id;
@@ -84,7 +85,7 @@ struct __attribute__((packed)) ioapic
     uint32_t gsib;
 };
 
-struct __attribute__((packed)) lapic
+struct PACKED lapic
 {
     struct madtent ent;
     uint8_t id;

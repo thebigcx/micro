@@ -10,7 +10,7 @@ static struct vga_char* buf;
 static unsigned int cx = 0, cy = 0;
 static unsigned int col = (VGA_BLACK << 4) | VGA_WHITE;
 
-struct __attribute__((packed)) vga_char
+struct PACKED vga_char
 {
     uint8_t c;
     uint8_t col;

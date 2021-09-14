@@ -1,6 +1,7 @@
 #pragma once
 
 #include <micro/types.h>
+#include <micro/platform.h>
 
 #define GDT_CODE0   0x08
 #define GDT_DATA0   0x10
@@ -10,7 +11,7 @@
 #define GDT_TSS2    0x30
 
 // Interrupt Descriptor Table entry
-struct __attribute__((packed)) idtent
+struct PACKED idtent
 {
     uint16_t offlo;
     uint16_t select;
@@ -31,16 +32,16 @@ struct __attribute__((packed)) idtent
 };
 
 // Descriptor record
-struct __attribute__((packed)) descptr
+struct PACKED descptr
 {
     uint16_t lim;
     uint64_t base;
 };
 
 // Global Descriptor Table entry
-union __attribute__((packed)) gdtent
+union PACKED gdtent
 {
-    struct __attribute__((packed))
+    struct PACKED
     {
         uint16_t limlo;
         uint16_t baselo;
@@ -56,7 +57,7 @@ union __attribute__((packed)) gdtent
         uint32_t gran       : 1;
         uint8_t  basehi;
     };
-    struct __attribute__((packed))
+    struct PACKED
     {
         uint32_t low;
         uint32_t high;
@@ -64,7 +65,7 @@ union __attribute__((packed)) gdtent
 };
 
 // Task State Segment
-struct __attribute__((packed)) tss
+struct PACKED tss
 {
     uint32_t res1;
     uint64_t rsp[3];

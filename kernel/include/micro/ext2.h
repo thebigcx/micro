@@ -2,8 +2,9 @@
 
 #include <micro/types.h>
 #include <micro/vfs.h>
+#include <micro/platform.h>
 
-struct __attribute__((packed)) ext2_sb
+struct PACKED ext2_sb
 {
     uint32_t inode_cnt;         // Total number of inodes in filesystem
     uint32_t blk_cnt;           // Total number of blocks in filesystem
@@ -35,7 +36,7 @@ struct __attribute__((packed)) ext2_sb
     uint16_t res_gid;           // Group ID that can use reserved blocks
 };
 
-struct __attribute__((packed)) ext2_sbext
+struct PACKED ext2_sbext
 {
     uint32_t first_inode;           // First non-reserved inode
     uint16_t inode_sz;              // Size of inode structure in bytes
@@ -57,7 +58,7 @@ struct __attribute__((packed)) ext2_sbext
     uint32_t orpan_inode_head;      // Head of orphan inode list
 };
 
-struct __attribute__((packed)) ext2_bgd
+struct PACKED ext2_bgd
 {
     uint32_t block_bmp;     // Block address of block usage bitmap
     uint32_t inode_bmp;     // Block address of inode usage bitmap
@@ -69,7 +70,7 @@ struct __attribute__((packed)) ext2_bgd
     uint8_t res[12];
 };
 
-struct __attribute__((packed)) ext2_inode
+struct PACKED ext2_inode
 {
     uint16_t mode;          // Types and Permissions
     uint16_t userid;        // User ID
@@ -110,7 +111,7 @@ struct __attribute__((packed)) ext2_inode
 #define INODE_SYMLINK   0xa000
 #define INODE_SOCKET    0xc000
 
-struct __attribute__((packed)) ext2_dirent
+struct PACKED ext2_dirent
 {
     uint32_t inode;      // Inode
     uint16_t size;       // Total size of this field
@@ -127,7 +128,7 @@ struct ext2_volume
     struct ext2_bgd* groups;
     unsigned int     group_cnt;
 
-    struct __attribute__((packed))
+    struct PACKED
     {
         struct ext2_sb    sb;
         struct ext2_sbext sbext;

@@ -3,9 +3,10 @@
 // TODO: move into kernel module
 
 #include <micro/types.h>
+#include <micro/platform.h>
 
 // BIOS parameter block
-struct __attribute__((packed)) fat_bpb
+struct PACKED fat_bpb
 {
     uint8_t  jmp[3];                // Jump over BPB (boot code)
     int8_t   oem_id[8];             // OEM identifier
@@ -24,7 +25,7 @@ struct __attribute__((packed)) fat_bpb
 };
 
 // FAT32 extended boot record
-struct __attribute__((packed)) fat_ebr
+struct PACKED fat_ebr
 {
     uint32_t sectors_per_fat;       // Size of FAT in sectors
     uint16_t flags;                 // Flags
@@ -41,13 +42,13 @@ struct __attribute__((packed)) fat_ebr
     int8_t   sys_id[8];             // System identifier string (always "FAT32 ")
 };
 
-struct __attribute__((packed)) fat32_record
+struct PACKED fat32_record
 {
     struct fat_bpb bpb;
     struct fat_ebr ebr;
 };
 
-struct __attribute__((packed)) fat_dirent
+struct PACKED fat_dirent
 {
     uint8_t name[8]; // 8.3 format
     uint8_t ext[3];

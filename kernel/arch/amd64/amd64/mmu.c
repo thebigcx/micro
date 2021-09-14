@@ -14,13 +14,13 @@
 #define PT_IDX(vaddr)   ((((uint64_t)vaddr) >> 12) & 0x1ff)
 
 // Kernel: 2M pages located in pml4[511], pdpt[510]
-static pml_t kpml4 _pagealign;
-static pml_t kpdpt _pagealign;
-static pml_t kpd _pagealign;
+static pml_t kpml4 PAGEALIGN;
+static pml_t kpdpt PAGEALIGN;
+static pml_t kpd   PAGEALIGN;
 
 // Heap: 2M pages located in pml4[511], pdpt[511]
-static pml_t kheap_dir _pagealign;
-static pml_t kheap_tbls[512] _pagealign;
+static pml_t kheap_dir       PAGEALIGN;
+static pml_t kheap_tbls[512] PAGEALIGN;
 
 void mmu_phys_init();
 

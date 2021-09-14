@@ -1,6 +1,7 @@
 #pragma once
 
 #include <micro/types.h>
+#include <micro/platform.h>
 
 #define PAGE4K 0x1000
 #define PAGE2M 0x200000
@@ -18,7 +19,7 @@
 
 #define PD_2M        (1 << 7) // 2 megabyte pages
 
-#define _pagealign __attribute__((aligned(PAGE4K)))
+#define PAGEALIGN ALIGN(PAGE4K)
 
 typedef uint64_t page_t;
 typedef page_t pml_t[512];
