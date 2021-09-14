@@ -63,6 +63,14 @@ void generic_init(struct genbootparams params)
 
     initrd_init(params.initrd_start, params.initrd_end);
 
+    modules_init();
+
+    //struct file* fat = vfs_resolve("/lib/modules/fat.ko");
+    //void* data = kmalloc(fat->size);
+    //vfs_read(fat, data, 0, fat->size);
+
+    //module_load(data, fat->size);
+
     fat_init();
 
     vfs_mount_fs("/dev/initrd", "/", "fat", NULL);
@@ -71,7 +79,7 @@ void generic_init(struct genbootparams params)
 
     vga_init();
 
-    modules_init();
+    //modules_init();
 
     printk("starting scheduler\n");
     sched_init();
