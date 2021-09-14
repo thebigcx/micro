@@ -276,3 +276,13 @@ void __assertion_failed(const char* expr, const char* file, int line)
     printk("Assertion failed %s at %s:%d\n", expr, file, line);
     panic("Unrecoverable error");
 }
+
+int max(int a, int b)
+{
+    return a > b ? a : b;
+}
+
+int min(int a, int b)
+{
+    return a < b ? a : b;
+}

@@ -54,11 +54,15 @@ void from8dot3(struct fat_dirent* dirent, char* dst)
 void to8dot3(const char* reg_name, char* name, char* ext)
 {
     size_t len = strcspn(reg_name, ".\0");
+    len = min(len, 8);
+
     size_t extlen;
     if (*(reg_name + len) != 0)
         extlen = strlen(reg_name + len + 1);
     else
         extlen = 0; // No extension
+
+    extlen = min(extlen, 3);
 
     memcpy(name, reg_name, len);
     memset(name + len, ' ', 8 - len);
