@@ -2,6 +2,8 @@
 #include <micro/debug.h>
 #include <micro/pci.h>
 #include <arch/mmu.h>
+#include <micro/heap.h>
+#include <micro/vfs.h>
 
 struct ksym
 {
@@ -17,7 +19,12 @@ static struct ksym ksyms[] =
     { "pci_enable_bus_master", pci_enable_bus_master },
     { "pci_enable_mmio",       pci_enable_mmio       },
     { "pci_get_bar",           pci_get_bar           },
-    { "mmu_map_mmio",          mmu_map_mmio          }
+    { "mmu_map_mmio",          mmu_map_mmio          },
+    { "mmu_alloc_phys",        mmu_alloc_phys        },
+    { "mmu_kalloc",            mmu_kalloc            },
+    { "mmu_kmap",              mmu_kmap              },
+    { "kmalloc",               kmalloc               },
+    { "vfs_addnode",           vfs_addnode           }
 };
 
 uintptr_t ksym_lookup(const char* name)
@@ -26,5 +33,6 @@ uintptr_t ksym_lookup(const char* name)
     for (size_t i = 0; i < sizeof(ksyms) / sizeof(struct ksym); i++)
         if (!strcmp(ksyms[i].name, name)) return ksyms[i].value;
 
+    printk("could not find symbol: %s\n", name);
     return 0;
 }

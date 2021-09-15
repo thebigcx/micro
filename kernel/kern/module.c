@@ -35,6 +35,18 @@ int module_load(void* data, size_t len)
     struct elf_hdr* header = (struct elf_hdr*)base;
     // TODO: verify signature
 
+    for (unsigned int i = 0; i < header->sh_num; i++)
+    {
+        struct elf_shdr* shdr = get_section(header, i);
+        if (shdr->type == SHT_NOBITS)
+        {
+            shdr->addr = mmu_map_module(shdr->size);
+            memset(shdr->addr, 0, shdr->size);
+        }
+        else
+            shdr->addr = base + shdr->offset;
+    }
+
     struct modmeta* meta = NULL;
 
     /* Load the symbol tables - if a symbol is undefined, bind it
@@ -47,18 +59,18 @@ int module_load(void* data, size_t len)
         if (shdr->type != SHT_SYMTAB) continue;
 
         struct elf_shdr* strsect = get_section(header, shdr->link);
-        struct elf_sym* symtab = (struct elf_sym*)(base + shdr->offset);
+        struct elf_sym* symtab = (struct elf_sym*)shdr->addr;
 
         for (unsigned int j = 0; j < shdr->size / sizeof(struct elf_sym); j++)
         {
-            char* name = base + ((char*)strsect->offset) + symtab[j].name;
+            char* name = strsect->addr + symtab[j].name;
 
             if (symtab[j].shndx == SHN_UNDEF)
                 symtab[j].value = ksym_lookup(name);
             else if (symtab[j].shndx > 0 && symtab[j].shndx < SHN_LOPROC)
             {
                 struct elf_shdr* symbol_hdr = get_section(header, symtab[j].shndx);
-                symtab[j].value = base + symtab[j].value + symbol_hdr->offset;
+                symtab[j].value = symbol_hdr->addr + symtab[j].value;
             }
 
             // Module metadata defining init() and fini() among other things
@@ -72,15 +84,15 @@ int module_load(void* data, size_t len)
         struct elf_shdr* shdr = get_section(header, i);
         if (shdr->type != SHT_RELA) continue;
 
-        struct elf_rela* reltab = (struct elf_rela*)(base + shdr->offset);
+        struct elf_rela* reltab = (struct elf_rela*)shdr->addr;
         struct elf_shdr* targsect = get_section(header, shdr->info);
 
         struct elf_shdr* symsect = get_section(header, shdr->link);
-        struct elf_sym* symtab = (struct elf_sym*)(base + symsect->offset);
+        struct elf_sym* symtab = (struct elf_sym*)symsect->addr;
 
         for (unsigned int j = 0; j < shdr->size / shdr->entsize; j++)
         {
-            uintptr_t targ = reltab[j].offset + (base + targsect->offset);
+            uintptr_t targ = targsect->addr + reltab[j].offset;
 
             switch (ELF64_R_TYPE(reltab[j].info))
             {

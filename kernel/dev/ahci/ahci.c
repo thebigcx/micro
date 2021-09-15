@@ -5,11 +5,188 @@
 #include <micro/pci.h>
 #include <micro/pci_ids.h>
 #include <arch/mmu.h>
+#include <micro/vfs.h>
+#include <micro/heap.h>
+
+void memset(void* p, char c, size_t n)
+{
+    while (n--) *((char*)p++) = c;
+}
+
+void memcpy(void* dst, const void* src, size_t n)
+{
+    while (n--) *((char*)dst++) = *((const char*)src++);
+}
+
+struct ahci_port
+{
+    volatile struct hba_port* port;
+    void*                     buffer;  // Mapped buffer
+    uintptr_t                 pbuffer; // Physical buffer
+
+    struct hba_cmd_hdr*       cmdlist;
+    struct hba_cmd_tbl*       cmdtbls[32];
+    struct hba_fis*           fis;
+};
 
 struct pci_driver pci_dri;
 
 volatile struct hba_mem* abar;
 volatile struct hba_mem* vabar;
+
+void port_start_cmd(struct ahci_port* port)
+{
+    while (port->port->cmd_stat & HBA_PXCMD_CR);
+
+    port->port->cmd_stat |= HBA_PXCMD_FRE;
+    port->port->cmd_stat |= HBA_PXCMD_ST;
+}
+
+void port_stop_cmd(struct ahci_port* port)
+{
+    port->port->cmd_stat &= ~HBA_PXCMD_ST;
+    port->port->cmd_stat &= ~HBA_PXCMD_FRE;
+
+    while (1)
+    {
+        if (port->port->cmd_stat & HBA_PXCMD_FR) continue;
+        if (port->port->cmd_stat & HBA_PXCMD_CR) continue;
+
+        break;
+    }
+}
+
+int port_find_cmd_slot(struct ahci_port* port)
+{
+    uint32_t slots = (port->port->sata_active | port->port->cmd_issue);
+
+    for (int32_t i = 0; i < AHCI_CMD_SLOTS; i++)
+    {
+        if ((slots & i) == 0)
+            return i;
+
+        slots >>= 1;
+    }
+
+    printk("ahci: could not find free command list entry\n");
+    return -1;
+}
+
+int port_access(struct ahci_port* port, uintptr_t lba, uint32_t cnt, int write)
+{
+    port->port->int_stat = 0xffffffff;
+    
+    int slot = port_find_cmd_slot(port);
+    if (slot == -1)
+        return 0;
+
+    struct hba_cmd_hdr* cmdhdr = &port->cmdlist[slot];
+    cmdhdr->cmd_fis_len = sizeof(struct fis_reg_h2d) / sizeof(uint32_t);
+    cmdhdr->write       = write;
+    cmdhdr->prdt_len    = (uint16_t)((cnt - 1) >> 4) + 1;
+
+    struct hba_cmd_tbl* cmdtbl = port->cmdtbls[slot];
+    memset(cmdtbl, 0, sizeof(struct hba_cmd_tbl));
+
+    cmdtbl->prdt_entry[0].data_base_addr   = (uint32_t)port->pbuffer;
+    cmdtbl->prdt_entry[0].data_base_addr_u = (uint32_t)(port->pbuffer >> 32);
+    cmdtbl->prdt_entry[0].byte_cnt         = cnt * 512 - 1;
+    cmdtbl->prdt_entry[0].int_on_cmpl      = 1;
+
+    struct fis_reg_h2d* cmdfis = (struct fis_reg_h2d*)(&cmdtbl->cmd_fis);
+    memset(cmdfis, 0, sizeof(struct fis_reg_h2d));
+
+    cmdfis->fis_type = (uint8_t)FIS_TYPE_H2D;
+    cmdfis->com_ctrl = 1; // Command
+    cmdfis->command  = write ? ATA_CMD_WRITE_DMA_EX : ATA_CMD_READ_DMA_EX;
+
+    cmdfis->lba0 = (uint8_t)(lba & 0xff);
+    cmdfis->lba1 = (uint8_t)(lba >> 8  );
+    cmdfis->lba2 = (uint8_t)(lba >> 16 );
+    cmdfis->lba3 = (uint8_t)(lba >> 24 );
+    cmdfis->lba4 = (uint8_t)(lba >> 32 );
+    cmdfis->lba5 = (uint8_t)(lba >> 40 );
+
+    cmdfis->device = 1 << 6; // LBA mode
+
+    cmdfis->countl = cnt & 0xff;
+    cmdfis->counth = (cnt >> 8) & 0xff;
+
+    uint64_t spin = 0;
+
+    while ((port->port->task_file_dat & (ATA_DEV_BUSY | ATA_DEV_DRQ)) && spin < 1000000)
+    {
+        spin++;
+    }
+    if (spin == 1000000)
+    {
+        printk("ahci: port has hung\n");
+        return 0;
+    }
+
+    port->port->cmd_issue = 1 << slot;
+
+    // Wait for completion
+    while (port->port->cmd_issue & (1 << slot))
+    {
+        if (port->port->int_stat & HBA_PXIS_TFES) // Task file error
+        {
+            printk("ahci: read disk error\n");
+            return 0; // TODO: return -EIO for I/O error
+        }
+    }
+
+    // Check again
+    if (port->port->int_stat & HBA_PXIS_TFES)
+    {
+        printk("ahci: read disk error\n");
+        return 0;
+    }
+
+    return 1;
+}
+
+ssize_t port_read(struct file* file, void* buf, off_t off, size_t size)
+{
+    struct ahci_port* port = file->device;
+
+    uintptr_t lba   = off / 512;
+    size_t    count = size / 512;
+
+    ssize_t read = 0;
+    while (count)
+    {
+        port_access(port, lba, count, 0);
+        memcpy(buf, port->buffer, 512);
+        buf = (void*)((uintptr_t)buf + 512);
+        count--;
+        lba++;
+        read++;
+    }
+    
+    return read * 512;
+}
+
+ssize_t port_write(struct file* file, const void* buf, off_t off, size_t size)
+{
+    struct ahci_port* port = file->device;
+
+    uintptr_t lba   = off / 512;
+    size_t    count = size / 512;
+
+    size_t written = 0;
+    while (count)
+    {
+        memcpy(port->buffer, buf, 512);
+        port_access(port, lba, count, 1);
+        buf = (void*)((uintptr_t)buf + 512);
+        count--;
+        lba++;
+        written++;
+    }
+
+    return written * 512;
+}
 
 static int get_type(volatile struct hba_port* port)
 {
@@ -38,16 +215,81 @@ static int get_type(volatile struct hba_port* port)
     }
 }
 
+struct ahci_port* ahci_create_port(volatile struct hba_port* hba_port)
+{
+    struct ahci_port* port = kmalloc(sizeof(struct ahci_port));
+
+    port->port = hba_port;
+
+    port->pbuffer = mmu_alloc_phys();
+    port->buffer  = (void*)mmu_kalloc(1);
+
+    mmu_kmap((uintptr_t)port->buffer, port->pbuffer, PAGE_PR | PAGE_RW);
+
+    port_stop_cmd(port);
+
+    uintptr_t phys = mmu_alloc_phys();
+
+    port->port->com_base_addr   = (uint32_t)(phys & 0xffffffff);
+    port->port->com_base_addr_u = (uint32_t)(phys >> 32); // Upper 32 bits
+    port->cmdlist = (struct hba_cmd_hdr*)mmu_map_mmio(phys, 1);
+
+    memset(port->cmdlist, 0, PAGE4K);
+
+    phys = mmu_alloc_phys();
+
+    port->port->fis_base   = (uint32_t)(phys & 0xffffffff);
+    port->port->fis_base_u = (uint32_t)(phys >> 32); // Upper 32 bit
+    port->fis = (struct hba_fis*)mmu_map_mmio(phys, 1);
+
+    memset(port->fis, 0, PAGE4K);
+
+    port->fis->dsfis.fis_type = (uint8_t)FIS_TYPE_DMA_SETUP;
+    port->fis->psfis.fis_type = (uint8_t)FIS_TYPE_PIO_SETUP;
+    port->fis->rfis.fis_type  = (uint8_t)FIS_TYPE_H2D;
+    port->fis->sdbfis[0]      = (uint8_t)FIS_TYPE_DEVBITS;
+
+    for (uint32_t i = 0; i < 8; i++)
+    {
+        port->cmdlist[i].prdt_len = 1;
+        
+        phys = mmu_alloc_phys();
+
+        port->cmdlist[i].cmd_tbl_base_addr   = (uint32_t)(phys & 0xffffffff);
+        port->cmdlist[i].cmd_tbl_base_addr_u = (uint32_t)(phys >> 32);
+
+        port->cmdtbls[i] = (struct hba_cmd_tbl*)mmu_map_mmio(phys, 1);
+        memset(port->cmdtbls[i], 0, PAGE4K);
+    }
+
+    port_start_cmd(port);
+
+    return port;
+}
+
+struct file* ahci_create_dev(volatile struct hba_port* hba_port)
+{
+    struct file* file = kmalloc(sizeof(struct file));
+    memset(file, 0, sizeof(struct file));
+
+    file->flags     = FL_BLOCKDEV;
+    file->device    = ahci_create_port(hba_port);
+    file->size      = 512;
+
+    file->ops.read  = port_read;
+    file->ops.write = port_write;
+
+    return file;
+}
+
 // Initalize an AHCI controller
 void ahci_init_ctrl()
 {
-    printk("ahci\n");
-
     pci_enable_bus_master(&pci_dri);
     pci_enable_intrs(&pci_dri);
     pci_enable_mmio(&pci_dri);
 
-    /*abar = (volatile struct hba_mem*)pci_get_bar(&pci_dri, 5);
+    abar = (volatile struct hba_mem*)pci_get_bar(&pci_dri, 5);
     vabar = (volatile struct hba_mem*)mmu_map_mmio((uintptr_t)abar, 1);
 
     unsigned int ports_impl = vabar->ports_impl;
@@ -62,13 +304,13 @@ void ahci_init_ctrl()
             {
                 printk("ahci: found disk\n");
 
-
+                vfs_addnode(ahci_create_dev(&vabar->ports[i]), "/dev/sda"); // TODO: generate a unique drive name
 
                 //m_ports.push_back(new Port(&m_vabar->ports[i], type, m_ports.size()));
                 //FS::mount(m_ports.back(), "/dev/sda"); 
             }
         }
-    }*/
+    }
 }
 
 void ahci_init()

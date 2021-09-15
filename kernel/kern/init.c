@@ -65,15 +65,21 @@ void generic_init(struct genbootparams params)
 
     modules_init();
 
-    //struct file* fat = vfs_resolve("/lib/modules/fat.ko");
-    //void* data = kmalloc(fat->size);
-    //vfs_read(fat, data, 0, fat->size);
-
-    //module_load(data, fat->size);
-
     fat_init();
 
     vfs_mount_fs("/dev/initrd", "/", "fat", NULL);
+
+    struct file* ahci = vfs_resolve("/lib/modules/ahci.ko");
+    void* data = kmalloc(ahci->size);
+    vfs_read(ahci, data, 0, ahci->size);
+    module_load(data, ahci->size);
+
+    struct file* disk = vfs_resolve("/dev/sda");
+
+    char* mbr = kmalloc(512);
+    vfs_read(disk, mbr, 0, 512);
+
+    for (int i = 0; i < 512; i++) printk("%c", mbr[i]);
 
     tty_init();
 
