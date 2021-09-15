@@ -303,11 +303,7 @@ void ahci_init_ctrl()
             if (type == AHCI_PORT_SATA || type == AHCI_PORT_SATAPI)
             {
                 printk("ahci: found disk\n");
-
                 vfs_addnode(ahci_create_dev(&vabar->ports[i]), "/dev/sda"); // TODO: generate a unique drive name
-
-                //m_ports.push_back(new Port(&m_vabar->ports[i], type, m_ports.size()));
-                //FS::mount(m_ports.back(), "/dev/sda"); 
             }
         }
     }

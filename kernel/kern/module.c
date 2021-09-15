@@ -7,6 +7,7 @@
 #include <micro/elf.h>
 #include <arch/mmu.h>
 #include <micro/errno.h>
+#include <micro/ksym.h>
 
 #define MOD_MAX 64
 static struct module modules[MOD_MAX];

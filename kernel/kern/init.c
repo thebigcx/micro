@@ -69,23 +69,9 @@ void generic_init(struct genbootparams params)
 
     vfs_mount_fs("/dev/initrd", "/", "fat", NULL);
 
-    struct file* ahci = vfs_resolve("/lib/modules/ahci.ko");
-    void* data = kmalloc(ahci->size);
-    vfs_read(ahci, data, 0, ahci->size);
-    module_load(data, ahci->size);
-
-    struct file* disk = vfs_resolve("/dev/sda");
-
-    char* mbr = kmalloc(512);
-    vfs_read(disk, mbr, 0, 512);
-
-    for (int i = 0; i < 512; i++) printk("%c", mbr[i]);
-
     tty_init();
 
     vga_init();
-
-    //modules_init();
 
     printk("starting scheduler\n");
     sched_init();
