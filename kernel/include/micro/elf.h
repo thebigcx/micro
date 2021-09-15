@@ -80,8 +80,10 @@ struct elf_sym
 #define SHN_LORESERVE  0xff00
 #define SHN_LOPROC     0xff00
 
-#define PT_NULL 0
-#define PT_LOAD 1
+#define PT_NULL    0
+#define PT_LOAD    1
+#define PT_DYNAMIC 2
+#define PT_INTERP  3
 
 struct elf_rela
 {

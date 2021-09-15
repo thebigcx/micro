@@ -29,6 +29,10 @@ SO := libc.so
 CRT0 := crt0.o
 CFLAGS := -fno-omit-frame-pointer -ffreestanding -fno-stack-protector -O2 -Wall -Wextra -Wno-unused-parameter -Wno-unused-variable -Iansi/include -Iinternal/include -Iposix/include -Isysdeps/micro/include
 
+SUBDIRS = elf
+
+include subdir.mk
+
 all: $(AR) $(SO) $(CRT0)
 
 $(CRT0):

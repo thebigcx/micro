@@ -28,8 +28,18 @@ int main(int argc, char** argv)
         if (!token)
             continue;
 
-        char* bin = malloc(strlen(token) + strlen(PATH) + 1);
-        strcpy(bin, PATH);
+        char* bin;
+        if (token[0] == '/')
+        {
+            bin = malloc(strlen(token) + 1);
+            bin[0] = 0;
+        }
+        else
+        {
+            bin = malloc(strlen(token) + strlen(PATH) + 1);
+            strcpy(bin, PATH);
+        }
+        
         strcpy(bin + strlen(bin), token);
 
         token = strtok_r(NULL, " \0", &saveptr);

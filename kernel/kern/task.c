@@ -40,69 +40,16 @@ static struct task* mktask(struct task* parent, struct vm_map* vm_map)
     return task;
 }
 
-#define PUSH_STR(stack, x) { stack -= strlen(x) + 1; strcpy((char*)stack, x); }
-#define PUSH(stack, type, x) { stack -= sizeof(type); *((type*)stack) = x; }
-
-static void setup_user_stack(struct task* task, const char* path, const char* argv[], const char* envp[])
-{
-    int argc = 0, envc = 0;
-    uintptr_t args[64], envs[64];
-
-    uintptr_t cr3 = rcr3();
-
-    lcr3(task->vm_map->pml4_phys);
-
-    // Push the raw strings onto the stack
-    while (argv[argc])
-    {
-        PUSH_STR(task->main->regs.rsp, argv[argc]);
-        args[argc] = task->main->regs.rsp;
-        argc++;
-    }
-
-    while (envp[envc])
-    {
-        PUSH_STR(task->main->regs.rsp, envp[envc]);
-        envs[envc] = task->main->regs.rsp;
-        envc++;
-    }
-
-    // Pointer-align the stack for char* argv[]
-    task->main->regs.rsp -= (task->main->regs.rsp % 8);
-
-    // Null-terminate the argv[] array (reverse-order)
-    PUSH(task->main->regs.rsp, uintptr_t, (uintptr_t)NULL);
-
-    // Push pointers in reverse order
-    for (int i = argc - 1; i >= 0; i--)
-        PUSH(task->main->regs.rsp, uintptr_t, args[i]);
-
-    uintptr_t argv_ptr = task->main->regs.rsp;
-
-    // Null-terminate the envp[] array (reverse-order)
-    PUSH(task->main->regs.rsp, uintptr_t, (uintptr_t)NULL);
-
-    for (int i = envc - 1; i >= 0; i--)
-        PUSH(task->main->regs.rsp, uintptr_t, envs[i]);
-
-    uintptr_t envp_ptr = task->main->regs.rsp;
-
-    lcr3(cr3);
-
-    task->main->regs.rdi = argc;
-    task->main->regs.rsi = argv_ptr;
-    task->main->regs.rdx = envp_ptr;
-}
-
+// TODO: fix this up - should move into a more syscall-oriented approach, as this
+// is never called from the kernel (execept for /bin/init)
 static void init_user_task(struct task* task, const char* path, const char* argv[], const char* envp[])
 {
     struct file* file = vfs_resolve(path);
     void* data = kmalloc(file->size);
     vfs_read(file, data, 0, file->size);
 
-    uintptr_t entry = elf_load(task, data);
-    task->main = thread_creat(task, entry, 1);
-    
+    task->main = thread_creat(task, 0, 1);
+
     // Top of canonical lower-half
     uintptr_t stack = 0x8000000000;
     mmu_map(task->vm_map, stack - 0x1000, mmu_alloc_phys(), PAGE_PR | PAGE_RW);
@@ -110,7 +57,7 @@ static void init_user_task(struct task* task, const char* path, const char* argv
     task->main->regs.rsp = stack;
     task->main->regs.rbp = stack;
 
-    setup_user_stack(task, path, argv, envp);
+    task->main->regs.rip = elf_load(task, data, argv, envp);
 
     list_push_back(&task->threads, task->main);
 
