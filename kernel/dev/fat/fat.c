@@ -1,9 +1,11 @@
-#include <micro/fat.h>
+#include "fat.h"
+
 #include <micro/vfs.h>
 #include <micro/stdlib.h>
 #include <micro/heap.h>
 #include <micro/fs.h>
 #include <micro/debug.h>
+#include <micro/module.h>
 
 #define FAT_ATTR_RO             0x01
 #define FAT_ATTR_HIDDEN         0x02
@@ -550,5 +552,18 @@ struct file* fat_mount(const char* dev, void* data)
 
 void fat_init()
 {
+    printk("loaded FAT32 driver\n");
     vfs_register_fs("fat", fat_mount);
 }
+
+void fat_fini()
+{
+    printk("finalizing FAT32 driver\n");
+}
+
+struct modmeta meta =
+{
+    .init = fat_init,
+    .fini = fat_fini,
+    .name = "fat"
+};

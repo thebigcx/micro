@@ -66,7 +66,7 @@ int module_load(void* data, size_t len)
         {
             char* name = strsect->addr + symtab[j].name;
 
-            if (symtab[j].shndx == SHN_UNDEF)
+            if (symtab[j].shndx == SHN_UNDEF && name[0] != 0)
                 symtab[j].value = ksym_lookup(name);
             else if (symtab[j].shndx > 0 && symtab[j].shndx < SHN_LOPROC)
             {

@@ -1,2 +1,2 @@
-SUBDIRS = test ahci
+SUBDIRS = test ahci fat
 include subdir.mk

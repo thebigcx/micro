@@ -1,7 +1,5 @@
 #pragma once
 
-// TODO: move into kernel module
-
 #include <micro/types.h>
 #include <micro/platform.h>
 

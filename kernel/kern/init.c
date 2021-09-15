@@ -9,7 +9,6 @@
 #include <micro/ps2.h>
 #include <micro/fb.h>
 #include <micro/sys.h>
-#include <micro/fat.h>
 #include <micro/ext2.h>
 #include <micro/errno.h>
 #include <micro/ioctls.h>
@@ -52,6 +51,85 @@ void initrd_init(uintptr_t start, uintptr_t end)
     vfs_addnode(file, "/dev/initrd");
 }
 
+struct fheader
+{
+    char name[128];
+    uint64_t size;
+};
+
+struct initramfs_file
+{
+    uintptr_t start;
+};
+
+struct initramfs
+{
+    struct initrd* device;
+};
+
+ssize_t initramfs_read(struct file* file, void* buf, off_t off, size_t size)
+{
+    struct initramfs_file* fs_file = file->device;
+    memcpy(buf, (void*)(fs_file->start + off), size);
+    return size;
+}
+
+struct file* initramfs_find(struct file* dir, const char* name)
+{
+    struct initrd* initrd = ((struct initramfs*)dir->device)->device;
+    struct fheader* curr = (struct fheader*)initrd->start;
+
+    while ((uintptr_t)curr < initrd->end)
+    {
+        if (!strcmp(curr->name, name))
+        {
+            struct file* file = kmalloc(sizeof(struct file));
+            file->ops.read = initramfs_read;
+            file->flags = FL_FILE;
+
+            struct initramfs_file* ramfile = kmalloc(sizeof(struct initramfs_file));
+            ramfile->start = (uintptr_t)curr + sizeof(struct fheader);
+
+            file->size = curr->size;
+            file->device = ramfile;
+
+            return file;
+        }
+
+        curr = (struct fheader*)((uintptr_t)curr + sizeof(struct fheader) + curr->size);
+    }
+
+    return NULL;
+}
+
+struct file* initramfs_mount(const char* dev, void* data)
+{
+    struct file* device = vfs_resolve(dev);
+    struct initramfs* ramfs = kmalloc(sizeof(struct initramfs));
+    ramfs->device = device->device;
+
+    struct file* file = kmalloc(sizeof(struct file));
+    file->ops.find = initramfs_find;
+    file->flags = FL_MNTPT;
+    file->device = ramfs;
+
+    return file;
+}
+
+void initramfs_init()
+{
+    vfs_register_fs("initramfs", initramfs_mount);
+}
+
+static void kmod_load(const char* path)
+{
+    struct file* mod = vfs_resolve(path);
+    void* buffer = kmalloc(mod->size);
+    vfs_read(mod, buffer, 0, mod->size);
+
+    module_load(buffer, mod->size);
+}
+
 void generic_init(struct genbootparams params)
 {
     sys_init();
@@ -65,9 +143,16 @@ void generic_init(struct genbootparams params)
 
     modules_init();
 
-    fat_init();
+    initramfs_init();
 
-    vfs_mount_fs("/dev/initrd", "/", "fat", NULL);
+    printk("mounting initramfs\n");
+    vfs_mount_fs("/dev/initrd", "/", "initramfs", NULL);
+
+    kmod_load("/ahci.ko");
+    kmod_load("/fat.ko");
+
+    printk("mounting root filesystem\n");
+    vfs_mount_fs("/dev/sda", "/", "fat", NULL);
 
     tty_init();
 

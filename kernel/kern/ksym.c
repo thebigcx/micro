@@ -4,6 +4,7 @@
 #include <arch/mmu.h>
 #include <micro/heap.h>
 #include <micro/vfs.h>
+#include <micro/stdlib.h>
 
 struct ksym
 {
@@ -24,7 +25,20 @@ static struct ksym ksyms[] =
     { "mmu_kalloc",            mmu_kalloc            },
     { "mmu_kmap",              mmu_kmap              },
     { "kmalloc",               kmalloc               },
-    { "vfs_addnode",           vfs_addnode           }
+    { "vfs_addnode",           vfs_addnode           },
+    { "vfs_read",              vfs_read              },
+    { "kfree",                 kfree                 },
+    { "vfs_write",             vfs_write             },
+    { "vfs_create_file",       vfs_create_file       },
+    { "vfs_resolve",           vfs_resolve           },
+    { "vfs_register_fs",       vfs_register_fs       }, // TODO: inline these stdlib.c methods
+    { "strcspn",       strcspn       },
+    { "strlen",       strlen       },
+    { "memcpy",       memcpy       },
+    { "memset",       memset       },
+    { "strncmp",       strncmp       },
+    { "strcpy",       strcpy       },
+    { "min",       min       },
 };
 
 uintptr_t ksym_lookup(const char* name)
