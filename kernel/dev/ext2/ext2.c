@@ -1,8 +1,8 @@
-#include <micro/ext2.h>
+#include "ext2.h"
+
 #include <micro/heap.h>
 #include <micro/stdlib.h>
-
-// TODO: compile as kernel module and load at runtime
+#include <micro/module.h>
 
 #define SUPER_BLK 1
 #define BGDS_BLK  2
@@ -473,5 +473,18 @@ static struct file* ext2_mount(const char* dev, void* data)
 
 void ext2_init()
 {
+    printk("loaded ext2 driver\n");
     vfs_register_fs("ext2", ext2_mount);
 }
+
+void ext2_fini()
+{
+    printk("finalizing ext2 driver\n");
+}
+
+struct modmeta meta =
+{
+    .init = ext2_init,
+    .fini = ext2_fini,
+    .name = "ext2fs"
+};

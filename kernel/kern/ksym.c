@@ -25,20 +25,13 @@ static struct ksym ksyms[] =
     { "mmu_kalloc",            mmu_kalloc            },
     { "mmu_kmap",              mmu_kmap              },
     { "kmalloc",               kmalloc               },
+    { "kfree",                 kfree                 },
     { "vfs_addnode",           vfs_addnode           },
     { "vfs_read",              vfs_read              },
-    { "kfree",                 kfree                 },
     { "vfs_write",             vfs_write             },
     { "vfs_create_file",       vfs_create_file       },
     { "vfs_resolve",           vfs_resolve           },
-    { "vfs_register_fs",       vfs_register_fs       }, // TODO: inline these stdlib.c methods
-    { "strcspn",       strcspn       },
-    { "strlen",       strlen       },
-    { "memcpy",       memcpy       },
-    { "memset",       memset       },
-    { "strncmp",       strncmp       },
-    { "strcpy",       strcpy       },
-    { "min",       min       },
+    { "vfs_register_fs",       vfs_register_fs       }
 };
 
 uintptr_t ksym_lookup(const char* name)

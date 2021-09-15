@@ -7,16 +7,7 @@
 #include <arch/mmu.h>
 #include <micro/vfs.h>
 #include <micro/heap.h>
-
-void memset(void* p, char c, size_t n)
-{
-    while (n--) *((char*)p++) = c;
-}
-
-void memcpy(void* dst, const void* src, size_t n)
-{
-    while (n--) *((char*)dst++) = *((const char*)src++);
-}
+#include <micro/stdlib.h>
 
 struct ahci_port
 {

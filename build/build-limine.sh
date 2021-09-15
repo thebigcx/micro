@@ -23,4 +23,4 @@ qemu-system-x86_64                              \
     -drive id=disk,file=dist/disk.img,if=none   \
     -device ahci,id=ahci                        \
     -device ide-hd,drive=disk,bus=ahci.0        \
-    --enable-kvm
+#    --enable-kvm

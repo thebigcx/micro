@@ -9,7 +9,6 @@
 #include <micro/ps2.h>
 #include <micro/fb.h>
 #include <micro/sys.h>
-#include <micro/ext2.h>
 #include <micro/errno.h>
 #include <micro/ioctls.h>
 #include <micro/termios.h>
