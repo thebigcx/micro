@@ -1,2 +1,2 @@
-SUBDIRS = test
+SUBDIRS = test ahci
 include subdir.mk
