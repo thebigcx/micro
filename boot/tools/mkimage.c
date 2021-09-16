@@ -6,7 +6,7 @@ int main(int argc, char** argv)
     system("dd if=/dev/zero of=boot.img bs=1024 count=10000");
     //system("mkfs.vfat -F16 boot.img");
 
-    FILE* bootsect = fopen("bootsect.bin", "r");
+    FILE* bootsect = fopen(argv[1], "r");
     FILE* out = fopen("boot.img", "r+");
     //FILE* loader = fopen("loader.bin", "r");
 

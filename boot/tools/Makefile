@@ -1,8 +1,8 @@
-mkbootsect: mkbootsect.c
-	@echo "    CC tools/mkbootsect.o"
+mkimage: mkimage.c
+	@echo "    CC tools/mkimage.o"
 	@gcc -o $@ $<
 
 .PHONY:
 clean:
-	@echo "    RM tools/mkbootsect"
-	@rm mkbootsect
+	@echo "    RM tools/mkimage"
+	@rm mkimage
