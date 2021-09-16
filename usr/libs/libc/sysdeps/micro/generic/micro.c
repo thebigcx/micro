@@ -137,9 +137,9 @@ int sys_getcwd(char* buf, size_t size, char** ret)
 	return 0;
 }
 
-int sys_readdir(int fd, size_t idx, struct dirent* dirent)
+int sys_getdents(int fd, struct dirent* dirp, size_t n, ssize_t* bytes)
 {
-	int e = syscall(SYS_readdir, fd, idx, dirent);
+	ssize_t e = syscall(SYS_getdents, fd, dirp, n);
 
 	// TODO: don't do this
 	if (e < 0)
@@ -148,7 +148,8 @@ int sys_readdir(int fd, size_t idx, struct dirent* dirent)
 		return -1;
 	}
 
-	return e;
+	*bytes = e;
+	return 0;
 }
 
 int sys_mkdir(const char* path, mode_t mode)

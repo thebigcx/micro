@@ -48,11 +48,11 @@ struct file* vfs_find(struct file* dir, const char* name)
     return NULL;
 }
 
-int vfs_readdir(struct file* dir, size_t idx, struct dirent* dirent)
+ssize_t vfs_getdents(struct file* dir, off_t off, size_t n, struct dirent* dirp)
 {
-    if (dir && ((dir->flags & FL_DIR) || (dir->flags & FL_MNTPT)) && dir->ops.readdir)
+    if (dir && ((dir->flags & FL_DIR) || (dir->flags & FL_MNTPT)) && dir->ops.getdents)
     {
-        return dir->ops.readdir(dir, idx, dirent);
+        return dir->ops.getdents(dir, off, n, dirp);
     }
 
     return -ENOTDIR;

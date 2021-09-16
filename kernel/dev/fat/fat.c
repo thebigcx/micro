@@ -499,7 +499,7 @@ struct file* fat_find(struct file* dir, const char* name)
                     file->ops.read    = fat_read;
                     file->ops.write   = fat_write;
                     file->ops.find    = fat_find;
-                    file->ops.readdir = fat_readdir;
+                    //file->ops.readdir = fat_readdir;
                     file->ops.mkfile  = fat_mkfile;
                     file->ops.mkdir   = fat_mkdir;
                     file->ops.rm      = fat_rm;
@@ -542,7 +542,7 @@ struct file* fat_mount(const char* dev, void* data)
     file->device      = vol;
     file->inode       = vol->record.ebr.cluster_num;
     file->ops.find    = fat_find;
-    file->ops.readdir = fat_readdir;
+    //file->ops.readdir = fat_readdir;
     file->ops.mkfile  = fat_mkfile;
     file->ops.mkdir   = fat_mkdir;
     file->ops.rm      = fat_rm;

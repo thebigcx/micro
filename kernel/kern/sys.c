@@ -305,16 +305,16 @@ static char* sys_getcwd(char* buf, size_t size)
     return buf;
 }
 
-static int sys_readdir(int fdno, size_t idx, struct dirent* dirent)
+static ssize_t sys_getdents(int fdno, struct dirent* dirp, size_t n)
 {
-    PTRVALID(dirent);
+    PTRVALID(dirp);
     FDVALID(fdno);
 
     struct fd* fd = task_curr()->fds[fdno];
 
     if (fd->filp->flags != FL_DIR && fd->filp->flags != FL_MNTPT) return -ENOTDIR;
 
-    return vfs_readdir(fd->filp, idx, dirent);
+    return vfs_getdents(fd->filp, fd->off++, n, dirp);
 }
 
 static int sys_mkdir(const char* path)
@@ -430,7 +430,7 @@ static uintptr_t syscalls[] =
     (uintptr_t)sys_munmap,
     (uintptr_t)sys_chdir,
     (uintptr_t)sys_getcwd,
-    (uintptr_t)sys_readdir,
+    (uintptr_t)sys_getdents,
     (uintptr_t)sys_mkdir,
     (uintptr_t)sys_ioctl,
     (uintptr_t)sys_time,

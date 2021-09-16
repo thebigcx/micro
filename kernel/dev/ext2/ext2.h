@@ -143,6 +143,7 @@ ssize_t ext2_read(struct file* file, void* buf, off_t off, size_t size);
 ssize_t ext2_write(struct file* file, const void* buf, off_t off, size_t size);
 struct file* ext2_find(struct file* dir, const char* name);
 int ext2_readdir(struct file* dir, size_t size, struct dirent* dirent);
+ssize_t ext2_getdents(struct file* dir, off_t off, size_t n, struct dirent* dirp);
 void ext2_mkfile(struct file* dir, const char* name);
 void ext2_mkdir(struct file* dir, const char* name);
 void ext2_rm(struct file* dir, const char* name);

@@ -16,7 +16,7 @@
 #define SYS_munmap          13
 #define SYS_chdir           14
 #define SYS_getcwd          15
-#define SYS_readdir         16
+#define SYS_getdents        16
 #define SYS_mkdir           17
 #define SYS_ioctl           18
 #define SYS_time            19

@@ -5,29 +5,29 @@
 
 struct file;
 
-typedef struct fd*   (*open_t   )(struct file* file, uint32_t flags, mode_t mode);
-typedef void         (*close_t  )(struct fd* fd);
-typedef ssize_t      (*read_t   )(struct file* file, void* buf, off_t off, size_t size);
-typedef ssize_t      (*write_t  )(struct file* file, const void* buf, off_t off, size_t size);
-typedef struct file* (*find_t   )(struct file* dir, const char* name);
-typedef int          (*readdir_t)(struct file* dir, size_t idx, struct dirent* dirent);
-typedef void         (*mkfile_t )(struct file* dir, const char* name);
-typedef void         (*mkdir_t  )(struct file* dir, const char* name);
-typedef void         (*rm_t     )(struct file* dir, const char* name);
-typedef int          (*ioctl_t  )(struct file* file, unsigned long req, void* argp);
+typedef struct fd*   (*open_t    )(struct file* file, uint32_t flags, mode_t mode);
+typedef void         (*close_t   )(struct fd* fd);
+typedef ssize_t      (*read_t    )(struct file* file, void* buf, off_t off, size_t size);
+typedef ssize_t      (*write_t   )(struct file* file, const void* buf, off_t off, size_t size);
+typedef int          (*ioctl_t   )(struct file* file, unsigned long req, void* argp);
+typedef struct file* (*find_t    )(struct file* dir, const char* name);
+typedef ssize_t      (*getdents_t)(struct file* dir, off_t off, size_t n, struct dirent* dirp);
+typedef void         (*mkfile_t  )(struct file* dir, const char* name);
+typedef void         (*mkdir_t   )(struct file* dir, const char* name);
+typedef void         (*rm_t      )(struct file* dir, const char* name);
 
 struct file_ops
 {
-    open_t    open;
-    close_t   close;
-    read_t    read;
-    write_t   write;
-    find_t    find;
-    readdir_t readdir;
-    mkfile_t  mkfile;
-    mkdir_t   mkdir;
-    rm_t      rm;
-    ioctl_t   ioctl;
+    open_t     open;
+    close_t    close;
+    read_t     read;
+    write_t    write;
+    ioctl_t    ioctl;
+    find_t     find;
+    getdents_t getdents;
+    mkfile_t   mkfile;
+    mkdir_t    mkdir;
+    rm_t       rm;
 };
 
 #define FL_FILE     1
@@ -68,7 +68,7 @@ void vfs_init();
 ssize_t vfs_read(struct file* file, void* buf, off_t off, size_t size);
 ssize_t vfs_write(struct file* file, const void* buf, off_t off, size_t size);
 struct file* vfs_find(struct file* dir, const char* name);
-int vfs_readdir(struct file* file, size_t idx, struct dirent* dirent);
+ssize_t vfs_getdents(struct file* dir, off_t off, size_t n, struct dirent* dirp);
 
 void vfs_mkfile(const char* path);
 void vfs_mkdir(const char* name);

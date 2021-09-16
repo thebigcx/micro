@@ -78,20 +78,20 @@ static struct file* dirent2file(struct ext2_volume* vol, struct file* parent, st
     struct ext2_inode ino;
     ext2_read_inode(vol, dirent->inode, &ino);
     
-    struct file* file = vfs_create_file();
+    struct file* file  = vfs_create_file();
 
-    file->ops.read    = ext2_read;
-    file->ops.write   = ext2_write;
-    file->ops.find    = ext2_find;
-    file->ops.readdir = ext2_readdir;
-    file->ops.mkfile  = ext2_mkfile;
-    file->ops.mkdir   = ext2_mkdir;
-    file->ops.rm      = ext2_rm;
+    file->ops.read     = ext2_read;
+    file->ops.write    = ext2_write;
+    file->ops.find     = ext2_find;
+    file->ops.getdents = ext2_getdents;
+    file->ops.mkfile   = ext2_mkfile;
+    file->ops.mkdir    = ext2_mkdir;
+    file->ops.rm       = ext2_rm;
 
-    file->parent      = parent;
-    file->inode       = dirent->inode;
-    file->size        = INOSIZE(ino);
-    file->device      = vol;
+    file->parent       = parent;
+    file->inode        = dirent->inode;
+    file->size         = INOSIZE(ino);
+    file->device       = vol;
 
     strncpy(file->name, dirent->name, dirent->name_len);
 
@@ -261,41 +261,49 @@ uint32_t ext2_alloc_inode(struct ext2_volume* vol)
     return 0;
 }
 
-static int ext2_getdents(struct ext2_volume* vol, struct ext2_inode* dir, off_t off, size_t n, struct dirent* dirp)
+ssize_t ext2_getdents(struct file* dir, off_t off, size_t n, struct dirent* dirp)
 {
+    struct ext2_volume* vol = dir->device;
+
+    struct ext2_inode ino;
+    ext2_read_inode(vol, dir->inode, &ino);
+
     // TODO: maybe this is unnecessary
     size_t dentidx = 0;
+    ssize_t bytes = 0;
+    size_t idx = 0;
 
     uintptr_t offset = 0;
     uintptr_t blk    = 0;
 
     void* buf = kmalloc(vol->blksize);
-    read_blocks(vol, buf, ext2_inode_blk(vol, dir, blk), 1);
+    read_blocks(vol, buf, ext2_inode_blk(vol, &ino, blk), 1);
 
-    while (offset + blk * vol->blksize < INOSIZE(*dir))
+    while (offset + blk * vol->blksize < INOSIZE(ino))
     {
         struct ext2_dirent* dirent = (struct ext2_dirent*)((uintptr_t)buf + offset);
         offset += dirent->size;
 
-        if (off--) continue;
+        if (idx++ < off) continue;
 
         strncpy(dirp[dentidx].d_name, dirent->name, dirent->name_len);
         dentidx++;
-        if (dentidx == n)
+        bytes += dirent->size;
+        if (idx >= off + n)
         {
             kfree(buf);
-            return 1;
+            return bytes;
         }
 
         if (offset >= vol->blksize)
         {
             blk++; offset = 0;
-            read_blocks(vol, buf, ext2_inode_blk(vol, dir, blk), 1);
+            read_blocks(vol, buf, ext2_inode_blk(vol, &ino, blk), 1);
         }
     }
 
     kfree(buf);
-    return 0;
+    return bytes;
 }
 
 void ext2_resize(struct file* file, size_t size)
@@ -452,49 +460,6 @@ struct file* ext2_find(struct file* dir, const char* name)
     return NULL;
 }
 
-// TODO: only use getdents()
-int ext2_readdir(struct file* dir, size_t idx, struct dirent* dirent)
-{
-    struct ext2_volume* vol = dir->device;
-
-    struct ext2_inode ino;
-    ext2_read_inode(vol, dir->inode, &ino);
-
-    /*uintptr_t offset = 0;
-    uintptr_t blk    = 0;
-
-    void* buf = kmalloc(vol->blksize);
-    read_blocks(vol, buf, ext2_inode_blk(vol, &ino, blk), 1);
-
-    while (offset + blk * vol->blksize < INOSIZE(ino))
-    {
-        struct ext2_dirent* edirent = (struct ext2_dirent*)((uintptr_t)buf + offset);
-        offset += edirent->size;
-
-        if (!idx--)
-        {
-            strncpy(dirent->d_name, edirent->name, edirent->name_len);
-            kfree(buf);
-            return 1;
-        }
-
-        if (offset >= vol->blksize)
-        {
-            blk++; offset = 0;
-            read_blocks(vol, buf, ext2_inode_blk(vol, &ino, blk), 1);
-        }
-    }
-
-    kfree(buf);
-
-    return 0;*/
-    //struct dirent* dirp = kmalloc(sizeof(struct dirent) * 32);
-
-    return ext2_getdents(vol, &ino, idx, 1, dirent);
-
-    //kfree(dirp);
-}
-
 void ext2_init_inode(struct ext2_inode* ino, uint32_t type, uint32_t perms)
 {
     memset(ino, 0, sizeof(struct ext2_inode));
@@ -567,19 +532,19 @@ static struct file* ext2_mount(const char* dev, void* data)
 
     read_blocks(vol, vol->groups, SUPER_BLK + 1, vol->group_cnt * sizeof(struct ext2_bgd) / vol->blksize + 1);
 
-    struct file* file = vfs_create_file();
+    struct file* file  = vfs_create_file();
 
-    file->device      = vol;
-    file->flags       = FL_MNTPT;
-    file->inode       = 2;
+    file->device       = vol;
+    file->flags        = FL_MNTPT;
+    file->inode        = 2;
 
-    file->ops.read    = ext2_read;
-    file->ops.write   = ext2_write;
-    file->ops.find    = ext2_find;
-    file->ops.readdir = ext2_readdir;
-    file->ops.mkfile  = ext2_mkfile;
-    file->ops.mkdir   = ext2_mkdir;
-    file->ops.rm      = ext2_rm;
+    file->ops.read     = ext2_read;
+    file->ops.write    = ext2_write;
+    file->ops.find     = ext2_find;
+    file->ops.getdents = ext2_getdents;
+    file->ops.mkfile   = ext2_mkfile;
+    file->ops.mkdir    = ext2_mkdir;
+    file->ops.rm       = ext2_rm;
 
     return file;
 }
