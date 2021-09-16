@@ -7,7 +7,7 @@
 #define SUPER_BLK 1
 #define BGDS_BLK  2
 
-#define INOSIZE(ino) (((size_t)ino.size_u << 32) | ino.size)
+#define INOSIZE(ino) (((size_t)((ino).size_u) << 32) | (ino).size)
 
 static ssize_t read_blocks(struct ext2_volume* vol, void* buf, uintptr_t blk, size_t cnt)
 {
@@ -204,29 +204,96 @@ uint32_t ext2_alloc_blk(struct ext2_volume* vol)
 
     for (uint32_t i = 0; i < vol->group_cnt; i++)
     {
-        uint32_t grp = vol->groups[i].block_bmp;
-        read_blocks(vol, buf, grp, 1);
+        if (!vol->groups[i].free_blocks) continue;
 
-        for (uint32_t j = 0; j < vol->blksize; j++)
-        {
-            if (buf[j] == 0xff) continue;
+        read_blocks(vol, buf, vol->groups[i].block_bmp, 1);
 
-            for (uint32_t k = 0; k < 8; k++)
-            if ((buf[j] & (1 << k)) == 0)
-            {
-                buf[j] |= (1 << k);
-                write_blocks(vol, buf, grp, 1);
+        // Find the first unset bit
+        int j;
+        for (j = 0; j < vol->blksize * 8 && (buf[j / 8] & (1 << (j % 8))); j++);
+        if (j == vol->blksize * 8) continue;
+        
+        // Set it and return
+        buf[j / 8] |= (1 << (j % 8));
+        write_blocks(vol, buf, vol->groups[i].block_bmp, 1);
 
-                vol->groups[i].free_blocks--;
-                ext2_rewrite_bgds(vol);
+        vol->groups[i].free_blocks--;
+        ext2_rewrite_bgds(vol);
 
-                kfree(buf);
-                return i * vol->sb.blks_per_grp + j * 8 + k;
-            }
-        }
+        kfree(buf);
+        return i * vol->sb.blks_per_grp + j;
     }
 
     printk("ext2: out of blocks\n");
+    kfree(buf);
+    return 0;
+}
+
+uint32_t ext2_alloc_inode(struct ext2_volume* vol)
+{
+    uint8_t* buf = kmalloc(vol->blksize);
+
+    for (uint32_t i = 0; i < vol->group_cnt; i++)
+    {
+        if (!vol->groups[i].free_inodes) continue;
+
+        read_blocks(vol, buf, vol->groups[i].inode_bmp, 1);
+
+        // Find the first unset bit
+        int j;
+        for (j = 0; j < vol->blksize * 8 && (buf[j / 8] & (1 << (j % 8))); j++);
+        if (j == vol->blksize * 8) continue;
+        
+        // Set it and return
+        buf[j / 8] |= (1 << (j % 8));
+        write_blocks(vol, buf, vol->groups[i].inode_bmp, 1);
+
+        vol->groups[i].free_inodes--;
+        ext2_rewrite_bgds(vol);
+
+        kfree(buf);
+        return i * vol->sb.inodes_per_grp + j;
+    }
+
+    printk("ext2: could not allocate a free inode\n");
+    kfree(buf);
+
+    return 0;
+}
+
+static int ext2_getdents(struct ext2_volume* vol, struct ext2_inode* dir, off_t off, size_t n, struct dirent* dirp)
+{
+    // TODO: maybe this is unnecessary
+    size_t dentidx = 0;
+
+    uintptr_t offset = 0;
+    uintptr_t blk    = 0;
+
+    void* buf = kmalloc(vol->blksize);
+    read_blocks(vol, buf, ext2_inode_blk(vol, dir, blk), 1);
+
+    while (offset + blk * vol->blksize < INOSIZE(*dir))
+    {
+        struct ext2_dirent* dirent = (struct ext2_dirent*)((uintptr_t)buf + offset);
+        offset += dirent->size;
+
+        if (off--) continue;
+
+        strncpy(dirp[dentidx].d_name, dirent->name, dirent->name_len);
+        dentidx++;
+        if (dentidx == n)
+        {
+            kfree(buf);
+            return 1;
+        }
+
+        if (offset >= vol->blksize)
+        {
+            blk++; offset = 0;
+            read_blocks(vol, buf, ext2_inode_blk(vol, dir, blk), 1);
+        }
+    }
+
     kfree(buf);
     return 0;
 }
@@ -238,15 +305,20 @@ void ext2_resize(struct file* file, size_t size)
     struct ext2_inode ino;
     ext2_read_inode(vol, file->inode, &ino);
 
+    // Get number of blocks needed to resize
     size_t diff = size - file->size;
     size_t cnt = diff % vol->blksize == 0
                ? diff / vol->blksize
                : diff / vol->blksize + 1;
 
     while (cnt--)
-        ext2_set_inode_blk(vol, &ino, ino.sector_cnt / (vol->blksize / 512), ext2_alloc_blk(vol));
+    {
+        // Allocate blocks on the end
+        uint32_t i = ino.sector_cnt / (vol->blksize / 512);
+        ext2_set_inode_blk(vol, &ino, i, ext2_alloc_blk(vol));
+    }
 
-    ino.size = size & 0xffffffff;
+    ino.size   = size & 0xffffffff;
     ino.size_u = size >> 32;
 
     ext2_write_inode(vol, file->inode, &ino);
@@ -380,6 +452,7 @@ struct file* ext2_find(struct file* dir, const char* name)
     return NULL;
 }
 
+// TODO: only use getdents()
 int ext2_readdir(struct file* dir, size_t idx, struct dirent* dirent)
 {
     struct ext2_volume* vol = dir->device;
@@ -387,7 +460,7 @@ int ext2_readdir(struct file* dir, size_t idx, struct dirent* dirent)
     struct ext2_inode ino;
     ext2_read_inode(vol, dir->inode, &ino);
 
-    uintptr_t offset = 0;
+    /*uintptr_t offset = 0;
     uintptr_t blk    = 0;
 
     void* buf = kmalloc(vol->blksize);
@@ -414,17 +487,57 @@ int ext2_readdir(struct file* dir, size_t idx, struct dirent* dirent)
 
     kfree(buf);
 
-    return 0;
+    return 0;*/
+    //struct dirent* dirp = kmalloc(sizeof(struct dirent) * 32);
+
+    return ext2_getdents(vol, &ino, idx, 1, dirent);
+
+    //kfree(dirp);
+}
+
+void ext2_init_inode(struct ext2_inode* ino, uint32_t type, uint32_t perms)
+{
+    memset(ino, 0, sizeof(struct ext2_inode));
+
+    ino->mode |= perms & 0xfff;
+    ino->mode |= type;
+    ino->link_cnt = type == INODE_DIR ? 2 : 0;
+}
+
+void ext2_mkentry(struct file* dir, const char* name, uint32_t type)
+{
+    struct ext2_volume* vol = dir->device;
+
+    uint32_t inonum = ext2_alloc_inode(vol);
+
+    // Initialize the inode and write to disk
+    struct ext2_inode ino;
+    ext2_read_inode (vol, inonum, &ino);
+    ext2_init_inode (&ino, type, 0);     // TODO: convert the type
+    ext2_write_inode(vol, inonum, &ino);
+
+    // Create the directory entry
+    size_t size = sizeof(struct ext2_dirent) + strlen(name);
+
+    struct ext2_dirent* dirent = kmalloc(size);
+
+    dirent->type     = type;
+    dirent->inode    = inonum;
+    dirent->name_len = strlen(name);
+    dirent->size     = size;
+
+    // Copy the name into the flexible array
+    memcpy(dirent->name, name, strlen(name));
 }
 
 void ext2_mkfile(struct file* dir, const char* name)
 {
-
+    ext2_mkentry(dir, name, INODE_FILE);
 }
 
 void ext2_mkdir(struct file* dir, const char* name)
 {
-
+    ext2_mkentry(dir, name, INODE_DIR);
 }
 
 void ext2_rm(struct file* dir, const char* name)

@@ -10,7 +10,7 @@ TARGET = dist/vmkernel
 release: CFLAGS += -g -O3 -fno-omit-frame-pointer
 release: $(TARGET) dev
 
-debug: CFLAGS += -g -DDEBUG -fsanitize=undefined -fsanitize=kernel-address
+debug: CFLAGS += -O3 -g -DDEBUG -fsanitize=undefined -fsanitize=kernel-address
 debug: $(TARGET) dev
 
 .PHONY: clean dev install

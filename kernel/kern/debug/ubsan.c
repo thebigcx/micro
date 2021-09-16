@@ -68,6 +68,12 @@ struct shft_oob_info
     struct typedesc* rhs_type;
 };
 
+struct vla_bound_info
+{
+    struct srcloc location;
+    struct typedesc* type;  
+};
+
 static void print_location(const struct srcloc loc) {
     printk_crit("\tfile: %s\n\tline: %d\n\tcolumn: %d\n",
          loc.file, loc.line, loc.column);
@@ -169,6 +175,12 @@ void __ubsan_handle_divrem_overflow(struct overflow_info* info, uintptr_t left, 
 void __ubsan_handle_shift_out_of_bounds(struct shft_oob_info* info, uintptr_t left, uintptr_t right)
 {
     printk_crit("UBSAN: shift out of bounds, %s (%d-bit) shifted by %s (%d-bit)\n", info->lhs_type->name, bitw(info->lhs_type->info), info->rhs_type->name, bitw(info->rhs_type->info));
+    print_location(info->location);
+}
+
+void __ubsan_handle_vla_bound_not_positive(struct vla_bound_info* info, void* value)
+{
+    printk("UBSAN: VLA bound not positive %s (%d-bit)\n", info->type->name, bitw(info->type->info));
     print_location(info->location);
 }
 
