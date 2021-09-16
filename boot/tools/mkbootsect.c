@@ -8,7 +8,7 @@ int main(int argc, char** argv)
 
     FILE* bootsect = fopen("bootsect.bin", "r");
     FILE* out = fopen("boot.img", "r+");
-    FILE* loader = fopen("loader.bin", "r");
+    //FILE* loader = fopen("loader.bin", "r");
 
     char jmp[3];
     fread(jmp, 3, 1, bootsect);
@@ -24,7 +24,7 @@ int main(int argc, char** argv)
     printf("%d\n", ftell(out));
 
     // Write the rest of the bootloader
-    fseek(loader, 0, SEEK_END);
+    /*fseek(loader, 0, SEEK_END);
     size_t loader_size = ftell(loader);
     fseek(loader, 0, SEEK_SET);
 
@@ -32,10 +32,10 @@ int main(int argc, char** argv)
     fread(loader_data, loader_size, 1, loader);
 
     printf("%d\n", ftell(bootsect));
-    fwrite(loader_data, loader_size, 1, out);
+    fwrite(loader_data, loader_size, 1, out);*/
 
     fclose(out);
     fclose(bootsect);
-    fclose(loader);
+    //fclose(loader);
     return 0;
 }

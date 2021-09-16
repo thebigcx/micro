@@ -27,7 +27,7 @@ OBJS := $(patsubst %.c, %.o, $(SOURCES)) $(patsubst %.S, %.o, $(ASM))
 AR := libc.a
 SO := libc.so
 CRT0 := crt0.o
-CFLAGS := -fno-omit-frame-pointer -ffreestanding -fno-stack-protector -O2 -Wall -Wextra -Wno-unused-parameter -Wno-unused-variable -Iansi/include -Iinternal/include -Iposix/include -Isysdeps/micro/include
+CFLAGS := -fPIC -fno-omit-frame-pointer -ffreestanding -fno-stack-protector -O2 -Wall -Wextra -Wno-unused-parameter -Wno-unused-variable -Iansi/include -Iinternal/include -Iposix/include -Isysdeps/micro/include
 
 SUBDIRS = elf
 
@@ -44,7 +44,7 @@ $(AR): $(OBJS)
 
 $(SO): $(OBJS)
 	@echo "    LD    $@"
-#	@x86_64-micro-ld -shared -Bsymbolic -o $@ $^
+	@x86_64-micro-gcc -Wl,-Bsymbolic -shared -nostdlib -o $@ $^
 
 %.o: %.c
 	@echo "    CC    $@"
@@ -59,7 +59,7 @@ install:
 	mkdir -p $(DESTDIR)/usr/include
 	mkdir -p $(DESTDIR)/usr/lib
 	cp $(AR) $(DESTDIR)/usr/lib/
-#	cp $(SO) $(DESTDIR)/usr/lib/
+	cp $(SO) $(DESTDIR)/usr/lib/
 	cp $(CRT0) $(DESTDIR)/usr/lib/
 	cp -r ansi/include/* $(DESTDIR)/usr/include/
 	cp -r posix/include/* $(DESTDIR)/usr/include/

@@ -1,10 +1,8 @@
 SRC =
 ASM = stage2/entry.S
 OBJ = $(patsubst %.c, %.o, $(SRC)) $(patsubst %.S, %.o, $(ASM))
-LOADER = loader.bin
 
 CFLAGS = -ffreestanding
-LDFLAGS = -Tlinker.ld --oformat binary
 
 .DEFAULT_GOAL := all
 
@@ -14,13 +12,9 @@ bootsect.bin: stage1/bootsect.S
 	@echo "    AS stage1/bootsect.o"
 	@gcc $(CFLAGS) -c stage1/bootsect.S -o stage1/bootsect.o
 	@echo "    LD $@"
-	@ld $(LDFLAGS) -o bootsect.bin stage1/bootsect.o
+	@ld -Tstage1/linker.ld --oformat binary -o bootsect.bin stage1/bootsect.o
 
 stage1: bootsect.bin
-
-stage2: $(OBJ)
-	@echo "    LD loader.bin"
-	@ld $(LDFLAGS) -o loader.bin $^
 
 %.o: %.S
 	@echo "    AS $@"
@@ -30,9 +24,9 @@ stage2: $(OBJ)
 	@echo "    CC $@"
 	@gcc $(CFLAGS) -o $@ -c $<
 
-all: 
+all:
 	@$(MAKE) -s stage1
-	@$(MAKE) -s stage2
+#	@$(MAKE) -s stage2
 	@echo "building boot image..."
 	@tools/mkbootsect bootsect.bin > /dev/null 2>&1
 
