@@ -148,10 +148,15 @@ void generic_init(struct genbootparams params)
     vfs_mount_fs("/dev/initrd", "/", "initramfs", NULL);
 
     kmod_load("/ahci.ko");
-    kmod_load("/fat.ko");
+    /*kmod_load("/fat.ko");
 
     printk("mounting root filesystem\n");
-    vfs_mount_fs("/dev/sda", "/", "fat", NULL);
+    vfs_mount_fs("/dev/sda", "/", "fat", NULL);*/
+
+    kmod_load("/ext2.ko");
+
+    printk("mounting root filesystem\n");
+    vfs_mount_fs("/dev/sda", "/", "ext2", NULL);
 
     tty_init();
 

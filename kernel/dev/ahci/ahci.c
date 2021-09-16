@@ -293,7 +293,19 @@ void ahci_init_ctrl()
 
             if (type == AHCI_PORT_SATA || type == AHCI_PORT_SATAPI)
             {
-                vfs_addnode(ahci_create_dev(&vabar->ports[i]), "/dev/sda"); // TODO: generate a unique drive name
+                char* name = strdup("/dev/sda");
+
+                for (unsigned int i = 0; i < 26; i++)
+                {
+                    name[strlen(name) - 1] = 'a' + i;
+                    if (vfs_access(name, F_OK) != 0)
+                    {
+                        vfs_addnode(ahci_create_dev(&vabar->ports[i]), name);
+                        break;
+                    }
+                }
+
+                kfree(name);
             }
         }
     }
