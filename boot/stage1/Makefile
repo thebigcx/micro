@@ -16,5 +16,5 @@ bootsect.bin: bootsect.S
 	@gcc $(CFLAGS) -o $@ -c $<
 
 clean:
-	@echo "RM    bootsect.bin"
+	@echo "    RM bootsect.bin"
 	@rm -f bootsect.bin bootsect.o

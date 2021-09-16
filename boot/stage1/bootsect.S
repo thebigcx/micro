@@ -130,6 +130,7 @@ entry32:
 
 .code64
 entry64:
+    jmp     0x7e00
     hlt
 
 .align 16
