@@ -38,7 +38,8 @@ static size_t tty_line_idx = 0;
 void tty_keypress(int scancode)
 {
     char c = ascii[scancode];
-    vga_putc(c);
+    //vga_putc(c);
+    fb_putch(c, 0xffffffff, 0);
 
     if (c == '\b')
     {
@@ -73,7 +74,8 @@ ssize_t tty_write(struct file* file, const void* buf, off_t off, size_t size)
     const char* cbuf = buf;
     for (size_t i = 0; i < size; i++)
     {
-        vga_putc(cbuf[i]);
+        //vga_putc(cbuf[i]);
+        fb_putch(cbuf[i], 0xffffffff, 0);
     }
     
     return size;

@@ -9,19 +9,28 @@
 static int ready = 0;
 static struct list tasks;
 static struct list ready_queue;
+static lock_t      ready_lock = 0;
+static lock_t      tasks_lock = 0;
 
 static struct thread* next_ready(struct cpu_info* cpu)
 {
+    LOCK(ready_lock);
+
     if (!ready_queue.size)
+    {
+        UNLOCK(ready_lock);
         return cpu->idle;
+    }
 
     struct thread* thread = list_dequeue(&ready_queue);
     if (thread->state == THREAD_RUNNING)
     {
         list_push_back(&ready_queue, thread);
+        UNLOCK(ready_lock);
         return cpu->idle;
     }
 
+    UNLOCK(ready_lock);
     return thread;
 }
 
@@ -34,7 +43,6 @@ void sched_init()
 
     for (unsigned int i = 0; i < g_cpu_cnt; i++)
     {
-        printk("creating idle\n");
         g_cpus[i].idle = task_idle()->threads.head->data;
         g_cpus[i].idle->state = THREAD_READY;
     }
@@ -85,7 +93,10 @@ void switch_task(struct regs* r)
         if (cpu->current->state == THREAD_RUNNING)
         {
             cpu->current->state = THREAD_READY;
+
+            LOCK(ready_lock);
             list_push_back(&ready_queue, cpu->current);
+            UNLOCK(ready_lock);
         }
     }
 

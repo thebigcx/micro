@@ -127,6 +127,14 @@ struct PACKED st2_tag_term
 
 typedef void (*term_write_t)(const char* , size_t);
 
+#define ST2_TAG_CMDLINE_ID 0xe5e76a1b4597a781
+
+struct PACKED st2_tag_cmdline
+{
+    struct st2_tag tag;
+    uint64_t cmdline;
+};
+
 struct bootparams
 {
     uintptr_t rsdp;
@@ -135,6 +143,8 @@ struct bootparams
 
     uintptr_t fb_phys_addr;
     unsigned int fbwidth, fbheight, fbbpp;
+
+    char cmdline[128];
 };
 
 extern term_write_t term_write;

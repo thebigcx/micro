@@ -37,17 +37,23 @@ void main(struct bootparams params)
     genparams.initrd_start = vaddr;
     genparams.initrd_end = vaddr + (params.initrd_phys_end - params.initrd_phys_start);
 
-    /*unsigned int pages = (params.fbwidth * params.fbheight * (params.fbbpp / 8)) / PAGE4K + 1;
-    uintptr_t virt = mmu_kalloc(pages);
+    //if (params.graphics)
+    //{
+        unsigned int pages = (params.fbwidth * params.fbheight * (params.fbbpp / 8)) / PAGE4K + 1;
+        uintptr_t virt = mmu_kalloc(pages);
 
-    for (unsigned int i = 0; i < pages; i++)
-        mmu_kmap(virt + i * PAGE4K, params.fb_phys_addr + i * PAGE4K, PAGE_PR | PAGE_RW);
+        for (unsigned int i = 0; i < pages; i++)
+            mmu_kmap(virt + i * PAGE4K, params.fb_phys_addr + i * PAGE4K, PAGE_PR | PAGE_RW);
 
-    fb_set_addr((void*)virt);*/
-    uintptr_t virt = mmu_kalloc(8);
-    for (unsigned int i = 0; i < 8; i++)
-        mmu_kmap(virt + i * PAGE4K, 0xb8000 + i * PAGE4K, PAGE_PR | PAGE_RW);
-    vga_set_addr(virt);
+        fb_set_addr((void*)virt);
+    /*}
+    else
+    {
+        uintptr_t virt = mmu_kalloc(8);
+        for (unsigned int i = 0; i < 8; i++)
+            mmu_kmap(virt + i * PAGE4K, 0xb8000 + i * PAGE4K, PAGE_PR | PAGE_RW);
+        vga_set_addr(virt);
+    }*/
 
     printk("done\n");
 
@@ -81,7 +87,7 @@ void main(struct bootparams params)
     sti();
     
     printk("starting cpus...");
-    //smp_init();
+    smp_init();
     printk("done\n");
 
     generic_init(genparams);

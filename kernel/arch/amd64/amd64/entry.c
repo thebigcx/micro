@@ -28,7 +28,7 @@ static struct st2_header_term termtag =
     .flags = 0
 };
 
-/*static struct st2_header_fb fbtag =
+static struct st2_header_fb fbtag =
 {
     .tag =
     {
@@ -38,17 +38,15 @@ static struct st2_header_term termtag =
     .width  = 0,
     .height = 0,
     .bpp    = 0
-};*/
+};
 
-//__attribute__((section(".stivale2hdr"), used))
 SECTION(".stivale2hdr") USED
 static struct st2header header =
 {
     .entry = 0,
     .stack = (uintptr_t)stack + sizeof(stack),
     .flags = 0,
-    //.tags = (uintptr_t)&fbtag
-    .tags = (uintptr_t)&termtag
+    .tags = (uintptr_t)&fbtag
 };
 
 term_write_t term_write;
@@ -69,7 +67,7 @@ term_write_t find_term(struct st2_tag* tag)
 
 void kmain_st2(struct st2struct* st2)
 {
-    vga_set_addr(0xb8000);
+    //vga_set_addr(0xb8000);
 
     struct bootparams params;
  
@@ -143,6 +141,12 @@ void kmain_st2(struct st2struct* st2)
                     params.initrd_phys_end = mod.end;
                 }
                 
+                break;
+            }
+            case ST2_TAG_CMDLINE_ID:
+            {
+                struct st2_tag_cmdline* cmdline = (struct st2_tag_cmdline*)tag;
+                strcpy(params.cmdline, (const char*)cmdline->cmdline);
                 break;
             }
         }
