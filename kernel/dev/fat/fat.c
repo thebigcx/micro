@@ -539,7 +539,7 @@ struct file* fat_mount(const char* dev, void* data)
     struct file* file = vfs_create_file();
     memset(file, 0, sizeof(struct file));
 
-    file->flags       = FL_MNTPT;
+    file->flags       = FL_DIR;
     file->device      = vol;
     file->inode       = vol->record.ebr.cluster_num;
     file->ops.find    = fat_find;

@@ -40,7 +40,7 @@ ssize_t vfs_write(struct file* file, const void* buf, off_t off, size_t size)
 
 struct file* vfs_find(struct file* dir, const char* name)
 {
-    if (dir && ((dir->flags & FL_DIR) || (dir->flags & FL_MNTPT)) && dir->ops.find)
+    if (dir && (dir->flags & FL_DIR) && dir->ops.find)
     {
         return dir->ops.find(dir, name);
     }
@@ -50,7 +50,7 @@ struct file* vfs_find(struct file* dir, const char* name)
 
 ssize_t vfs_getdents(struct file* dir, off_t off, size_t n, struct dirent* dirp)
 {
-    if (dir && ((dir->flags & FL_DIR) || (dir->flags & FL_MNTPT)) && dir->ops.getdents)
+    if (dir && (dir->flags & FL_DIR) && dir->ops.getdents)
     {
         return dir->ops.getdents(dir, off, n, dirp);
     }
@@ -68,7 +68,7 @@ void vfs_mkfile(const char* path)
     char* token = strtok_r(relat, "/", &saveptr);
     char* next = strtok_r(NULL, "/", &saveptr);
 
-    if (!file || !(file->flags & FL_MNTPT) || !token) return;
+    if (!file || !(file->flags & FL_DIR) || !token) return;
 
     while (next)
     {
@@ -81,7 +81,7 @@ void vfs_mkfile(const char* path)
         next = strtok_r(NULL, "/", &saveptr);
     }
 
-    if (file && ((file->flags & FL_DIR) || (file->flags & FL_MNTPT)) && file->ops.mkfile)
+    if (file && (file->flags & FL_DIR) && file->ops.mkfile)
         file->ops.mkfile(file, token);
 
     kfree(relat);
@@ -96,7 +96,7 @@ void vfs_mkdir(const char* path)
     char* token = strtok_r(relat, "/", &saveptr);
     char* next = strtok_r(NULL, "/", &saveptr);
 
-    if (!file || !(file->flags & FL_MNTPT) || !token) return;
+    if (!file || !(file->flags & FL_DIR) || !token) return;
 
     while (next)
     {
@@ -109,7 +109,7 @@ void vfs_mkdir(const char* path)
         next = strtok_r(NULL, "/", &saveptr);
     }
 
-    if (file && ((file->flags & FL_DIR) || (file->flags & FL_MNTPT)) && file->ops.mkdir)
+    if (file && (file->flags & FL_DIR) && file->ops.mkdir)
         file->ops.mkdir(file, token);
 
     kfree(relat);
@@ -117,7 +117,7 @@ void vfs_mkdir(const char* path)
 
 void vfs_rm(struct file* dir, const char* name)
 {
-    if (dir && ((dir->flags & FL_DIR) || (dir->flags & FL_MNTPT)) && dir->ops.rm)
+    if (dir && (dir->flags & FL_DIR) && dir->ops.rm)
         dir->ops.rm(dir, name);
 }
 
@@ -312,7 +312,7 @@ int vfs_resolve(const char* path, struct file* out)
     char* token = strtok_r(relat, "/", &saveptr);
 
     // TODO: this is temporary
-    if (!file || !(file->flags & FL_MNTPT)) // Not a mounted filesystem
+    if (!file || !(file->flags & FL_DIR)) // Not a mounted filesystem
     {
         // TODO: use a device management system instead of this garbage
         if (relat[0] == 0) // Virtual filesystem node
@@ -332,7 +332,7 @@ int vfs_resolve(const char* path, struct file* out)
 
     while (token)
     {
-        if (file->flags != FL_DIR && file->flags != FL_MNTPT) return -ENOTDIR;
+        if (file->flags != FL_DIR) return -ENOTDIR;
 
         struct file* child = vfs_find(file, token);
         kfree(file);

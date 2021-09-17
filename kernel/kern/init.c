@@ -110,7 +110,7 @@ struct file* initramfs_mount(const char* dev, void* data)
 
     struct file* file = kmalloc(sizeof(struct file));
     file->ops.find = initramfs_find;
-    file->flags = FL_MNTPT;
+    file->flags = FL_DIR;
     file->device = ramfs;
 
     return file;

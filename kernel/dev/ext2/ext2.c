@@ -536,7 +536,7 @@ static struct file* ext2_mount(const char* dev, void* data)
     struct file* file  = vfs_create_file();
 
     file->device       = vol;
-    file->flags        = FL_MNTPT;
+    file->flags        = FL_DIR;
     file->inode        = 2;
 
     file->ops.read     = ext2_read;

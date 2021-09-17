@@ -37,7 +37,6 @@ struct file_ops
 #define FL_FIFO     5
 #define FL_SOCKET   6
 #define FL_SYMLINK  7
-#define FL_MNTPT    8
 
 // TODO: flags, modes, etc
 struct fd

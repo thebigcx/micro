@@ -291,7 +291,7 @@ static int sys_chdir(const char* path)
     int e = vfs_resolve(new, dir);
     
     if (e) return e;
-    if (dir->flags != FL_DIR && dir->flags != FL_MNTPT) return -ENOTDIR;
+    if (dir->flags != FL_DIR) return -ENOTDIR;
 
     strcpy(task->workd, new);
 
@@ -322,7 +322,7 @@ static ssize_t sys_getdents(int fdno, struct dirent* dirp, size_t n)
 
     struct fd* fd = task_curr()->fds[fdno];
 
-    if (fd->filp->flags != FL_DIR && fd->filp->flags != FL_MNTPT) return -ENOTDIR;
+    if (fd->filp->flags != FL_DIR) return -ENOTDIR;
 
     return vfs_getdents(fd->filp, fd->off++, n, dirp);
 }
