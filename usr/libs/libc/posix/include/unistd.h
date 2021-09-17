@@ -18,6 +18,10 @@
 
 ssize_t read(int fd, void* buf, size_t count);
 ssize_t write(int fd, const void* buf, size_t count);
+
+ssize_t pread(int fd, void* buf, size_t count, off_t off);
+ssize_t pwrite(int fd, const void* buf, size_t count, off_t off);
+
 int close(int fd);
 off_t lseek(int fd, off_t offset, int whence);
 int execve(const char* pathname, const char* argv[], const char* envp[]);

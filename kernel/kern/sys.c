@@ -420,6 +420,28 @@ static int sys_umount(const char* target)
     return vfs_umount_fs(target);
 }
 
+static ssize_t sys_pread(int fdno, void* buf, size_t size, off_t off)
+{
+    FDVALID(fdno);
+    PTRVALID(buf);
+
+    struct task* task = task_curr();
+    ssize_t ret = vfs_read(task->fds[fdno]->filp, buf, off, size);
+
+    return ret;
+}
+
+static ssize_t sys_pwrite(int fdno, const void* buf, size_t size, off_t off)
+{
+    PTRVALID(buf);
+    FDVALID(fdno);
+
+    struct task* task = task_curr();
+    ssize_t ret = vfs_write(task->fds[fdno]->filp, buf, off, size);
+
+    return ret;
+}
+
 typedef uintptr_t (*syscall_t)();
 
 static uintptr_t syscalls[] =
@@ -449,7 +471,9 @@ static uintptr_t syscalls[] =
     (uintptr_t)sys_insmod,
     (uintptr_t)sys_rmmod,
     (uintptr_t)sys_mount,
-    (uintptr_t)sys_umount
+    (uintptr_t)sys_umount,
+    (uintptr_t)sys_pread,
+    (uintptr_t)sys_pwrite
 };
 
 void syscall_handler(struct regs* r)

@@ -194,3 +194,25 @@ int sys_umount(const char* target)
 {
 	return syscall(SYS_umount, target);
 }
+
+int sys_pread(int fd, void* buf, size_t count, off_t off, ssize_t* bytes)
+{
+	ssize_t ret = syscall(SYS_pread, fd, buf, count, off);
+
+	if (ret < 0)
+		return ret;
+
+	*bytes = ret;
+	return 0;
+}
+
+int sys_pwrite(int fd, const void* buf, size_t count, off_t off, ssize_t* bytes)
+{
+	ssize_t ret = syscall(SYS_pwrite, fd, buf, count, off);
+
+	if (ret < 0)
+		return ret;
+
+	*bytes = ret;
+	return 0;
+}

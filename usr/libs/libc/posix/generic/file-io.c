@@ -35,8 +35,8 @@ int close(int fd)
 
 ssize_t read(int fd, void* buf, size_t count)
 {
-	ssize_t bytes_read;
-	int err = sys_read(fd, buf, count, &bytes_read);
+	ssize_t bytes;
+	int err = sys_read(fd, buf, count, &bytes);
 
 	if (err)
 	{
@@ -44,13 +44,13 @@ ssize_t read(int fd, void* buf, size_t count)
 		return -1;
 	}
 
-	return bytes_read;
+	return bytes;
 }
 
 ssize_t write(int fd, const void* buf, size_t count)
 {
-	ssize_t bytes_written;
-	int err = sys_write(fd, buf, count, &bytes_written);
+	ssize_t bytes;
+	int err = sys_write(fd, buf, count, &bytes);
 
 	if (err)
 	{
@@ -58,7 +58,35 @@ ssize_t write(int fd, const void* buf, size_t count)
 		return -1;
 	}
 
-	return bytes_written;
+	return bytes;
+}
+
+ssize_t pread(int fd, void* buf, size_t count, off_t off)
+{
+	ssize_t bytes;
+	int err = sys_pread(fd, buf, count, off, &bytes);
+
+	if (err)
+	{
+        errno = err;
+		return -1;
+	}
+
+	return bytes;
+}
+
+ssize_t pwrite(int fd, const void* buf, size_t count, off_t off)
+{
+	ssize_t bytes;
+	int err = sys_pwrite(fd, buf, count, off, &bytes);
+
+	if (err)
+	{
+        errno = err;
+		return -1;
+	}
+
+	return bytes;
 }
 
 int access(const char* pathname, int mode)

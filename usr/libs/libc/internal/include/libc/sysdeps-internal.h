@@ -36,5 +36,7 @@ int sys_mount(const char* src, const char* dst,
               const char* fstype, unsigned long flags,
               const void* data);
 int sys_umount(const char* target);
+int sys_pread(int fd, void* buf, size_t count, off_t off, ssize_t* bytes);
+int sys_pwrite(int fd, const void* buf, size_t count, off_t off, ssize_t* bytes);
 
 pid_t sys_getpid();

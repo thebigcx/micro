@@ -163,6 +163,7 @@ void generic_init(struct genbootparams params)
     tty_init();
 
     //vga_init();
+    fb_init_dev();
 
     printk("starting scheduler\n");
     sched_init();

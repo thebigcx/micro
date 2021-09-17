@@ -26,3 +26,5 @@
 #define SYS_rmmod           23
 #define SYS_mount           24
 #define SYS_umount          25
+#define SYS_pread           26
+#define SYS_pwrite          27
