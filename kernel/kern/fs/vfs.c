@@ -311,6 +311,7 @@ int vfs_resolve(const char* path, struct file* out)
     char* saveptr;
     char* token = strtok_r(relat, "/", &saveptr);
 
+    // TODO: this is temporary
     if (!file || !(file->flags & FL_MNTPT)) // Not a mounted filesystem
     {
         // TODO: use a device management system instead of this garbage
@@ -321,8 +322,9 @@ int vfs_resolve(const char* path, struct file* out)
         }
         else return -ENOENT; // 'path' does not exist in the VFS
     }
+    // -- up to here
 
-    if (!token) // Return a copy of the mounted filesystem root
+    if (!token) // Return the mounted filesystem root
     {
         memcpy(out, file, sizeof(struct file));
         return 0;
@@ -330,9 +332,12 @@ int vfs_resolve(const char* path, struct file* out)
 
     while (token)
     {
+        if (file->flags != FL_DIR && file->flags != FL_MNTPT) return -ENOTDIR;
+
         struct file* child = vfs_find(file, token);
         kfree(file);
         file = child;
+
         if (!file) return -ENOENT;
 
         token = strtok_r(NULL, "/", &saveptr);
