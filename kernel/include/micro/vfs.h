@@ -89,7 +89,7 @@ void vfs_close(struct fd* fd);
 
 char* vfs_mkcanon(const char* path, const char* work);
 
-struct file* vfs_resolve(const char* path);
+int vfs_resolve(const char* path, struct file* out);
 
 int vfs_access(const char* path, int mode);
 

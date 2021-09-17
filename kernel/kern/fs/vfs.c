@@ -303,10 +303,7 @@ char* vfs_mkcanon(const char* path, const char* work)
     return ret;
 }
 
-// TODO: vfs_resolve should return an error code
-
-// Will always return a file that can be kfree'd
-struct file* vfs_resolve(const char* path)
+int vfs_resolve(const char* path, struct file* out)
 {
     char* relat;
     struct file* file = vfs_getmnt(path, &relat);
@@ -316,21 +313,19 @@ struct file* vfs_resolve(const char* path)
 
     if (!file || !(file->flags & FL_MNTPT)) // Not a mounted filesystem
     {
-        if (relat[0] == 0)
+        // TODO: use a device management system instead of this garbage
+        if (relat[0] == 0) // Virtual filesystem node
         {
-            // Make a copy so the caller can free once done without affecting the VFS
-            struct file* ret = kmalloc(sizeof(struct file));
-            memcpy(ret, file, sizeof(struct file));
-            return ret; // Virtual filesystem node
+            memcpy(out, file, sizeof(struct file));
+            return 0;
         }
-        else return NULL; // 'path' does not exist in the VFS
+        else return -ENOENT; // 'path' does not exist in the VFS
     }
 
     if (!token) // Return a copy of the mounted filesystem root
     {
-        struct file* ret = kmalloc(sizeof(struct file));
-        memcpy(ret, file, sizeof(struct file));
-        return ret;
+        memcpy(out, file, sizeof(struct file));
+        return 0;
     }
 
     while (token)
@@ -338,12 +333,13 @@ struct file* vfs_resolve(const char* path)
         struct file* child = vfs_find(file, token);
         kfree(file);
         file = child;
-        if (!file) return NULL;
+        if (!file) return -ENOENT;
 
         token = strtok_r(NULL, "/", &saveptr);
     }
 
-    return file;
+    memcpy(out, file, sizeof(struct file));
+    return 0;
 }
 
 struct fd* vfs_open(struct file* file, uint32_t flags, mode_t mode)
@@ -371,10 +367,10 @@ void vfs_close(struct fd* fd)
 
 int vfs_access(const char* path, int mode)
 {
-    struct file* file = vfs_resolve(path);
-    if (!file) return -ENOENT;
+    struct file* file = kmalloc(sizeof(struct file));
+    int e = vfs_resolve(path, file);
 
-    // TODO: permission checks
+    if (e) return e;
     return 0;
 }
 

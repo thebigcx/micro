@@ -8,3 +8,4 @@
 #define O_CREAT   0x008
 #define O_TMPFILE 0x010
 #define O_TRUNC   0x020
+#define O_EXCL    0x040

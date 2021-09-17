@@ -103,7 +103,8 @@ struct file* initramfs_find(struct file* dir, const char* name)
 
 struct file* initramfs_mount(const char* dev, void* data)
 {
-    struct file* device = vfs_resolve(dev);
+    struct file* device = kmalloc(sizeof(struct file));
+    vfs_resolve(dev, device);
     struct initramfs* ramfs = kmalloc(sizeof(struct initramfs));
     ramfs->device = device->device;
 
@@ -122,7 +123,8 @@ void initramfs_init()
 
 static void kmod_load(const char* path)
 {
-    struct file* mod = vfs_resolve(path);
+    struct file* mod = kmalloc(sizeof(struct file));
+    vfs_resolve(path, mod);
     void* buffer = kmalloc(mod->size);
     vfs_read(mod, buffer, 0, mod->size);
 

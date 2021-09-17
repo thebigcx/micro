@@ -43,13 +43,19 @@ static int sys_open(const char* path, uint32_t flags, mode_t mode)
     struct task* task = task_curr();
 
     char* canon = vfs_mkcanon(path, task->workd);
-    struct file* file = vfs_resolve(canon);
+    struct file* file = kmalloc(sizeof(struct file));
+    int e = vfs_resolve(canon, file);
 
-    if (!file)
+    if (e == -ENOENT)
     {
         if (!(flags & O_CREAT)) return -ENOENT;
+        // TODO: this hshoudl be better
         vfs_mkfile(canon);
-        file = vfs_resolve(canon);
+        vfs_resolve(canon, file);
+    }
+    else
+    {
+        if ((flags & O_CREAT) && (flags & O_EXCL)) return -EEXIST;
     }
 
     kfree(canon);
@@ -127,10 +133,13 @@ static int sys_execve(const char* path, const char* argv[], const char* envp[])
     PTRVALID(envp);
 
     char* canon = vfs_mkcanon(path, task_curr()->workd);
-    struct file* file = vfs_resolve(canon);
+
+    struct file* file = kmalloc(sizeof(struct file));
+    int e = vfs_resolve(canon, file);
+    
     kfree(canon);
 
-    if (!file) return -ENOENT;
+    if (e) return e;
     if (file->flags == FL_DIR) return -EISDIR;
 
     char* argv_copy[16];
@@ -278,9 +287,10 @@ static int sys_chdir(const char* path)
     struct task* task = task_curr();
     char* new = vfs_mkcanon(path, task->workd);
 
-    struct file* dir = vfs_resolve(new);
+    struct file* dir = kmalloc(sizeof(struct file));
+    int e = vfs_resolve(new, dir);
     
-    if (!dir) return -ENOENT;
+    if (e) return e;
     if (dir->flags != FL_DIR && dir->flags != FL_MNTPT) return -ENOTDIR;
 
     strcpy(task->workd, new);

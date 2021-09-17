@@ -44,7 +44,9 @@ static struct task* mktask(struct task* parent, struct vm_map* vm_map)
 // is never called from the kernel (execept for /bin/init)
 static void init_user_task(struct task* task, const char* path, const char* argv[], const char* envp[])
 {
-    struct file* file = vfs_resolve(path);
+    struct file* file = kmalloc(sizeof(struct file));
+    vfs_resolve(path, file);
+
     void* data = kmalloc(file->size);
     vfs_read(file, data, 0, file->size);
 
@@ -62,9 +64,11 @@ static void init_user_task(struct task* task, const char* path, const char* argv
     list_push_back(&task->threads, task->main);
 
     // TEMP: DEBUG
-    task->fds[0] = vfs_open(vfs_resolve("/dev/tty"), 0, 0);
-    task->fds[1] = vfs_open(vfs_resolve("/dev/tty"), 0, 0);
-    task->fds[2] = vfs_open(vfs_resolve("/dev/tty"), 0, 0);
+    struct file* tty = kmalloc(sizeof(struct file));
+    vfs_resolve("/dev/tty", tty);
+    task->fds[0] = vfs_open(tty, 0, 0);
+    task->fds[1] = vfs_open(tty, 0, 0);
+    task->fds[2] = vfs_open(tty, 0, 0);
 }
 
 static void idle()

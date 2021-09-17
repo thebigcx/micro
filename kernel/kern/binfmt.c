@@ -84,9 +84,13 @@ uintptr_t elf_load(struct task* task, void* data,
             memcpy(&nargv[1], &argv[0], argc * sizeof(const char*));
 
             // TODO: this leaks memory
-            struct file* file = vfs_resolve(nargv[0]);
-            void* data = kmalloc(file->size);
-            vfs_read(file, data, 0, file->size);
+            struct file* interp = kmalloc(sizeof(struct file));
+            int e = vfs_resolve(nargv[0], interp);
+
+            if (e) return e;
+
+            void* data = kmalloc(interp->size);
+            vfs_read(interp, data, 0, interp->size);
 
             return elf_load(task, data, (const char*)nargv, envp);
         }

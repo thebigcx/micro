@@ -513,7 +513,8 @@ void ext2_rm(struct file* dir, const char* name)
 static struct file* ext2_mount(const char* dev, void* data)
 {
     struct ext2_volume* vol = kmalloc(sizeof(struct ext2_volume));
-    vol->device = vfs_resolve(dev);
+    vol->device = kmalloc(sizeof(struct file));
+    vfs_resolve(dev, vol->device);
 
     void* buf = kmalloc(512);
 

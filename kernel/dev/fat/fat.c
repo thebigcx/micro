@@ -523,7 +523,8 @@ struct file* fat_find(struct file* dir, const char* name)
 
 struct file* fat_mount(const char* dev, void* data)
 {
-    struct file* device = vfs_resolve(dev);
+    struct file* device = kmalloc(sizeof(struct file));
+    vfs_resolve(dev, device);
 
     struct fat32_volume* vol = kmalloc(sizeof(struct fat32_volume));
     vol->device = device;
