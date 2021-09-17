@@ -14,6 +14,7 @@ typedef struct file* (*find_t    )(struct file* dir, const char* name);
 typedef ssize_t      (*getdents_t)(struct file* dir, off_t off, size_t n, struct dirent* dirp);
 typedef void         (*mkfile_t  )(struct file* dir, const char* name);
 typedef void         (*mkdir_t   )(struct file* dir, const char* name);
+typedef void         (*mknod_t   )(struct file* dir, struct file* file);
 typedef void         (*rm_t      )(struct file* dir, const char* name);
 
 struct file_ops
@@ -27,6 +28,7 @@ struct file_ops
     getdents_t getdents;
     mkfile_t   mkfile;
     mkdir_t    mkdir;
+    mknod_t    mknod;
     rm_t       rm;
 };
 
@@ -47,15 +49,15 @@ struct fd
 
 struct file
 {
-    char name[64];
-    uint64_t inode;
-    void* device;
-    uint32_t flags;
-    size_t size;
-
+    char            name[64];
+    uint64_t        inode;
+    void*           device;
+    uint32_t        flags;
+    size_t          size;
     struct file_ops ops;
-
-    struct file* parent;
+    struct file*    parent;
+    dev_t           major;
+    dev_t           minor;
 };
 
 struct dirent;

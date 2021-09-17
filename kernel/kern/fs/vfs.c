@@ -11,13 +11,7 @@ struct tree root;
 struct file* vfs_create_file()
 {
     struct file* file = kmalloc(sizeof(struct file));
-    
-    file->device = NULL;
-    file->inode = 0;
-    file->flags = 0;
-    file->parent = NULL;
-    memset(&file->ops, 0, sizeof(struct file_ops));
-
+    memset(file, 0, sizeof(struct file));
     return file;
 }
 

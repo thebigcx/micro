@@ -120,6 +120,15 @@ struct PACKED ext2_dirent
     char     name[];
 };
 
+#define DIRENT_UNK      0
+#define DIRENT_FILE     1
+#define DIRENT_DIR      2
+#define DIRENT_CHARDEV  3
+#define DIRENT_BLOCKDEV 4
+#define DIRENT_FIFO     5
+#define DIRENT_SOCKET   6
+#define DIRENT_SYMLINK  7
+
 struct ext2_volume
 {
     struct file*     device;
@@ -147,3 +156,4 @@ ssize_t ext2_getdents(struct file* dir, off_t off, size_t n, struct dirent* dirp
 void ext2_mkfile(struct file* dir, const char* name);
 void ext2_mkdir(struct file* dir, const char* name);
 void ext2_rm(struct file* dir, const char* name);
+void ext2_mknod(struct file* dir, struct file* file);

@@ -198,6 +198,54 @@ static void ext2_set_inode_blk(struct ext2_volume* vol, struct ext2_inode* ino, 
     }
 }
 
+static uint8_t ext2_dirent_type(unsigned int type)
+{
+    switch (type)
+    {
+        case FL_FILE:
+            return DIRENT_FILE;
+        case FL_DIR:
+            return DIRENT_DIR;
+        case FL_CHARDEV:
+            return DIRENT_CHARDEV;
+        case FL_BLOCKDEV:
+            return DIRENT_BLOCKDEV;
+        case FL_FIFO:
+            return DIRENT_FIFO;
+        case FL_SOCKET:
+            return DIRENT_SOCKET;
+        case FL_SYMLINK:
+            return DIRENT_SYMLINK;
+    }
+
+    printk("ext2: unknown file type %d\n", type);
+    return DIRENT_UNK;
+}
+
+static uint16_t ext2_inode_type(unsigned int type)
+{
+    switch (type)
+    {
+        case FL_FILE:
+            return INODE_FILE;
+        case FL_DIR:
+            return INODE_DIR;
+        case FL_CHARDEV:
+            return INODE_CHARDEV;
+        case FL_BLOCKDEV:
+            return INODE_BLOCKDEV;
+        case FL_FIFO:
+            return INODE_FIFO;
+        case FL_SOCKET:
+            return INODE_SOCKET;
+        case FL_SYMLINK:
+            return INODE_SYMLINK;
+    }
+
+    printk("ext2: unknown file type %d\n", type);
+    return 0;
+}
+
 uint32_t ext2_alloc_blk(struct ext2_volume* vol)
 {
     uint8_t* buf = kmalloc(vol->blksize);
@@ -460,16 +508,15 @@ struct file* ext2_find(struct file* dir, const char* name)
     return NULL;
 }
 
-void ext2_init_inode(struct ext2_inode* ino, uint32_t type, uint32_t perms)
+void ext2_init_inode(struct ext2_inode* ino, struct file* file)
 {
     memset(ino, 0, sizeof(struct ext2_inode));
 
-    ino->mode |= perms & 0xfff;
-    ino->mode |= type;
-    ino->link_cnt = type == INODE_DIR ? 2 : 0;
+    //ino->mode |= perms & 0xfff;
+    ino->mode |= ext2_inode_type(file->flags);
 }
 
-void ext2_mkentry(struct file* dir, const char* name, uint32_t type)
+void ext2_mkentry(struct file* dir, struct file* file)
 {
     struct ext2_volume* vol = dir->device;
 
@@ -478,31 +525,73 @@ void ext2_mkentry(struct file* dir, const char* name, uint32_t type)
     // Initialize the inode and write to disk
     struct ext2_inode ino;
     ext2_read_inode (vol, inonum, &ino);
-    ext2_init_inode (&ino, type, 0);     // TODO: convert the type
+    ext2_init_inode (&ino, file);     // TODO: convert the type
     ext2_write_inode(vol, inonum, &ino);
 
     // Create the directory entry
-    size_t size = sizeof(struct ext2_dirent) + strlen(name);
+    size_t size = sizeof(struct ext2_dirent) + strlen(file->name);
 
     struct ext2_dirent* dirent = kmalloc(size);
 
-    dirent->type     = type;
+    dirent->type     = ext2_dirent_type(file->flags);
     dirent->inode    = inonum;
-    dirent->name_len = strlen(name);
+    dirent->name_len = strlen(file->name);
     dirent->size     = size;
 
     // Copy the name into the flexible array
-    memcpy(dirent->name, name, strlen(name));
+    memcpy(dirent->name, file->name, strlen(file->name));
+
+    /*struct ext2_inode pino; // Parent inode
+    ext2_read_inode(vol, dir->inode, &pino);
+
+    // Find the end of the directory
+    uintptr_t offset = 0;
+    uintptr_t blk    = 0;
+
+    void* buf = kmalloc(vol->blksize);
+    read_blocks(vol, buf, ext2_inode_blk(vol, &pino, blk), 1);
+
+    while (offset + blk * vol->blksize < INOSIZE(pino))
+    {
+        struct ext2_dirent* dirent = (struct ext2_dirent*)((uintptr_t)buf + offset);
+        offset += dirent->size;
+
+        if (offset >= vol->blksize)
+        {
+            blk++; offset = 0;
+            read_blocks(vol, buf, ext2_inode_blk(vol, &pino, blk), 1);
+        }
+    }
+
+    printk("%d %d\n", offset, blk);
+    memcpy(buf + offset, dirent, size);
+    //write_blocks(vol, buf, ext2_inode_blk(vol, &pino, blk), 1);
+
+    pino.size += 1024;
+    //ext2_write_inode(vol, dir->inode, &pino);
+
+    kfree(buf);*/
 }
 
 void ext2_mkfile(struct file* dir, const char* name)
 {
-    ext2_mkentry(dir, name, INODE_FILE);
+    struct file file;
+    memset(&file, 0, sizeof(struct file));
+
+    file.flags = FL_FILE;
+    strcpy(file.name, name);
+
+    ext2_mkentry(dir, &file);
 }
 
 void ext2_mkdir(struct file* dir, const char* name)
 {
-    ext2_mkentry(dir, name, INODE_DIR);
+    //ext2_mkentry(dir, name, INODE_DIR);
+}
+
+void ext2_mknod(struct file* dir, struct file* file)
+{
+    ext2_mkentry(dir, file);
 }
 
 void ext2_rm(struct file* dir, const char* name)
