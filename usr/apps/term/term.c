@@ -3,6 +3,7 @@
 #include <fcntl.h>
 #include <pty.h>
 #include <sys/ioctl.h>
+#include <sys/mman.h>
 
 #include <micro/fb.h>
 
@@ -22,6 +23,8 @@ struct psf_font
 static struct psf_font font;
 static struct fbinfo   info;
 static int             fb;
+static void*           fbaddr;
+static void*           fbend;
 
 static unsigned int cx = 0;
 static unsigned int cy = 0;
@@ -42,10 +45,9 @@ static void load_font()
 
 void clear(uint32_t bg)
 {
-    for (size_t i = 0; i < info.xres * info.yres; i++)
-    {
-        pwrite(fb, &bg, 4, i * 4);
-    }
+    uint32_t* p = fbaddr;
+    do *p = bg;
+    while ((uintptr_t)++p < (uintptr_t)fbend);
 }
 
 void scroll_down()
@@ -121,12 +123,13 @@ void drawch(char c, uint32_t fg, uint32_t bg)
     {
         for (uint64_t i = 0; i < 8; i++)
         {
-            if ((*face & (0b10000000 >> i)) > 0)
-            {
-                uint32_t x = (cx * 8 ) + i;
-                uint32_t y = (cy * 16) + j;
-                pwrite(fb, &fg, 4, (x * depth) + (y * depth * info.xres));
-            }
+            uint32_t x = (cx * 8 ) + i;
+            uint32_t y = (cy * 16) + j;
+
+            uint32_t col = (*face & (0b10000000 >> i)) > 0
+                         ? fg : bg;
+
+            *((uint32_t*)fbaddr + x + y * info.xres) = col;
         }
         face++;
     }
@@ -172,6 +175,12 @@ int main(int argc, char** argv)
 
     ioctl(fb, FBIOGINFO, &info);
 
+    size_t size = info.xres * info.yres * (info.bpp / 8);
+
+    fbaddr = mmap(0x1000000, size, PROT_READ | PROT_WRITE,
+                  MAP_FIXED | MAP_PRIVATE, fb, 0);
+    fbend = (void*)((uintptr_t)fbaddr + size);
+
     char pts_name[128];
     openpty(&ptm, &pts, pts_name, NULL, NULL);
 
@@ -202,6 +211,5 @@ int main(int argc, char** argv)
         }
     }
 
-    for (;;);
     return 0;
 }

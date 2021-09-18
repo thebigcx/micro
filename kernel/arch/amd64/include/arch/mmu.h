@@ -17,6 +17,12 @@ struct vm_map
     page_t*** pts;
 };
 
+struct vm_area
+{
+    uintptr_t begin;
+    uintptr_t end;
+};
+
 void mmu_init();
 uintptr_t mmu_kalloc(size_t n);
 void mmu_kfree(uintptr_t ptr, size_t n);

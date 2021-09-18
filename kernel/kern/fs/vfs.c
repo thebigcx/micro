@@ -373,6 +373,12 @@ int vfs_access(const char* path, int mode)
     return 0;
 }
 
+void vfs_mmap(struct file* file, struct vm_area* area)
+{
+    if (file->ops.mmap)
+        file->ops.mmap(file, area);
+}
+
 static struct fs_type fs_types[64];
 static unsigned int fs_count;
 

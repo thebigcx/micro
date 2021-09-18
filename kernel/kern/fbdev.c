@@ -3,6 +3,8 @@
 #include <micro/vfs.h>
 #include <micro/fb.h>
 #include <micro/errno.h>
+#include <arch/mmu.h>
+#include <micro/task.h>
 
 static struct fb fb;
 static int ready = 0;
@@ -24,6 +26,11 @@ void fb_init(unsigned int width, unsigned int height, unsigned int depth)
 void fb_set_addr(void* addr)
 {
     fb.addr = addr;
+}
+
+void fb_set_phys(uintptr_t phys)
+{
+    fb.phys = phys;
 }
 
 ssize_t fb_read(struct file* file, void* buf, off_t off, size_t size)
@@ -61,6 +68,14 @@ int fb_ioctl(struct file* file, unsigned long req, void* argp)
     return -EINVAL;
 }
 
+void fb_mmap(struct file* file, struct vm_area* area)
+{
+    for (uintptr_t i = 0; i < (area->end - area->begin) / PAGE4K; i++)
+    {
+        mmu_map(task_curr()->vm_map, area->begin + i * PAGE4K, fb.phys + i * PAGE4K, PAGE_PR | PAGE_RW | PAGE_USR);
+    }
+}
+
 void fb_init_dev()
 {
     struct file* file = vfs_create_file();
@@ -69,6 +84,7 @@ void fb_init_dev()
     file->ops.read    = fb_read;
     file->ops.write   = fb_write;
     file->ops.ioctl   = fb_ioctl;
+    file->ops.mmap    = fb_mmap;
 
     vfs_addnode(file, "/dev/fb0");
 }

@@ -5,11 +5,13 @@
 struct fb
 {
     void* addr;
+    uintptr_t phys;
     unsigned int width, height, bpp;
 };
 
 void fb_init(unsigned int width, unsigned int height, unsigned int depth);
 void fb_set_addr(void* addr);
+void fb_set_phys(uintptr_t phys);
 
 void fb_clear(uint32_t fg);
 void fb_putch(char c, uint32_t fg, uint32_t bg);

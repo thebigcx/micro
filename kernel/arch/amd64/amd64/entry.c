@@ -91,8 +91,10 @@ void kmain_st2(struct st2struct* st2)
                 params.fbheight = fb->height;
                 params.fbbpp = fb->depth;
 
+                // TODO: make this better
                 fb_init(fb->width, fb->height, fb->depth);
                 fb_set_addr((void*)fb->addr);
+                fb_set_phys(fb->addr);
                 fb_clear(0x0);
                 use_boot_term = 0;
 

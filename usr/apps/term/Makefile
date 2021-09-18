@@ -2,7 +2,7 @@ SOURCES := term.c
 
 OBJS := $(patsubst %.c, %.o, $(SOURCES))
 TARG = term
-CFLAGS := -ffreestanding -fno-stack-protector -Wall -Wextra -Wno-unused-parameter -Wno-unused-variable
+CFLAGS := -O3 -ffreestanding -fno-stack-protector -Wall -Wextra -Wno-unused-parameter -Wno-unused-variable
 
 CC = x86_64-micro-gcc
 

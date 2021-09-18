@@ -258,20 +258,58 @@ static int sys_waitpid(int pid, int* wstatus, int options)
     return pid;
 }
 
-// TODO: currently only supports fixed anonymous mappings
-static void* sys_mmap(void* addr, size_t length, int prot, int flags, int fd, off_t offset)
+// TODO: add support for shared memory
+// TODO: use the 'offset' parameter
+static void* sys_mmap(void* addr, size_t length, int prot, int flags, int fdno, off_t offset)
 {
     if (!length) return (void*)-EINVAL;
     if (!(flags & MAP_SHARED) && !(flags & MAP_PRIVATE)) return (void*)-EINVAL;
-    // TEMPORARY
-    if (!(flags & MAP_ANONYMOUS) || !(flags & MAP_FIXED)) return (void*)-EINVAL;
 
-    unsigned int mmu_flags = PAGE_PR;
-    mmu_flags |= prot & PROT_WRITE ? PAGE_RW : 0;
-
-    for (uintptr_t i = (uintptr_t)addr; i < (uintptr_t)addr + length; i += PAGE4K)
+    if (flags & MAP_ANONYMOUS)
     {
-        mmu_map(task_curr()->vm_map, i, mmu_alloc_phys(), mmu_flags);
+        // TEMP
+        if (flags & MAP_SHARED) return (void*)-EINVAL;
+
+        unsigned int mmu_flags = PAGE_PR;
+        mmu_flags |= prot & PROT_WRITE ? PAGE_RW : 0;
+
+        for (uintptr_t i = (uintptr_t)addr; i < (uintptr_t)addr + length; i += PAGE4K)
+        {
+            mmu_map(task_curr()->vm_map, i, mmu_alloc_phys(), mmu_flags);
+        }
+    }
+    else
+    {
+        // TEMP
+        if (flags & MAP_SHARED) return (void*)-EINVAL;
+
+        FDVALID(fdno);
+
+        struct fd* fd = task_curr()->fds[fdno];
+
+        if (fd->filp->ops.mmap)
+        {
+            struct vm_area area =
+            {
+                .begin = (uintptr_t)addr,
+                .end   = (uintptr_t)addr + length
+            };
+            vfs_mmap(fd->filp, &area);
+        }
+        else
+        {
+            if (fd->filp->flags != FL_FILE) return (void*)-EACCES;
+
+            unsigned int mmu_flags = PAGE_PR;
+            mmu_flags |= prot & PROT_WRITE ? PAGE_RW : 0;
+
+            for (uintptr_t i = (uintptr_t)addr; i < (uintptr_t)addr + length; i += PAGE4K)
+            {
+                mmu_map(task_curr()->vm_map, i, mmu_alloc_phys(), mmu_flags);
+            }
+
+            vfs_read(fd->filp, addr, 0, fd->filp->size);
+        }
     }
 
     return addr;

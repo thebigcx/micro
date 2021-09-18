@@ -4,7 +4,9 @@
 #include <micro/fs.h>
 
 struct file;
+struct vm_area;
 
+// TODO: should all return int's (errors), and store result in pointer
 typedef struct fd*   (*open_t    )(struct file* file, uint32_t flags, mode_t mode);
 typedef void         (*close_t   )(struct fd* fd);
 typedef ssize_t      (*read_t    )(struct file* file, void* buf, off_t off, size_t size);
@@ -16,6 +18,7 @@ typedef void         (*mkfile_t  )(struct file* dir, const char* name);
 typedef void         (*mkdir_t   )(struct file* dir, const char* name);
 typedef void         (*mknod_t   )(struct file* dir, struct file* file);
 typedef void         (*rm_t      )(struct file* dir, const char* name);
+typedef void         (*mmap_t    )(struct file* file, struct vm_area* area);
 
 struct file_ops
 {
@@ -30,6 +33,7 @@ struct file_ops
     mkdir_t    mkdir;
     mknod_t    mknod;
     rm_t       rm;
+    mmap_t     mmap;
 };
 
 #define FL_FILE     1
@@ -93,6 +97,8 @@ char* vfs_mkcanon(const char* path, const char* work);
 int vfs_resolve(const char* path, struct file* out);
 
 int vfs_access(const char* path, int mode);
+
+void vfs_mmap(struct file* file, struct vm_area* area);
 
 typedef struct file* (*mount_t)(const char*, void* data);
 
