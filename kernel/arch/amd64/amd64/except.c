@@ -78,7 +78,7 @@ static void divbyzero(struct regs* regs)
     if (regs->cs & 3)
     {
         task_send(task_curr(), SIGFPE);
-        sched_yield();
+        return;
     }
 
     printk("Divide by zero\n");
@@ -113,10 +113,8 @@ static void invalid_opcode(struct regs* regs)
 {
     if (regs->cs & 3)
     {
-        //dump(regs);
-        //backtrace(regs->rip, regs->rbp, 32);
         task_send(task_curr(), SIGILL);
-        sched_yield();
+        return;
     }
 
     printk("Invalid opcode\n");
@@ -136,10 +134,8 @@ static void gp(struct regs* regs, uint32_t e)
 {
     if (regs->cs & 3)
     {
-        //dump(regs);
-        //backtrace(regs->rip, regs->rbp, 32);
         task_send(task_curr(), SIGSEGV);
-        sched_yield();
+        return;
     }
 
     printk("General protection fault\n");
@@ -152,10 +148,8 @@ static void pf(struct regs* regs, uint32_t e)
 {
     if (regs->cs & 3)
     {
-        //dump(regs);
-        //backtrace(regs->rip, regs->rbp, 32);
         task_send(task_curr(), SIGSEGV);
-        sched_yield();
+        return;
     }
 
     printk("Page fault\n");
@@ -169,8 +163,13 @@ static void x87_error(struct regs* regs)
     if (regs->cs & 3)
     {
         task_send(task_curr(), SIGFPE);
-        sched_yield();
+        return;
     }
+
+    printk("x87 error\n");
+    dump(regs);
+    backtrace(regs->rip, regs->rbp, 32);
+    panic("Exception in Ring 3");
 }
 
 UNRECOVER(17, "Alignment check")
@@ -181,8 +180,13 @@ static void simd_error(struct regs* regs)
     if (regs->cs & 3)
     {
         task_send(task_curr(), SIGFPE);
-        sched_yield();
+        return;
     }
+
+    printk("SIMD error\n");
+    dump(regs);
+    backtrace(regs->rip, regs->rbp, 32);
+    panic("Exception in Ring 3");
 }
 
 static void virt_except(struct regs* regs)
@@ -226,4 +230,8 @@ void except(uintptr_t n, struct regs* regs, uint32_t e)
     }
 
     handlers[n](regs);
+
+    // If it returned, then safe task termination was all that was required
+    nested--;
+    sched_yield();
 }

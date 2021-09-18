@@ -20,8 +20,8 @@ $(TARG): $(OBJ)
 	@$(CC) -c $^ -o $@ $(CFLAGS)
 
 install:
-	cp $(TARG) $(DESTDIR)/lib/
+	cp -f $(TARG) $(DESTDIR)/lib/
 
 clean:
 	@echo "    RM $(TARG)"
-	@rm $(TARG) $(OBJ)
+	@rm -f $(TARG) $(OBJ)

@@ -21,6 +21,15 @@ SOURCES := internal/generic/init.c				\
 		   posix/generic/mount.c				\
 		   posix/generic/pty.c					\
 		   sysdeps/micro/generic/micro.c		\
+		   sysdeps/micro/generic/open.c			\
+		   sysdeps/micro/generic/close.c		\
+		   sysdeps/micro/generic/read.c			\
+		   sysdeps/micro/generic/write.c		\
+		   sysdeps/micro/generic/pread.c		\
+		   sysdeps/micro/generic/pwrite.c		\
+		   sysdeps/micro/generic/access.c		\
+		   sysdeps/micro/generic/lseek.c		\
+		   sysdeps/micro/generic/ioctl.c		\
 
 ASM :=     sysdeps/micro/generic/syscall.S
 
@@ -29,10 +38,6 @@ AR := libc.a
 SO := libc.so
 CRT0 := crt0.o
 CFLAGS := -fPIC -fno-omit-frame-pointer -ffreestanding -fno-stack-protector -O3 -Wall -Wextra -Wno-unused-parameter -Wno-unused-variable -Iansi/include -Iinternal/include -Iposix/include -Isysdeps/micro/include
-
-SUBDIRS = elf
-
-include subdir.mk
 
 all: $(AR) $(SO) $(CRT0)
 
@@ -54,6 +59,10 @@ $(SO): $(OBJS)
 %.o: %.S
 	@echo "    AS    $@"
 	@x86_64-micro-gcc -c $< -o $@
+
+#SUBDIRS = elf
+
+#include subdir.mk
 
 install:
 	mkdir -p $(DESTDIR)/usr

@@ -24,4 +24,4 @@ install:
 
 clean:
 	@echo "    RM $(TARG)"
-	@rm $(TARG) $(OBJ)
+	@rm -f $(TARG) $(OBJ)
