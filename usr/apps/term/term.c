@@ -1,6 +1,7 @@
 #include <unistd.h>
 #include <stdint.h>
 #include <fcntl.h>
+#include <pty.h>
 #include <sys/ioctl.h>
 
 #include <micro/fb.h>
@@ -68,15 +69,9 @@ int main(int argc, char** argv)
 
     ioctl(fb, FBIOGINFO, &info);
 
-    putch('c', 0xffffffff, 0);
-    putch('c', 0xffffffff, 0);
-    putch('c', 0xffffffff, 0);
-    putch('c', 0xffffffff, 0);
-    putch('c', 0xffffffff, 0);
-    putch('c', 0xffffffff, 0);
-    putch('c', 0xffffffff, 0);
-
-
+    char pts_name[128];
+    int ptm, pts;
+    openpty(&ptm, &pts, pts_name, NULL, NULL);
 
     for (;;);
     return 0;

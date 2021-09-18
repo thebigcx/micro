@@ -2,6 +2,8 @@
 #include <signal.h>
 #include <assert.h>
 #include <string.h>
+#include <sys/syscall.h>
+#include <errno.h>
 #include <libc/sysdeps-internal.h>
 #include <libc/libc-internal.h>
 
@@ -63,4 +65,26 @@ unsigned long strtoul(const char* str, char** endptr, int base)
 void qsort(void* base, size_t nitems, size_t size, int (*compar)(const void*, const void*))
 {
     assert(!"qsort() is not implemented!\n");
+}
+
+char* ptsname(int fd)
+{
+    static char s_name[128];
+
+    if (ptsname_r(fd, s_name, 128)) return NULL;
+
+    return s_name;
+}
+
+int ptsname_r(int fd, char* buf, size_t buflen)
+{
+    int e = syscall(SYS_ptsname, fd, buf, buflen);
+    
+    if (e)
+    {
+        errno = e;
+        return -1;
+    }
+
+    return 0;
 }

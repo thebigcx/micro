@@ -31,3 +31,6 @@ int atexit(void (*function)(void));
 char* getenv(const char* name);
 
 void qsort(void* base, size_t nitems, size_t size, int (*compar)(const void*, const void*));
+
+char* ptsname(int fd);
+int   ptsname_r(int fd, char* buf, size_t buflen);

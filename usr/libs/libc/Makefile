@@ -19,6 +19,7 @@ SOURCES := internal/generic/init.c				\
 		   posix/generic/mman.c					\
 		   posix/generic/termios.c				\
 		   posix/generic/mount.c				\
+		   posix/generic/pty.c					\
 		   sysdeps/micro/generic/micro.c		\
 
 ASM :=     sysdeps/micro/generic/syscall.S

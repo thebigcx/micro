@@ -14,6 +14,7 @@
 #include <micro/heap.h>
 #include <micro/wait.h>
 #include <micro/module.h>
+#include <micro/tty.h>
 
 // TODO: move syscalls into their own files
 
@@ -442,6 +443,26 @@ static ssize_t sys_pwrite(int fdno, const void* buf, size_t size, off_t off)
     return ret;
 }
 
+static int sys_ptsname(int fdno, char* buf, size_t n)
+{
+    PTRVALID(buf);
+    FDVALID(fdno);
+
+    struct fd* fd = task_curr()->fds[fdno];
+
+    // TODO: struct file should hold flags like MASTER_PTY, DEVICE, etc (for isatty())
+    // THIS IS DANGEROUS
+    struct pt* pt = fd->filp->device;
+
+
+    if (strlen("/dev/pts/") + strlen(pt->pts->name) >= n) return -ERANGE;
+
+    strcpy(buf, "/dev/pts/");
+    strcpy(buf + strlen(buf), pt->pts->name);
+
+    return 0;
+}
+
 typedef uintptr_t (*syscall_t)();
 
 static uintptr_t syscalls[] =
@@ -473,7 +494,8 @@ static uintptr_t syscalls[] =
     (uintptr_t)sys_mount,
     (uintptr_t)sys_umount,
     (uintptr_t)sys_pread,
-    (uintptr_t)sys_pwrite
+    (uintptr_t)sys_pwrite,
+    (uintptr_t)sys_ptsname
 };
 
 void syscall_handler(struct regs* r)

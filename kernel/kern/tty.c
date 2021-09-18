@@ -112,14 +112,85 @@ int tty_ioctl(struct file* file, unsigned long req, void* argp)
     return 0;
 }
 
+ssize_t pts_read(struct file* file, void* buf, off_t off, size_t size)
+{
+
+}
+
+ssize_t pts_write(struct file* file, const void* buf, off_t off, size_t size)
+{
+    
+}
+
+ssize_t ptm_read(struct file* file, void* buf, off_t off, size_t size)
+{
+    
+}
+
+ssize_t ptm_write(struct file* file, const void* buf, off_t off, size_t size)
+{
+    
+}
+
+struct file* ptm_open(struct pt* pt)
+{
+    struct file* ptm = vfs_create_file();
+
+    ptm->ops.read    = ptm_read;
+    ptm->ops.write   = ptm_write;
+    ptm->flags       = FL_CHARDEV;
+    ptm->device      = pt;
+    
+    return ptm;
+}
+
+struct file* pts_open(struct pt* pt)
+{
+    struct file* pts = vfs_create_file();
+
+    pts->ops.read    = pts_read;
+    pts->ops.write   = pts_write;
+    pts->flags       = FL_CHARDEV;
+    pts->device      = pt;
+
+    // TODO: generate a unique name
+    vfs_addnode(pts, "/dev/pts/0");
+
+    return pts;
+}
+
+struct fd* ptmx_open(struct file* file, uint32_t flags, mode_t mode)
+{
+    struct pt* pt = kmalloc(sizeof(struct pt));
+
+    pt->buffer = ringbuf_create(1024);
+    pt->ptm    = ptm_open(pt);
+    pt->pts    = pts_open(pt);
+
+    return vfs_open(pt->ptm, 0, 0);
+}
+
 void tty_init()
 {
+    // TODO: temporary
     tty_buffer = ringbuf_create(1024);
 
     struct file* tty = vfs_create_file();
-    tty->ops.read = tty_read;
-    tty->ops.write = tty_write;
-    tty->ops.ioctl = tty_ioctl;
-    tty->flags = FL_CHARDEV;
+
+    tty->ops.read    = tty_read;
+    tty->ops.write   = tty_write;
+    tty->ops.ioctl   = tty_ioctl;
+    tty->flags       = FL_CHARDEV;
+
     vfs_addnode(tty, "/dev/tty");
+
+    // -- up to here
+
+    struct file* ptmx = vfs_create_file();
+
+    ptmx->ops.open    = ptmx_open;
+    ptmx->flags       = FL_CHARDEV;
+    
+    vfs_addnode(ptmx, "/dev/ptmx");
+
 }
