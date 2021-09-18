@@ -346,18 +346,18 @@ static int sys_chdir(const char* path)
     return 0;
 }
 
-static char* sys_getcwd(char* buf, size_t size)
+static ssize_t sys_getcwd(char* buf, size_t size)
 {
     PTRVALID(buf);
     
-    if (size == 0) return (char*)-EINVAL;
+    if (size == 0) return -EINVAL;
 
     struct task* task = task_curr();
-    if (size < strlen(task->workd) + 1) return (char*)-ERANGE;
+    if (size < strlen(task->workd) + 1) return -ERANGE;
 
     strcpy(buf, task->workd);
 
-    return buf;
+    return size;
 }
 
 static ssize_t sys_getdents(int fdno, struct dirent* dirp, size_t n)

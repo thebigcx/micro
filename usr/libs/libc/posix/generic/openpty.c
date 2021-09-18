@@ -1,6 +1,7 @@
 #include <pty.h>
 #include <fcntl.h>
 #include <stdlib.h>
+#include <string.h>
 
 int openpty(int* amaster, int* aslave, char* name,
             const struct termios* termp,

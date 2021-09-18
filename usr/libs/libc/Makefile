@@ -13,13 +13,12 @@ SOURCES := internal/generic/init.c				\
 		   ansi/generic/assert.c				\
 		   ansi/generic/ctype.c 				\
 		   ansi/generic/time.c	 				\
-		   posix/generic/file-io.c				\
-		   posix/generic/posix-proc.c 			\
-		   posix/generic/posix-time.c			\
-		   posix/generic/mman.c					\
-		   posix/generic/termios.c				\
-		   posix/generic/mount.c				\
-		   posix/generic/pty.c					\
+		   posix/generic/openpty.c				\
+		   posix/generic/opendir.c				\
+		   posix/generic/closedir.c				\
+		   posix/generic/isatty.c				\
+		   posix/generic/execv.c				\
+		   posix/generic/execvp.c				\
 		   sysdeps/micro/generic/micro.c		\
 		   sysdeps/micro/generic/open.c			\
 		   sysdeps/micro/generic/close.c		\
@@ -30,6 +29,25 @@ SOURCES := internal/generic/init.c				\
 		   sysdeps/micro/generic/access.c		\
 		   sysdeps/micro/generic/lseek.c		\
 		   sysdeps/micro/generic/ioctl.c		\
+		   sysdeps/micro/generic/readdir.c		\
+		   sysdeps/micro/generic/mkdir.c		\
+		   sysdeps/micro/generic/truncate.c		\
+		   sysdeps/micro/generic/ftruncate.c	\
+		   sysdeps/micro/generic/dup.c			\
+		   sysdeps/micro/generic/dup2.c			\
+		   sysdeps/micro/generic/mount.c		\
+		   sysdeps/micro/generic/umount.c		\
+		   sysdeps/micro/generic/getpid.c		\
+		   sysdeps/micro/generic/fork.c			\
+		   sysdeps/micro/generic/execve.c		\
+		   sysdeps/micro/generic/waitpid.c		\
+		   sysdeps/micro/generic/chdir.c		\
+		   sysdeps/micro/generic/getcwd.c		\
+		   sysdeps/micro/generic/mmap.c			\
+		   sysdeps/micro/generic/munmap.c		\
+		   sysdeps/micro/generic/sleep.c		\
+		   sysdeps/micro/generic/tcsetattr.c	\
+		   sysdeps/micro/generic/tcgetattr.c	\
 
 ASM :=     sysdeps/micro/generic/syscall.S
 

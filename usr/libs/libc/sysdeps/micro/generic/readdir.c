@@ -5,11 +5,9 @@
 struct dirent* readdir(DIR* dirp)
 {
 	struct dirent* dirent = malloc(sizeof(struct dirent));
-	//int e = sys_readdir(dirp->fd, dirp->pos++, dirent);
-	ssize_t bytes;
-	int e = sys_getdents(dirp->fd, dirent, 1, &bytes);
-
-	if (e == -1 || bytes == 0) return NULL;
+    
+	ssize_t bytes = syscall(SYS_getdents, dirp->fd, dirent, 1);
+	if (bytes <= 0) return NULL;
 
 	return dirent;
 }

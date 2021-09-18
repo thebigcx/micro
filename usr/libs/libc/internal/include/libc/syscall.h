@@ -27,6 +27,6 @@ inline unsigned long __syscall_err_null(long ret)
     return ret;
 }
 
-#define SYSCALL_ERR(sys, ...) (__syscall_err(syscall(SYS_##sys, __VA_ARGS__)))
+#define SYSCALL_ERR(sys, ...) (__syscall_err(syscall(SYS_##sys, ##__VA_ARGS__)))
 
-#define SYSCALL_ERR_NULL(sys, ...) (__syscall_err_null(syscall(SYS_#sys, __VA_ARGS__)))
+#define SYSCALL_ERR_NULL(sys, ...) (__syscall_err_null(syscall(SYS_#sys, ##__VA_ARGS__)))

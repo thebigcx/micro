@@ -35,6 +35,8 @@ int atoi(const char* str)
     return 0;
 }
 
+extern char** environ;
+
 char* getenv(const char* name)
 {
     char** env = environ;
