@@ -64,11 +64,11 @@ static void init_user_task(struct task* task, const char* path, const char* argv
     list_push_back(&task->threads, task->main);
 
     // TEMP: DEBUG
-    struct file* tty = kmalloc(sizeof(struct file));
-    vfs_resolve("/dev/tty", tty);
-    task->fds[0] = vfs_open(tty, 0, 0);
-    task->fds[1] = vfs_open(tty, 0, 0);
-    task->fds[2] = vfs_open(tty, 0, 0);
+    //struct file* tty = kmalloc(sizeof(struct file));
+    //vfs_resolve("/dev/tty", tty);
+    //task->fds[0] = vfs_open(tty, 0, 0);
+    //task->fds[1] = vfs_open(tty, 0, 0);
+    //task->fds[2] = vfs_open(tty, 0, 0);
 }
 
 static void idle()
@@ -89,6 +89,12 @@ struct task* task_init_creat()
     const char* envp[] = { NULL };
 
     init_user_task(task, argv[0], argv, envp);
+
+    struct file* null = kmalloc(sizeof(struct file));
+    vfs_resolve("/dev/null", null);
+    task->fds[0] = vfs_open(null, 0, 0);
+    task->fds[1] = vfs_open(null, 0, 0);
+    task->fds[2] = vfs_open(null, 0, 0);
 
     return task;
 }
@@ -148,14 +154,14 @@ void task_execve(struct task* task, const char* path, const char* argv[], const 
     list_clear(&task->threads);
 
     // Clean fd's
-    for (unsigned int i = 0; i < FD_MAX; i++)
+    /*for (unsigned int i = 0; i < FD_MAX; i++)
     {
         if (task->fds[i])
         {
             vfs_close(task->fds[i]);
             task->fds[i] = NULL;
         }
-    }
+    }*/
     
     init_user_task(task, path, argv, envp);
 

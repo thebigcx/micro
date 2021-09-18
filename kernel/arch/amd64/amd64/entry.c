@@ -14,7 +14,7 @@
 #include <micro/stdlib.h>
 #include <micro/task.h>
 #include <micro/sched.h>
-#include <micro/fb.h>
+#include <micro/fbdev.h>
 
 static uint8_t stack[4096];
 

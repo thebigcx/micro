@@ -15,9 +15,10 @@ SRC += kern/init.c          \
        kern/binfmt.c        \
        kern/ps2.c           \
        kern/module.c        \
-       kern/fb.c            \
+       kern/fbdev.c         \
        kern/tty.c           \
        kern/vga.c           \
        kern/ringbuf.c       \
        kern/ksym.c          \
-       kern/pci.c
+       kern/pci.c           \
+       kern/dev.c

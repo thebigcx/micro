@@ -175,12 +175,12 @@ int sys_time(time_t* timer)
 
 int sys_dup(int oldfd)
 {
-	return syscall(SYS_dup);
+	return syscall(SYS_dup, oldfd);
 }
 
 int sys_dup2(int oldfd, int newfd)
 {
-	return syscall(SYS_dup2);
+	return syscall(SYS_dup2, oldfd, newfd);
 }
 
 int sys_mount(const char* src, const char* dst,

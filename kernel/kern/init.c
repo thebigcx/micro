@@ -7,7 +7,7 @@
 #include <micro/heap.h>
 #include <micro/stdlib.h>
 #include <micro/ps2.h>
-#include <micro/fb.h>
+#include <micro/fbdev.h>
 #include <micro/sys.h>
 #include <micro/errno.h>
 #include <micro/ioctls.h>
@@ -159,6 +159,8 @@ void generic_init(struct genbootparams params)
 
     printk("mounting root filesystem\n");
     vfs_mount_fs("/dev/sda", "/", "ext2", NULL);
+
+    init_devices();
 
     tty_init();
 

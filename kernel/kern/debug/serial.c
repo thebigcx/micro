@@ -4,7 +4,7 @@
 #include <arch/cpu.h>
 #include <micro/lock.h>
 #include <arch/pio.h>
-#include <micro/fb.h>
+#include <micro/fbdev.h>
 #include <arch/boot.h>
 #include <micro/vga.h>
 

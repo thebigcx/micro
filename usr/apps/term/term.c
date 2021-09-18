@@ -26,6 +26,8 @@ static int             fb;
 static unsigned int cx = 0;
 static unsigned int cy = 0;
 
+static int ptm, pts;
+
 static void load_font()
 {
     int fnt = open("/usr/share/font.psf", O_RDONLY, 0);
@@ -38,7 +40,78 @@ static void load_font()
     close(fnt);
 }
 
+void clear(uint32_t bg)
+{
+    for (size_t i = 0; i < info.xres * info.yres; i++)
+    {
+        pwrite(fb, &bg, 4, i * 4);
+    }
+}
+
+void scroll_down()
+{
+    // TODO
+    clear(0);
+    cy = 0;
+}
+
+void newline()
+{
+    cy++;
+    cx = 0;
+
+    if (cy == info.yres / 16)
+    {
+        scroll_down();
+    }
+}
+
+void tab()
+{
+    cx += 4 - (cx % 4);
+    if (cx >= info.xres / 8)
+    {
+        newline();
+    }
+}
+
+void backspace()
+{
+
+}
+
 void putch(char c, uint32_t fg, uint32_t bg)
+{
+    if (c == '\n')
+    {
+        newline();
+        return;
+    }
+    if (c == '\t')
+    {
+        tab();
+        return;
+    }
+    if (c == '\b')
+    {
+        backspace();
+        return;
+    }
+
+    if (c < 32)
+    {
+        cx++;
+        if (cx == info.xres / 8) newline();
+        return;
+    }
+
+    drawch(c, fg, bg);
+
+    cx++;
+    if (cx == info.xres / 8) newline();
+}
+
+void drawch(char c, uint32_t fg, uint32_t bg)
 {
     char* face = (char*)font.buffer + (c * font.hdr.ch_size);
 
@@ -50,15 +123,45 @@ void putch(char c, uint32_t fg, uint32_t bg)
         {
             if ((*face & (0b10000000 >> i)) > 0)
             {
-                uint32_t x = (cx * 8) + i;
-                uint32_t y = (cy * 8) + j;
+                uint32_t x = (cx * 8 ) + i;
+                uint32_t y = (cy * 16) + j;
                 pwrite(fb, &fg, 4, (x * depth) + (y * depth * info.xres));
             }
         }
         face++;
     }
+}
 
-    cx++;
+static char ascii[] =
+{
+    'c', '~', '1', '2', '3', '4', '5',
+    '6', '7', '8', '9', '0', '-', '=',
+    '\b', '\t', 'q', 'w', 'e', 'r', 't',
+    'y', 'u', 'i', 'o', 'p', '[', ']',
+    '\n', '~', 'a', 's', 'd', 'f', 'g',
+    'h', 'j', 'k', 'l', ';', '\'', '`',
+    '~', '\\', 'z', 'x', 'c', 'v', 'b',
+    'n', 'm', ',', '.', '/', '~', '*',
+    '~', ' ', '~', 'c', 'c', 'c', 'c',
+    'c', 'c', 'c', 'c', 'c', 'c', 'c',
+    'c', 'c', 'c', 'c', 'c', 'c', 'c',
+    'c', 'c', 'c', 'c', 'c', 'c', 'c',
+    'c', 'c', 'c', 'c', 'c', 'c', 'c',
+    'c', 'c', 'c', 'c', 'c', 'c', 'c',
+    'c', 'c', 'c', 'c', 'c', 'c', 'c',
+    'c', 'c', 'c', 'c', 'c', 'c', 'c',
+    'c', 'c', 'c', 'c', 'c', 'c', 'c',
+    'c', 'c', 'c', 'c', 'c', 'c', 'c'
+};
+
+void handle_kb(int sc)
+{
+    if (sc < 88)
+    {
+        char ch = ascii[sc];
+        putch(ch, 0xffffffff, 0);
+        write(ptm, &ch, 1);
+    }
 }
 
 int main(int argc, char** argv)
@@ -70,8 +173,34 @@ int main(int argc, char** argv)
     ioctl(fb, FBIOGINFO, &info);
 
     char pts_name[128];
-    int ptm, pts;
     openpty(&ptm, &pts, pts_name, NULL, NULL);
+
+    dup2(pts, 0);
+    dup2(pts, 1);
+    dup2(pts, 2);
+
+    if (fork() == 0)
+    {
+        const char* argv[] = { "/usr/bin/sh", NULL };
+        execv(argv[0], argv);
+    }
+
+    int kb = open("/dev/keyboard", O_RDONLY, 0);
+
+    while (1)
+    {
+        char c;
+        if (read(ptm, &c, 1))
+        {
+            putch(c, 0xffffffff, 0);
+        }
+
+        int sc;
+        if (read(kb, &sc, 1))
+        {
+            handle_kb(sc);
+        }
+    }
 
     for (;;);
     return 0;

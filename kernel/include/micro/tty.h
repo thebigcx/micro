@@ -2,7 +2,8 @@
 
 struct pt
 {
-    struct ringbuf* buffer;
+    struct ringbuf* inbuf;
+    struct ringbuf* outbuf;
 
     struct file*    ptm;
     struct file*    pts;

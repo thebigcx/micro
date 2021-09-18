@@ -18,8 +18,8 @@ static void keyboard_handler(struct regs* r)
     uint8_t sc = inb(0x60);
 
     // TEMP
-    if (sc < 88)
-        tty_keypress(sc);
+    //if (sc < 88)
+        //tty_keypress(sc);
 
     if (count >= 128)
     {

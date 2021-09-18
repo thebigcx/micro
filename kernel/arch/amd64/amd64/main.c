@@ -11,7 +11,7 @@
 #include <micro/task.h>
 #include <micro/sched.h>
 #include <micro/init.h>
-#include <micro/fb.h>
+#include <micro/fbdev.h>
 #include <micro/debug.h>
 #include <arch/ioapic.h>
 #include <arch/timer.h>

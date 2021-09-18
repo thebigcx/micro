@@ -26,12 +26,18 @@ int is_valid_ptr(const void* ptr)
 
 #define PTRVALID(ptr) { if (!is_valid_ptr(ptr)) return -EFAULT; }
 
+static int is_valid_range_fd(int fd)
+{
+    return fd >= 0 && fd < FD_MAX;
+}
+
 static int is_valid_fd(struct task* task, int fd)
 {
-    return fd >= 0 && task->fds[fd];
+    return is_valid_range_fd(fd) && task->fds[fd];
 }
 
 #define FDVALID(fd) { if (!is_valid_fd(task_curr(), fd)) return -EBADF; }
+#define FDRANGEVALID(fd) { if (!is_valid_range_fd(fd)) return -EBADF; }
 
 // TODO: make opening files better and more organized
 static int sys_open(const char* path, uint32_t flags, mode_t mode)
@@ -384,9 +390,10 @@ static int sys_dup(int oldfd)
 static int sys_dup2(int oldfd, int newfd)
 {
     FDVALID(oldfd);
+    FDRANGEVALID(newfd);
 
     struct task* task = task_curr();
-
+    
     task->fds[newfd] = task->fds[oldfd];
     return newfd;
 }
