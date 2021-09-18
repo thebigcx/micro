@@ -1,1 +1,13 @@
-qemu-system-x86_64 -serial stdio -m 512 -cpu qemu64 -bios /usr/share/ovmf/x64/OVMF.fd -cdrom dist/image.iso -d guest_errors --no-reboot --no-shutdown -s
+qemu-system-x86_64                              \
+    -serial stdio                               \
+    -m 512                                      \
+    -cpu qemu64                                 \
+    -bios /usr/share/ovmf/x64/OVMF.fd           \
+    -cdrom dist/image.iso                       \
+    -smp 1                                      \
+    -s -d guest_errors                          \
+    -no-reboot -no-shutdown                     \
+    -drive id=disk,file=dist/disk.img,if=none   \
+    -device ahci,id=ahci                        \
+    -device ide-hd,drive=disk,bus=ahci.0        \
+    --enable-kvm
