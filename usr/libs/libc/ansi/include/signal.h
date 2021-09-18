@@ -8,11 +8,11 @@ typedef void (*sighandler_t)(int);
 
 struct sigaction
 {
-	sighandler_t sa_handler;
-	void (*sa_sigaction)(int);
-	uint64_t mask;
-	int sa_flags;
-	void (*sa_restorer)();
+	sighandler_t   sa_handler;
+	void         (*sa_sigaction)(int);
+	uint64_t       mask;
+	int            sa_flags;
+	void         (*sa_restorer)();
 };
 
 int kill(pid_t pid, int sig);

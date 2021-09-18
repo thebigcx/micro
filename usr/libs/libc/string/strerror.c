@@ -1,8 +1,6 @@
 #include <errno.h>
 #include <string.h>
 
-int errno;
-
 static const char* errno_strs[] =
 {
     "Success (not an error)",

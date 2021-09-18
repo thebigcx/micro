@@ -4,15 +4,50 @@ SOURCES := internal/generic/init.c				\
 		   ansi/generic/math.c					\
 		   ansi/generic/printf.c				\
 		   ansi/generic/stdio.c					\
-		   ansi/generic/stdlib.c  				\
-		   ansi/generic/convert.c				\
-		   ansi/generic/rand.c					\
-		   ansi/generic/string.c				\
-		   ansi/generic/signal.c				\
-		   ansi/generic/errno.c					\
-		   ansi/generic/assert.c				\
-		   ansi/generic/ctype.c 				\
 		   ansi/generic/time.c	 				\
+		   ctype/isalnum.c						\
+		   ctype/isalpha.c						\
+		   ctype/isdigit.c						\
+		   ctype/isprint.c						\
+		   ctype/ispunct.c						\
+		   ctype/isspace.c						\
+		   ctype/isxdigit.c						\
+		   ctype/tolower.c						\
+		   ctype/toupper.c						\
+		   assert/assert.c						\
+		   string/memchr.c						\
+		   string/memcmp.c						\
+		   string/memcpy.c						\
+		   string/memmove.c						\
+		   string/memset.c						\
+		   string/strcat.c						\
+		   string/strchr.c						\
+		   string/strcmp.c						\
+		   string/strcpy.c						\
+		   string/strcspn.c						\
+		   string/strdup.c						\
+		   string/strlen.c						\
+		   string/strncmp.c						\
+		   string/strncpy.c						\
+		   string/strrchr.c						\
+		   string/strrev.c						\
+		   string/strsep.c						\
+		   string/strspn.c						\
+		   string/strstr.c						\
+		   string/strtok_r.c					\
+		   string/strtok.c						\
+		   string/strerror.c					\
+		   stdlib/abs.c							\
+		   stdlib/atoi.c						\
+		   stdlib/itoa.c						\
+		   stdlib/qsort.c						\
+		   stdlib/rand.c						\
+		   stdlib/strtoul.c						\
+		   stdlib/ultoa.c						\
+		   stdlib/abort.c						\
+		   stdlib/getenv.c						\
+		   stdlib/atexit.c						\
+		   misc/errno.c							\
 		   posix/generic/openpty.c				\
 		   posix/generic/opendir.c				\
 		   posix/generic/closedir.c				\
@@ -48,6 +83,13 @@ SOURCES := internal/generic/init.c				\
 		   sysdeps/micro/generic/sleep.c		\
 		   sysdeps/micro/generic/tcsetattr.c	\
 		   sysdeps/micro/generic/tcgetattr.c	\
+		   sysdeps/micro/generic/kill.c			\
+		   sysdeps/micro/generic/raise.c		\
+		   sysdeps/micro/generic/sigaction.c	\
+		   sysdeps/micro/generic/signal.c		\
+		   sysdeps/micro/generic/exit.c			\
+		   sysdeps/micro/generic/ptsname.c		\
+		   sysdeps/micro/generic/ptsname_r.c	\
 
 ASM :=     sysdeps/micro/generic/syscall.S
 

@@ -62,7 +62,7 @@ int main(int argc, char** argv)
         {
             if (chdir(argv[1]) != 0)
             {
-                printf("cd: %s: no such file or directory\n", argv[1]);
+                perror("cd: ");
             }
             continue;
         }
