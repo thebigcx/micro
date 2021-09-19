@@ -1,10 +1,6 @@
 SOURCES := internal/generic/init.c				\
 		   internal/generic/crt0.c  			\
 		   ansi/generic/malloc.c				\
-		   ansi/generic/math.c					\
-		   ansi/generic/printf.c				\
-		   ansi/generic/stdio.c					\
-		   ansi/generic/time.c	 				\
 		   ctype/isalnum.c						\
 		   ctype/isalpha.c						\
 		   ctype/isdigit.c						\
@@ -47,6 +43,50 @@ SOURCES := internal/generic/init.c				\
 		   stdlib/abort.c						\
 		   stdlib/getenv.c						\
 		   stdlib/atexit.c						\
+		   stdio/fprintf.c						\
+		   stdio/printf.c						\
+		   stdio/snprintf.c						\
+		   stdio/sprintf.c						\
+		   stdio/vfprintf.c						\
+		   stdio/vsnprintf.c					\
+		   stdio/vsprintf.c						\
+		   stdio/fclose.c						\
+		   stdio/feof.c							\
+		   stdio/ferror.c						\
+		   stdio/fflush.c						\
+		   stdio/fgetc.c						\
+		   stdio/fgets.c						\
+		   stdio/fileno.c						\
+		   stdio/fopen.c						\
+		   stdio/fputc.c						\
+		   stdio/fputs.c						\
+		   stdio/fread.c						\
+		   stdio/fseek.c						\
+		   stdio/ftell.c						\
+		   stdio/fwrite.c						\
+		   stdio/getline.c						\
+		   stdio/perror.c						\
+		   stdio/putchar.c						\
+		   stdio/puts.c							\
+		   stdio/remove.c						\
+		   stdio/rewind.c						\
+		   stdio/setbuf.c						\
+		   stdio/setvbuf.c						\
+		   stdio/sscanf.c						\
+		   stdio/tmpfile.c						\
+		   stdio/ungetc.c						\
+		   time/gmtime_r.c						\
+		   time/gmtime.c						\
+		   time/localtime_r.c					\
+		   time/localtime.c						\
+		   time/strftime.c						\
+		   math/ceil.c							\
+		   math/fabs.c							\
+		   math/floor.c							\
+		   math/fmod.c							\
+		   math/log.c							\
+		   math/pow.c							\
+		   math/trunc.c							\
 		   misc/errno.c							\
 		   posix/generic/openpty.c				\
 		   posix/generic/opendir.c				\
@@ -90,6 +130,8 @@ SOURCES := internal/generic/init.c				\
 		   sysdeps/micro/generic/exit.c			\
 		   sysdeps/micro/generic/ptsname.c		\
 		   sysdeps/micro/generic/ptsname_r.c	\
+		   sysdeps/micro/generic/nanosleep.c	\
+		   sysdeps/micro/generic/time.c			\
 
 ASM :=     sysdeps/micro/generic/syscall.S
 

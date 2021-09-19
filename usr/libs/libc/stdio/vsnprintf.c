@@ -1,10 +1,6 @@
-#include <stdint.h>
-#include <stdarg.h>
-#include <string.h>
-#include <stdlib.h>
 #include <stdio.h>
-#include <unistd.h>
-#include <assert.h>
+#include <stdlib.h>
+#include <string.h>
 
 int vsnprintf(char* str, size_t n, const char* format, va_list list)
 {
@@ -65,65 +61,4 @@ int vsnprintf(char* str, size_t n, const char* format, va_list list)
     str[stridx] = '\0';
 
     return stridx;
-}
-
-int vsprintf(char* str, const char* format, va_list args)
-{
-    return vsnprintf(str, 200, format, args);
-}
-
-int snprintf(char* str, size_t n, const char* format, ...)
-{
-    va_list list;
-    va_start(list, format);
-    int ret = vsnprintf(str, n, format, list);
-    va_end(list);
-    return ret;
-}
-
-int sprintf(char* str, const char* format, ...)
-{
-    va_list list;
-    va_start(list, format);
-
-    
-
-    va_end(list);
-
-	return 0;
-}
-
-int vfprintf(FILE* file, const char* format, va_list args)
-{
-    // TODO: this is bad
-    size_t len = 300;
-    char* str = malloc(len);
-    vsnprintf(str, len, format, args);
-    write(file->fd, str, strlen(str));
-    free(str);
-    return 0;
-}
-
-int fprintf(FILE* file, const char* format, ...)
-{
-    va_list list;
-    va_start(list, format);
-
-    int ret = vfprintf(file, format, list);
-
-    va_end(list);
-
-    return ret;
-}
-
-int printf(const char* format, ...)
-{
-    va_list list;
-    va_start(list, format);
-
-    int ret = vfprintf(stdout, format, list);
-
-    va_end(list);
-
-    return ret;
 }
