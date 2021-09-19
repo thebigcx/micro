@@ -5,6 +5,7 @@
 #include <micro/errno.h>
 #include <arch/mmu.h>
 #include <micro/task.h>
+#include <micro/devfs.h>
 
 static struct fb fb;
 static int ready = 0;
@@ -87,4 +88,7 @@ void fb_init_dev()
     file->ops.mmap    = fb_mmap;
 
     vfs_addnode(file, "/dev/fb0");
+
+    strcpy(file->name, "fb0");
+    devfs_register(file);
 }

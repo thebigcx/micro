@@ -5,6 +5,7 @@
 #include <micro/heap.h>
 #include <micro/vfs.h>
 #include <micro/stdlib.h>
+#include <micro/devfs.h>
 
 struct ksym
 {
@@ -32,9 +33,10 @@ static struct ksym ksyms[] =
     { "vfs_read",              vfs_read              },
     { "vfs_write",             vfs_write             },
     { "vfs_create_file",       vfs_create_file       },
-    { "vfs_resolve",    vfs_resolve    },
+    { "vfs_resolve",           vfs_resolve           },
     { "vfs_register_fs",       vfs_register_fs       },
-    { "vfs_access",            vfs_access            }
+    { "vfs_access",            vfs_access            },
+    { "devfs_register",        devfs_register        }
 };
 
 uintptr_t ksym_lookup(const char* name)

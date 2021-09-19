@@ -9,6 +9,8 @@
 #include <micro/vfs.h>
 #include <micro/list.h>
 #include <micro/heap.h>
+#include <micro/devfs.h>
+#include <micro/stdlib.h>
 
 static uint8_t queue[128];
 static unsigned int count;
@@ -54,4 +56,7 @@ void ps2_init()
     kb->flags = FL_CHARDEV;
     kb->ops.read = kb_read;
     vfs_addnode(kb, "/dev/keyboard");
+
+    strcpy(kb->name, "keyboard");
+    devfs_register(kb);
 }

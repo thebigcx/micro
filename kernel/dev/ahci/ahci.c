@@ -8,6 +8,7 @@
 #include <micro/vfs.h>
 #include <micro/heap.h>
 #include <micro/stdlib.h>
+#include <micro/devfs.h>
 
 struct ahci_port
 {
@@ -293,7 +294,7 @@ void ahci_init_ctrl()
 
             if (type == AHCI_PORT_SATA || type == AHCI_PORT_SATAPI)
             {
-                char* name = strdup("/dev/sda");
+                /*char* name = strdup("/dev/sda");
 
                 for (unsigned int i = 0; i < 26; i++)
                 {
@@ -305,7 +306,12 @@ void ahci_init_ctrl()
                     }
                 }
 
-                kfree(name);
+                kfree(name);*/
+                struct file* dev = ahci_create_dev(&vabar->ports[i]);
+                vfs_addnode(dev, "/dev/sda");
+
+                strcpy(dev->name, "sda");
+                devfs_register(dev);
             }
         }
     }

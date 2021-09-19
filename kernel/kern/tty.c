@@ -9,6 +9,7 @@
 #include <micro/ringbuf.h>
 #include <micro/sys.h>
 #include <micro/stdlib.h>
+#include <micro/devfs.h>
 
 ssize_t pts_read(struct file* file, void* buf, off_t off, size_t size)
 {
@@ -103,6 +104,9 @@ void tty_init()
     ptmx->flags       = FL_CHARDEV;
     
     vfs_addnode(ptmx, "/dev/ptmx");
+
+    strcpy(ptmx->name, "ptmx");
+    devfs_register(ptmx);
 }
 
 // TODO: use the /proc filesystem instead of this syscall

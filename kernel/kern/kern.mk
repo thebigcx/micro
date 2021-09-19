@@ -18,6 +18,7 @@ SRC += kern/init.c          \
        kern/fs/ioctl.c      \
        kern/fs/readdir.c    \
        kern/fs/mount.c      \
+       kern/fs/devfs.c      \
        kern/mm/mmap.c       \
        kern/exit.c          \
        kern/exec.c          \

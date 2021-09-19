@@ -2,6 +2,7 @@
 #include <micro/vfs.h>
 #include <micro/stdlib.h>
 #include <arch/pio.h>
+#include <micro/devfs.h>
 
 #define COLS 80
 #define ROWS 25
@@ -168,4 +169,7 @@ void vga_init()
     vga->ops.write = vga_write;
     vga->flags = FL_CHARDEV;
     vfs_addnode(vga, "/dev/vga0");
+
+    strcpy(vga->name, "vga0");
+    devfs_register(vga);
 }

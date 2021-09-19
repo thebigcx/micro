@@ -14,6 +14,7 @@
 #include <micro/termios.h>
 #include <micro/tty.h>
 #include <micro/module.h>
+#include <micro/devfs.h>
 
 struct initrd
 {
@@ -48,6 +49,9 @@ void initrd_init(uintptr_t start, uintptr_t end)
     file->device = initrd;
 
     vfs_addnode(file, "/dev/initrd");
+
+    strcpy(file->name, "initrd");
+    devfs_register(file);
 }
 
 struct fheader
@@ -137,6 +141,8 @@ void generic_init(struct genbootparams params)
 
     printk("initializing VFS\n");
     vfs_init();
+
+    devfs_init();
     
     ps2_init();
 

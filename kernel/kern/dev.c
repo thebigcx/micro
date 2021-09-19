@@ -1,5 +1,7 @@
 #include <micro/dev.h>
 #include <micro/vfs.h>
+#include <micro/devfs.h>
+#include <micro/stdlib.h>
 
 ssize_t null_read(struct file* file, void* buf, off_t off, size_t size)
 {
@@ -20,4 +22,7 @@ void init_devices()
     null->flags       = FL_CHARDEV;
     
     vfs_addnode(null, "/dev/null");
+
+    strcpy(null->name, "null");
+    devfs_register(null);
 }
