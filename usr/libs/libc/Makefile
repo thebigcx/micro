@@ -1,6 +1,5 @@
 SOURCES := internal/generic/init.c				\
 		   internal/generic/crt0.c  			\
-		   ansi/generic/malloc.c				\
 		   ctype/isalnum.c						\
 		   ctype/isalpha.c						\
 		   ctype/isdigit.c						\
@@ -87,6 +86,7 @@ SOURCES := internal/generic/init.c				\
 		   math/log.c							\
 		   math/pow.c							\
 		   math/trunc.c							\
+		   malloc/malloc.c						\
 		   misc/errno.c							\
 		   posix/generic/openpty.c				\
 		   posix/generic/opendir.c				\
@@ -173,7 +173,7 @@ install:
 	cp $(AR) $(DESTDIR)/usr/lib/
 	cp $(SO) $(DESTDIR)/usr/lib/
 	cp $(CRT0) $(DESTDIR)/usr/lib/
-	cp -r ansi/include/* $(DESTDIR)/usr/include/
+	cp -r include/* $(DESTDIR)/usr/include/
 	cp -r posix/include/* $(DESTDIR)/usr/include/
 
 .PHONY:

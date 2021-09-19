@@ -60,14 +60,14 @@ static struct block* split(struct block* b, size_t n)
 }
 
 // TODO: don't rely on 0x100000 being available
-void* _heap_expand(size_t size)
+void* __libc_heap_expand(size_t size)
 {
     return mmap((void*)0x100000, size, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED, -1, 0);
 }
 
 void __malloc_init()
 {
-    first = (struct block*)_heap_expand(0x100000);
+    first = (struct block*)__libc_heap_expand(0x100000);
     first->next = NULL;
     first->prev = NULL;
     first->size = 0x100000;
