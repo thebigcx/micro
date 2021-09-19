@@ -429,7 +429,7 @@ void fat_rm(struct file* dir, const char* name)
     kfree(buf);
 }
 
-int fat_readdir(struct file* dir, size_t idx, struct dirent* dirent)
+/*int fat_readdir(struct file* dir, size_t idx, struct dirent* dirent)
 {
     struct fat32_volume* vol = dir->device;
     unsigned int clus = dir->inode;
@@ -463,6 +463,53 @@ int fat_readdir(struct file* dir, size_t idx, struct dirent* dirent)
     kfree(buf);
 
     return 0;
+}*/
+
+#define DENTS_PER_SECT 512 / sizeof(struct fat_dirent)
+
+ssize_t fat_getdents(struct file* dir, off_t off, size_t size, struct dirent* dirp)
+{
+    struct fat32_volume* vol = dir->device;
+    unsigned int clus = dir->inode;
+
+    struct fat_dirent* buf = kmalloc(512); // Hold the data we care about
+
+    ssize_t bytes = 0;
+    size_t dirp_idx = 0;
+    size_t dirent_idx = 0;
+
+    unsigned int cnt = fat_cchain_cnt(vol, clus);
+    for (unsigned int i = 0; i < cnt; i++)
+    {
+        uint64_t lba = clus2lba(vol, clus);
+
+        vfs_read(vol->device, buf, lba * 512, 512);
+
+        for (unsigned int j = 0; j < DENTS_PER_SECT; j++)
+        {
+            if (   buf[j].name[0] == 0 || buf[j].name[0] == 0xe5
+                || buf[j].attr == FAT_ATTR_LFN || buf[j].attr & FAT_ATTR_VOLID) continue;
+            else
+            {
+                if (dirent_idx >= off + size)
+                {
+                    kfree(buf);
+                    return bytes;
+                }
+
+                if (dirent_idx++ < off) continue;
+
+                bytes += sizeof(struct fat_dirent);
+                from8dot3(&buf[j], dirp[dirp_idx].d_name);
+                dirp_idx++;
+            }
+        }
+
+        clus = fat_table_read(vol, clus);
+    }
+
+    kfree(buf);
+    return bytes;
 }
 
 struct file* fat_find(struct file* dir, const char* name)
@@ -488,21 +535,22 @@ struct file* fat_find(struct file* dir, const char* name)
             {
                 if (fat_name_cmp(&buf[i], name))
                 {
-                    struct file* file = vfs_create_file();
+                    struct file* file  = vfs_create_file();
 
-                    file->parent = dir;
-                    file->device = vol;
-                    file->flags = (buf[i].attr & FAT_ATTR_DIR) ? FL_DIR : FL_FILE;
-                    file->inode = (buf[i].cluster_u << 16) | buf[i].cluster;
-                    file->size = buf[i].file_sz;
+                    file->parent       = dir;
+                    file->device       = vol;
+                    file->flags        = (buf[i].attr & FAT_ATTR_DIR) ? FL_DIR : FL_FILE;
+                    file->inode        = (buf[i].cluster_u << 16) | buf[i].cluster;
+                    file->size         = buf[i].file_sz;
 
-                    file->ops.read    = fat_read;
-                    file->ops.write   = fat_write;
-                    file->ops.find    = fat_find;
+                    file->ops.read     = fat_read;
+                    file->ops.write    = fat_write;
+                    file->ops.find     = fat_find;
                     //file->ops.readdir = fat_readdir;
-                    file->ops.mkfile  = fat_mkfile;
-                    file->ops.mkdir   = fat_mkdir;
-                    file->ops.rm      = fat_rm;
+                    file->ops.getdents = fat_getdents;
+                    file->ops.mkfile   = fat_mkfile;
+                    file->ops.mkdir    = fat_mkdir;
+                    file->ops.rm       = fat_rm;
 
                     strcpy(file->name, name);
                     
@@ -539,14 +587,15 @@ struct file* fat_mount(const char* dev, void* data)
     struct file* file = vfs_create_file();
     memset(file, 0, sizeof(struct file));
 
-    file->flags       = FL_DIR;
-    file->device      = vol;
-    file->inode       = vol->record.ebr.cluster_num;
-    file->ops.find    = fat_find;
+    file->flags        = FL_DIR;
+    file->device       = vol;
+    file->inode        = vol->record.ebr.cluster_num;
+    file->ops.find     = fat_find;
     //file->ops.readdir = fat_readdir;
-    file->ops.mkfile  = fat_mkfile;
-    file->ops.mkdir   = fat_mkdir;
-    file->ops.rm      = fat_rm;
+    file->ops.getdents = fat_getdents;
+    file->ops.mkfile   = fat_mkfile;
+    file->ops.mkdir    = fat_mkdir;
+    file->ops.rm       = fat_rm;
 
     return file;
 }
