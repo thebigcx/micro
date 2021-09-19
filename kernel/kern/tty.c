@@ -57,6 +57,35 @@ ssize_t ptm_write(struct file* file, const void* buf, off_t off, size_t size)
     return size;
 }
 
+static struct list  slaves;
+static struct file* ptsfs;
+
+struct file* ptsfs_find(struct file* dir, const char* name)
+{
+    LIST_FOREACH(&slaves)
+    {
+        struct file* dev = node->data;
+        if (!strcmp(name, dev->name))
+            return dev;
+    }
+
+    return NULL;
+}
+
+ssize_t ptsfs_getdents(struct file* dir, off_t off, size_t size, struct dirent* dirp)
+{
+    size_t i;
+    for (i = 0; i < size; i++)
+    {
+        if (i + off == slaves.size) break;
+
+        struct file* dev = list_get(&slaves, i + off);
+        strcpy(dirp[i].d_name, dev->name);
+    }
+
+    return i;
+}
+
 struct file* ptm_open(struct pt* pt)
 {
     struct file* ptm = vfs_create_file();
@@ -80,6 +109,9 @@ struct file* pts_open(struct pt* pt)
 
     // TODO: generate a unique name
     vfs_addnode(pts, "/dev/pts/0");
+
+    strcpy(pts->name, "0");
+    list_push_back(&slaves, pts);
 
     return pts;
 }
@@ -107,6 +139,16 @@ void tty_init()
 
     strcpy(ptmx->name, "ptmx");
     devfs_register(ptmx);
+
+    ptsfs = vfs_create_file();
+
+    ptsfs->flags        = FL_DIR;
+    ptsfs->ops.find     = ptsfs_find;
+    ptsfs->ops.getdents = ptsfs_getdents;
+
+    strcpy(ptsfs->name, "pts");
+
+    devfs_register(ptsfs);
 }
 
 // TODO: use the /proc filesystem instead of this syscall
