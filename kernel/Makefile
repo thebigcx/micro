@@ -10,7 +10,7 @@ TARGET = dist/vmkernel
 release: CFLAGS += -O3
 release: $(TARGET) dev
 
-debug: CFLAGS += -O3 -g -DDEBUG -fsanitize=undefined -fsanitize=kernel-address
+debug: CFLAGS += -g -DDEBUG -fsanitize=undefined -fsanitize=kernel-address
 debug: $(TARGET) dev
 
 .PHONY: clean dev install

@@ -20,8 +20,6 @@ void init_devices()
     null->ops.read    = null_read;
     null->ops.write   = null_write;
     null->flags       = FL_CHARDEV;
-    
-    vfs_addnode(null, "/dev/null");
 
     strcpy(null->name, "null");
     devfs_register(null);

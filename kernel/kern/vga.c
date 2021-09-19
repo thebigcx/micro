@@ -165,10 +165,10 @@ ssize_t vga_write(struct file* file, const void* ptr, off_t off, size_t size)
 void vga_init()
 {
     struct file* vga = vfs_create_file();
-    vga->ops.read = vga_read;
-    vga->ops.write = vga_write;
-    vga->flags = FL_CHARDEV;
-    vfs_addnode(vga, "/dev/vga0");
+    
+    vga->ops.read    = vga_read;
+    vga->ops.write   = vga_write;
+    vga->flags       = FL_CHARDEV;
 
     strcpy(vga->name, "vga0");
     devfs_register(vga);

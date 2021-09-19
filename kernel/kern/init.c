@@ -48,8 +48,6 @@ void initrd_init(uintptr_t start, uintptr_t end)
     file->flags = FL_BLOCKDEV;
     file->device = initrd;
 
-    vfs_addnode(file, "/dev/initrd");
-
     strcpy(file->name, "initrd");
     devfs_register(file);
 }

@@ -12,7 +12,11 @@ struct file* devfs_find(struct file* dir, const char* name)
     {
         struct file* dev = node->data;
         if (!strcmp(name, dev->name))
-            return dev;
+        {
+            struct file* copy = kmalloc(sizeof(struct file));
+            memcpy(copy, dev, sizeof(struct file));
+            return copy;
+        }
     }
 
     return NULL;
@@ -42,7 +46,7 @@ void devfs_init()
     devfs->ops.find     = devfs_find;
     devfs->ops.getdents = devfs_getdents;
 
-    vfs_addnode(devfs, "/devfs");
+    vfs_addnode(devfs, "/dev");
 }
 
 void devfs_register(struct file* file)

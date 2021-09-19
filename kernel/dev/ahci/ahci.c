@@ -294,22 +294,9 @@ void ahci_init_ctrl()
 
             if (type == AHCI_PORT_SATA || type == AHCI_PORT_SATAPI)
             {
-                /*char* name = strdup("/dev/sda");
-
-                for (unsigned int i = 0; i < 26; i++)
-                {
-                    name[strlen(name) - 1] = 'a' + i;
-                    if (vfs_access(name, F_OK) != 0)
-                    {
-                        vfs_addnode(ahci_create_dev(&vabar->ports[i]), name);
-                        break;
-                    }
-                }
-
-                kfree(name);*/
                 struct file* dev = ahci_create_dev(&vabar->ports[i]);
-                vfs_addnode(dev, "/dev/sda");
 
+                // TODO: alphabetize the disks when multiple are present
                 strcpy(dev->name, "sda");
                 devfs_register(dev);
             }

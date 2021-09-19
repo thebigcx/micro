@@ -66,7 +66,11 @@ struct file* ptsfs_find(struct file* dir, const char* name)
     {
         struct file* dev = node->data;
         if (!strcmp(name, dev->name))
-            return dev;
+        {
+            struct file* copy = kmalloc(sizeof(struct file));
+            memcpy(copy, dev, sizeof(struct file));
+            return copy;
+        }
     }
 
     return NULL;
@@ -108,8 +112,6 @@ struct file* pts_open(struct pt* pt)
     pts->device      = pt;
 
     // TODO: generate a unique name
-    vfs_addnode(pts, "/dev/pts/0");
-
     strcpy(pts->name, "0");
     list_push_back(&slaves, pts);
 
@@ -130,12 +132,12 @@ struct fd* ptmx_open(struct file* file, uint32_t flags, mode_t mode)
 
 void tty_init()
 {
+    slaves = list_create();
+
     struct file* ptmx = vfs_create_file();
 
     ptmx->ops.open    = ptmx_open;
     ptmx->flags       = FL_CHARDEV;
-    
-    vfs_addnode(ptmx, "/dev/ptmx");
 
     strcpy(ptmx->name, "ptmx");
     devfs_register(ptmx);
@@ -147,7 +149,6 @@ void tty_init()
     ptsfs->ops.getdents = ptsfs_getdents;
 
     strcpy(ptsfs->name, "pts");
-
     devfs_register(ptsfs);
 }
 

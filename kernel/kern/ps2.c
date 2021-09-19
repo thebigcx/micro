@@ -53,9 +53,9 @@ void ps2_init()
     count = 0;
 
     struct file* kb = vfs_create_file();
-    kb->flags = FL_CHARDEV;
-    kb->ops.read = kb_read;
-    vfs_addnode(kb, "/dev/keyboard");
+    
+    kb->flags       = FL_CHARDEV;
+    kb->ops.read    = kb_read;
 
     strcpy(kb->name, "keyboard");
     devfs_register(kb);
