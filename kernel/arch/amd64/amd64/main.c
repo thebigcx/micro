@@ -17,6 +17,7 @@
 #include <arch/timer.h>
 #include <arch/fpu.h>
 #include <micro/vga.h>
+#include <arch/cmos.h>
 
 void main(struct bootparams params)
 {
@@ -79,6 +80,8 @@ void main(struct bootparams params)
     lapic_setup();
     ioapic_init();
     printk("done\n");
+
+    rtc_init();
 
     printk("initializing timer...");
     timer_init();

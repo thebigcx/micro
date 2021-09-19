@@ -11,7 +11,8 @@ SRC +=  arch/amd64/amd64/entry.c 		\
 		arch/amd64/amd64/smp.c 			\
 		arch/amd64/amd64/timer.c		\
 		arch/amd64/amd64/main.c			\
-		arch/amd64/amd64/fpu.c
+		arch/amd64/amd64/fpu.c			\
+		arch/amd64/amd64/cmos.c
 
 ASM +=  arch/amd64/amd64/ap_start.S  	\
 		arch/amd64/amd64/context.S  	\
