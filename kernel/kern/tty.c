@@ -7,6 +7,8 @@
 #include <micro/ps2.h>
 #include <micro/fbdev.h>
 #include <micro/ringbuf.h>
+#include <micro/sys.h>
+#include <micro/stdlib.h>
 
 ssize_t pts_read(struct file* file, void* buf, off_t off, size_t size)
 {
@@ -101,4 +103,24 @@ void tty_init()
     ptmx->flags       = FL_CHARDEV;
     
     vfs_addnode(ptmx, "/dev/ptmx");
+}
+
+// TODO: use the /proc filesystem instead of this syscall
+SYSCALL_DEFINE(ptsname, int fdno, char* buf, size_t n)
+{
+    PTRVALID(buf);
+    FDVALID(fdno);
+
+    struct fd* fd = task_curr()->fds[fdno];
+
+    // TODO: struct file should hold flags like MASTER_PTY, DEVICE, etc (for fcntl() calls)
+    // THIS IS DANGEROUS - IT MIGHT NOT BE A MASTER PTY
+    struct pt* pt = fd->filp->device;
+
+    if (strlen("/dev/pts/") + strlen(pt->pts->name) >= n) return -ERANGE;
+
+    strcpy(buf, "/dev/pts/");
+    strcpy(buf + strlen(buf), pt->pts->name);
+
+    return 0;
 }

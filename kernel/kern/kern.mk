@@ -12,6 +12,18 @@ SRC += kern/init.c          \
        kern/sys.c           \
        kern/tree.c          \
        kern/fs/vfs.c        \
+       kern/fs/open.c       \
+       kern/fs/readwr.c     \
+       kern/fs/fcntl.c      \
+       kern/fs/ioctl.c      \
+       kern/fs/readdir.c    \
+       kern/fs/mount.c      \
+       kern/mm/mmap.c       \
+       kern/exit.c          \
+       kern/exec.c          \
+       kern/fork.c          \
+       kern/signal.c        \
+       kern/time.c          \
        kern/binfmt.c        \
        kern/ps2.c           \
        kern/module.c        \

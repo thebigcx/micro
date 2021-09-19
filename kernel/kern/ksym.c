@@ -12,6 +12,8 @@ struct ksym
     uintptr_t   value;
 };
 
+// TODO: define a macro called EXPORT_SYMBOL() to build
+// this array automatically
 static struct ksym ksyms[] =
 {
     { "printk",                printk                },

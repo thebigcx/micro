@@ -9,6 +9,7 @@
 #include <micro/errno.h>
 #include <micro/ksym.h>
 #include <micro/stdlib.h>
+#include <micro/sys.h>
 
 #define MOD_MAX 64
 static struct module modules[MOD_MAX];
@@ -154,4 +155,16 @@ int module_free(const char* name)
 void modules_init()
 {
     memset(modules, 0, sizeof(modules));
+}
+
+SYSCALL_DEFINE(insmod, void* data, size_t len)
+{
+    PTRVALID(data);
+    return module_load(data, len);
+}
+
+SYSCALL_DEFINE(rmmod, const char* name)
+{
+    PTRVALID(name);
+    return module_free(name);
 }
