@@ -23,6 +23,10 @@ struct tm
 	int tm_isdst; // Daylight Savings Time flag
 };
 
+typedef long int clock_t;
+
+#define CLOCKS_PER_SEC ((clock_t)1000000)
+
 int nanosleep(const struct timespec* req, struct timespec* rem);
 time_t time(time_t* sec);
 

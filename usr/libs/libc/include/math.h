@@ -1,5 +1,7 @@
 #pragma once
 
+#define HUGE_VAL __builtin_huge_val()
+
 double pow(double x, double y);
 double ceil(double x);
 double floor(double x);

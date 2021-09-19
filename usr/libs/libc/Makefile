@@ -87,6 +87,8 @@ SOURCES := internal/generic/init.c				\
 		   math/pow.c							\
 		   math/trunc.c							\
 		   malloc/malloc.c						\
+		   setjmp/setjmp.c						\
+		   setjmp/longjmp.c						\
 		   misc/errno.c							\
 		   posix/generic/openpty.c				\
 		   posix/generic/opendir.c				\

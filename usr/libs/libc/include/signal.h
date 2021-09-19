@@ -4,13 +4,18 @@
 #include <stdint.h>
 #include <micro/signal.h>
 
+typedef int sig_atomic_t;
+
 typedef void (*sighandler_t)(int);
+
+#define SIG_DFL ((sighandler_t)0)
+#define SIG_IGN ((sighandler_t)1)
 
 struct sigaction
 {
 	sighandler_t   sa_handler;
 	void         (*sa_sigaction)(int);
-	uint64_t       mask;
+	uint64_t       sa_mask;
 	int            sa_flags;
 	void         (*sa_restorer)();
 };
