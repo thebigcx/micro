@@ -13,9 +13,9 @@ char* itoa(int value, char* str, int base)
         int r = n % base;
 
         if (r >= 10)
-            str[i++] = 65 + (r - 10);
+            str[i++] = 'a' + (r - 10);
         else
-            str[i++] = 48 + r;
+            str[i++] = '0' + r;
 
         n = n / base;
     }

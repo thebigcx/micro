@@ -148,6 +148,8 @@ static void pf(struct regs* regs, uint32_t e)
 {
     if (regs->cs & 3)
     {
+        dump(regs);
+        backtrace(regs->rip, regs->rbp, 32);
         task_send(task_curr(), SIGSEGV);
         return;
     }
