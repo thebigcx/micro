@@ -2,7 +2,7 @@
 #include <fcntl.h>
 #include <stdlib.h>
 
-static uint32_t fopen_flags(const char* str)
+uint32_t __libc_fopen_flags(const char* str)
 {
     uint32_t flags = 0;
     
@@ -29,10 +29,9 @@ static uint32_t fopen_flags(const char* str)
     return flags;
 }
 
-// TODO: move to stdio.c
 FILE* fopen(const char* path, const char* mode)
 {
-    uint32_t flags = fopen_flags(mode);
+    uint32_t flags = __libc_fopen_flags(mode);
 
     int fd;
     if ((fd = open(path, flags, 0)) < 0) return NULL;

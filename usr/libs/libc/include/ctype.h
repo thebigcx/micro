@@ -9,3 +9,4 @@ int isalnum(int arg);
 int isxdigit(int arg);
 int ispunct(int arg);
 int toupper(int arg);
+int isgraph(int arg);

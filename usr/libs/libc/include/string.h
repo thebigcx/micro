@@ -25,3 +25,4 @@ char*  strerror(int errnum);
 char*  strerror_r(int errnum, char* buf, size_t len);
 char*  strrchr(const char* str, int c);
 char*  strcat(char* dst, const char* src);
+char*  strndup(const char* str, size_t size);

@@ -9,6 +9,7 @@ SOURCES := internal/generic/init.c				\
 		   ctype/isxdigit.c						\
 		   ctype/tolower.c						\
 		   ctype/toupper.c						\
+		   ctype/isgraph.c						\
 		   assert/assert.c						\
 		   string/memchr.c						\
 		   string/memcmp.c						\
@@ -32,6 +33,7 @@ SOURCES := internal/generic/init.c				\
 		   string/strtok_r.c					\
 		   string/strtok.c						\
 		   string/strerror.c					\
+		   string/strndup.c						\
 		   stdlib/abs.c							\
 		   stdlib/atoi.c						\
 		   stdlib/itoa.c						\
@@ -75,6 +77,8 @@ SOURCES := internal/generic/init.c				\
 		   stdio/tmpfile.c						\
 		   stdio/ungetc.c						\
 		   stdio/stdio.c						\
+		   stdio/freopen.c						\
+		   stdio/vprintf.c						\
 		   time/gmtime_r.c						\
 		   time/gmtime.c						\
 		   time/localtime_r.c					\
