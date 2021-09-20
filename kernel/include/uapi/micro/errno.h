@@ -19,3 +19,4 @@
 #define EMFILE          17
 #define ENODEV          18
 #define EACCES          19
+#define EIO             20

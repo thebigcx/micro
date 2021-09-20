@@ -106,7 +106,6 @@ SOURCES := internal/generic/init.c				\
 		   posix/generic/isatty.c				\
 		   posix/generic/execv.c				\
 		   posix/generic/execvp.c				\
-		   sysdeps/micro/generic/micro.c		\
 		   sysdeps/micro/generic/open.c			\
 		   sysdeps/micro/generic/close.c		\
 		   sysdeps/micro/generic/read.c			\
@@ -145,6 +144,7 @@ SOURCES := internal/generic/init.c				\
 		   sysdeps/micro/generic/nanosleep.c	\
 		   sysdeps/micro/generic/time.c			\
 		   sysdeps/micro/generic/gettimeofday.c \
+		   sysdeps/micro/generic/ptrace.c 		\
 
 ASM :=     sysdeps/micro/generic/syscall.S
 
