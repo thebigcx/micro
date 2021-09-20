@@ -46,6 +46,11 @@ void timer_wait(uint64_t ns)
     while (uptime - now < ns);
 }
 
+uint64_t timer_usec()
+{
+    return uptime / 1000;
+}
+
 void timer_init()
 {
     idt_set_handler(32, timer_tick);

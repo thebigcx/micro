@@ -6,7 +6,8 @@ SRCS := cat.c 		\
 		insmod.c 	\
 		rmmod.c 	\
 		mount.c 	\
-		umount.c
+		umount.c	\
+		date.c
 
 OBJS := $(patsubst %.c, %.o, $(SRCS))
 TARGS := $(patsubst %.c, %, $(SRCS))

@@ -5,6 +5,7 @@
 #include <arch/lapic.h>
 #include <arch/ioapic.h>
 #include <arch/cpu_func.h>
+#include <arch/timer.h>
 
 #include <micro/sys.h>
 #include <micro/time.h>
@@ -97,7 +98,47 @@ void rtc_init()
     sti();
 }
 
+// This is very basic and doesn't account for many things
+time_t date_to_epoch(struct rtc_time* time)
+{
+    time_t sec = 0;
+
+    sec += time->sec   * 1;
+    sec += time->min   * 60;
+    sec += time->hour  * 3600;
+    sec += time->day   * 86400;
+    sec += time->month * 2592000;
+
+    sec += (time->year - 1970)  * 31104000;
+
+    return sec;
+}
+
 SYSCALL_DEFINE(gettimeofday, struct timeval* tv, struct timezone* tz)
 {
-    
+    PTRVALID(tv);
+    PTRVALID(tz);
+
+    struct rtc_time time;
+    rtc_gettime(&time);
+
+    tv->tv_sec  = date_to_epoch(&time);
+    tv->tv_usec = timer_usec();
+
+    tz->tz_dsttime = 0;
+    tz->tz_minuteswest = 0;
+
+    return 0;
+}
+
+SYSCALL_DEFINE(time, time_t* time)
+{
+    PTRVALID(time);
+
+    struct rtc_time rtc;
+    rtc_gettime(&rtc);
+
+    *time = date_to_epoch(&rtc);
+
+    return 0;
 }

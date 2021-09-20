@@ -29,5 +29,6 @@
 #define SYS_pread           26
 #define SYS_pwrite          27
 #define SYS_ptsname         28
+#define SYS_gettimeofday    29
 
 extern long syscall(long sysno, ...);

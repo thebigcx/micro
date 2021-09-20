@@ -36,3 +36,9 @@ size_t strftime(char* s, size_t max,
 
 struct tm* localtime(const time_t* timer);
 struct tm* gmtime(const time_t* timer);
+
+char* ctime(const time_t* timer);
+char* ctime_r(const time_t* timer, char* buf);
+
+char* asctime(const struct tm* timeptr);
+char* asctime_r(const struct tm* timeptr, char* buf);

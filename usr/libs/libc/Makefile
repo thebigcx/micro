@@ -74,11 +74,16 @@ SOURCES := internal/generic/init.c				\
 		   stdio/sscanf.c						\
 		   stdio/tmpfile.c						\
 		   stdio/ungetc.c						\
+		   stdio/stdio.c						\
 		   time/gmtime_r.c						\
 		   time/gmtime.c						\
 		   time/localtime_r.c					\
 		   time/localtime.c						\
 		   time/strftime.c						\
+		   time/asctime.c						\
+		   time/asctime_r.c						\
+		   time/ctime.c							\
+		   time/ctime_r.c						\
 		   math/ceil.c							\
 		   math/fabs.c							\
 		   math/floor.c							\
@@ -89,6 +94,7 @@ SOURCES := internal/generic/init.c				\
 		   malloc/malloc.c						\
 		   setjmp/setjmp.c						\
 		   setjmp/longjmp.c						\
+		   locale/nl_langinfo.c					\
 		   misc/errno.c							\
 		   posix/generic/openpty.c				\
 		   posix/generic/opendir.c				\
@@ -134,6 +140,7 @@ SOURCES := internal/generic/init.c				\
 		   sysdeps/micro/generic/ptsname_r.c	\
 		   sysdeps/micro/generic/nanosleep.c	\
 		   sysdeps/micro/generic/time.c			\
+		   sysdeps/micro/generic/gettimeofday.c \
 
 ASM :=     sysdeps/micro/generic/syscall.S
 

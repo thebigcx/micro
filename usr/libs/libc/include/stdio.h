@@ -29,8 +29,8 @@ typedef struct FILE
 
 } FILE;
 
-extern FILE* stdout;
 extern FILE* stdin;
+extern FILE* stdout;
 extern FILE* stderr;
 
 int sprintf(char* str, const char* format, ...);
