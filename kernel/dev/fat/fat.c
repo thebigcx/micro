@@ -463,7 +463,7 @@ ssize_t fat_getdents(struct file* dir, off_t off, size_t size, struct dirent* di
             }
             else if (buf[j].attr == FAT_ATTR_LFN)
             {
-                struct fat_lfn* lfn = &buf[j];
+                struct fat_lfn* lfn = (struct fat_lfn*)&buf[j];
 
                 size_t k = 0;
                 for (size_t l = 0; l < LFN_CHARS1; l++)
@@ -485,7 +485,7 @@ ssize_t fat_getdents(struct file* dir, off_t off, size_t size, struct dirent* di
                     return bytes;
                 }
 
-                if (dirent_idx++ < off)
+                if (dirent_idx++ < (size_t)off)
                 {
                     lfncnt = 0; continue;
                 }
@@ -544,7 +544,7 @@ struct file* fat_find(struct file* dir, const char* name)
             }
             else if (buf[i].attr == FAT_ATTR_LFN)
             {
-                struct fat_lfn* lfn = &buf[i];
+                struct fat_lfn* lfn = (struct fat_lfn*)&buf[i];
 
                 size_t j = 0;
                 for (size_t k = 0; k < LFN_CHARS1; k++)
@@ -609,8 +609,10 @@ struct file* fat_find(struct file* dir, const char* name)
     return NULL;
 }
 
-struct file* fat_mount(const char* dev, void* data)
+struct file* fat_mount(const char* dev, const void* data)
 {
+    (void)data;
+    
     struct file* device = kmalloc(sizeof(struct file));
     vfs_resolve(dev, device);
 

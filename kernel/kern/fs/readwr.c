@@ -21,9 +21,9 @@ SYSCALL_DEFINE(write, int fdno, const void* buf, size_t size)
     FDVALID(fdno);
     PTRVALID(buf);
 
-    printk("write: ");
-    for (size_t i = 0; i < size; i++) printk("%c", ((char*)buf)[i]);
-    printk("\n");
+    //printk("write: ");
+    //for (size_t i = 0; i < size; i++) printk("%c", ((char*)buf)[i]);
+    //printk("\n");
 
     struct task* task = task_curr();
     

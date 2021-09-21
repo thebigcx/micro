@@ -129,6 +129,12 @@ struct PACKED ext2_dirent
 #define DIRENT_SOCKET   6
 #define DIRENT_SYMLINK  7
 
+struct PACKED ext2_sbfull
+{
+    struct ext2_sb    sb;
+    struct ext2_sbext sbext;
+};
+
 struct ext2_volume
 {
     struct file*     device;

@@ -17,12 +17,6 @@ struct PACKED vga_char
     uint8_t col;
 };
 
-void vga_set_addr(uintptr_t addr)
-{
-    buf = (struct vga_char*)addr;
-    enable_cursor(0, 15);
-}
-
 void enable_cursor(uint8_t start, uint8_t end)
 {
     outb(0x3d4, 0x0a);
@@ -40,6 +34,12 @@ void update_cursor()
     outb(0x3d5, (uint8_t)(pos & 0xff));
     outb(0x3d4, 0x0e);
     outb(0x3d5, (uint8_t)((pos >> 8) & 0xff));
+}
+
+void vga_set_addr(uintptr_t addr)
+{
+    buf = (struct vga_char*)addr;
+    enable_cursor(0, 15);
 }
 
 void clear_row(unsigned int row)

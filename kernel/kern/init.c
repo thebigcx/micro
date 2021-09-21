@@ -15,6 +15,7 @@
 #include <micro/tty.h>
 #include <micro/module.h>
 #include <micro/devfs.h>
+#include <micro/dev.h>
 
 struct initrd
 {
@@ -103,7 +104,7 @@ struct file* initramfs_find(struct file* dir, const char* name)
     return NULL;
 }
 
-struct file* initramfs_mount(const char* dev, void* data)
+struct file* initramfs_mount(const char* dev, const void* data)
 {
     struct file* device = kmalloc(sizeof(struct file));
     vfs_resolve(dev, device);

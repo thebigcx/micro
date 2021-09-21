@@ -11,7 +11,7 @@ SYSCALL_DEFINE(dup, int oldfd)
     {
         if (!task->fds[i])
         {
-            task->fds[i] = oldfd;
+            task->fds[i] = task->fds[oldfd];
             return i;
         }
     }

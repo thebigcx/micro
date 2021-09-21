@@ -87,7 +87,8 @@ int vfs_addnode(struct file* file, const char* path);
 void* vfs_rmnode(const char* path);
 struct file* vfs_getmnt(const char* path, char** relat);
 
-int vfs_mount_fs(const char* dev, const char* mnt, const char* fs, void* data);
+int vfs_mount_fs(const char* dev, const char* mnt,
+                 const char* fs, const void* data);
 int vfs_umount_fs(const char* mnt);
 
 struct fd* vfs_open(struct file* file, uint32_t flags, mode_t mode);
@@ -101,7 +102,7 @@ int vfs_access(const char* path, int mode);
 
 void vfs_mmap(struct file* file, struct vm_area* area);
 
-typedef struct file* (*mount_t)(const char*, void* data);
+typedef struct file* (*mount_t)(const char*, const void* data);
 
 struct fs_type
 {

@@ -386,7 +386,8 @@ void vfs_mmap(struct file* file, struct vm_area* area)
 static struct fs_type fs_types[64];
 static unsigned int fs_count;
 
-int vfs_mount_fs(const char* dev, const char* mnt, const char* fs, void* data)
+int vfs_mount_fs(const char* dev, const char* mnt,
+                 const char* fs, const void* data)
 {
     for (unsigned int i = 0; i < fs_count; i++)
     {
@@ -394,7 +395,7 @@ int vfs_mount_fs(const char* dev, const char* mnt, const char* fs, void* data)
         {
             struct file* file = fs_types[i].mount(dev, data);
             vfs_addnode(file, mnt);
-            return;
+            return 0;
         }
     }
 

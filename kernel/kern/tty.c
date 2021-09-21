@@ -18,7 +18,7 @@ ssize_t pts_read(struct file* file, void* buf, off_t off, size_t size)
     ssize_t bytes = ringbuf_size(pt->inbuf);
 
     if (bytes <= 0) return 0;
-    if (size < bytes) bytes = size;
+    if (size < (size_t)bytes) bytes = size;
 
     ringbuf_read(pt->inbuf, buf, bytes);
 
@@ -41,7 +41,7 @@ ssize_t ptm_read(struct file* file, void* buf, off_t off, size_t size)
     ssize_t bytes = ringbuf_size(pt->outbuf);
 
     if (bytes <= 0) return 0;
-    if (size < bytes) bytes = size;
+    if (size < (size_t)bytes) bytes = size;
 
     ringbuf_read(pt->outbuf, buf, bytes);
 

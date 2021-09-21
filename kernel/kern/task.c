@@ -15,6 +15,7 @@ static unsigned int s_id = 1;
 static struct task* mktask(struct task* parent, struct vm_map* vm_map)
 {
     struct task* task = kmalloc(sizeof(struct task));
+    memset(task, 0, sizeof(struct task));
 
     task->threads  = list_create();
     task->fds      = kmalloc(sizeof(struct fd*) * FD_MAX);
@@ -22,16 +23,9 @@ static struct task* mktask(struct task* parent, struct vm_map* vm_map)
     task->vm_map   = vm_map;
     task->children = list_create();
     task->parent   = parent;
-    task->main     = NULL;
-    task->sigmask  = 0;
     task->sigqueue = list_create();
-    task->waiting  = 0;
-    task->dead     = 0;
-    task->status   = 0;
     
     strcpy(task->workd, "/");
-    
-    memset(task->signals, 0, sizeof(task->signals));
     memset(task->fds, 0, sizeof(struct fd*) * FD_MAX);
 
     if (parent)
@@ -62,13 +56,6 @@ static void init_user_task(struct task* task, const char* path, const char* argv
     task->main->regs.rip = elf_load(task, data, argv, envp);
 
     list_push_back(&task->threads, task->main);
-
-    // TEMP: DEBUG
-    //struct file* tty = kmalloc(sizeof(struct file));
-    //vfs_resolve("/dev/tty", tty);
-    //task->fds[0] = vfs_open(tty, 0, 0);
-    //task->fds[1] = vfs_open(tty, 0, 0);
-    //task->fds[2] = vfs_open(tty, 0, 0);
 }
 
 static void idle()
@@ -152,16 +139,6 @@ void task_execve(struct task* task, const char* path, const char* argv[], const 
         thread->state = THREAD_DEAD;
     }
     list_clear(&task->threads);
-
-    // Clean fd's
-    /*for (unsigned int i = 0; i < FD_MAX; i++)
-    {
-        if (task->fds[i])
-        {
-            vfs_close(task->fds[i]);
-            task->fds[i] = NULL;
-        }
-    }*/
     
     init_user_task(task, path, argv, envp);
 

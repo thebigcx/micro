@@ -31,6 +31,9 @@ struct task
     int status;
 
     volatile int waiting;
+
+    uid_t ruid, euid, suid;
+    gid_t rgid, egid, sgid;
 };
 
 struct thread;

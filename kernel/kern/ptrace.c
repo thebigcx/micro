@@ -19,8 +19,6 @@ long ptrace_getregs(struct task* task, struct user_regs* regs)
 
 SYSCALL_DEFINE(ptrace, enum ptrace_req req, pid_t pid, void* addr, void* data)
 {
-    if (req < 0 || req >= PTRACE_REQ_CNT) return -EINVAL;
-
     struct task* task = sched_task_fromid(pid);
     if (!task) return -ESRCH;
 
@@ -42,4 +40,6 @@ SYSCALL_DEFINE(ptrace, enum ptrace_req req, pid_t pid, void* addr, void* data)
         PTRVALID(data);
         return ptrace_getregs(task, data);
     }
+
+    return -EINVAL; // No such request
 }

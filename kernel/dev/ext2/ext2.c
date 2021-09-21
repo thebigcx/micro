@@ -3,18 +3,21 @@
 #include <micro/heap.h>
 #include <micro/stdlib.h>
 #include <micro/module.h>
+#include <micro/debug.h>
 
 #define SUPER_BLK 1
 #define BGDS_BLK  2
 
 #define INOSIZE(ino) (((size_t)((ino).size_u) << 32) | (ino).size)
 
-static ssize_t read_blocks(struct ext2_volume* vol, void* buf, uintptr_t blk, size_t cnt)
+static ssize_t read_blocks(struct ext2_volume* vol, void* buf,
+                           uintptr_t blk, size_t cnt)
 {
     return vfs_read(vol->device, buf, blk * vol->blksize, vol->blksize * cnt);
 }
 
-static ssize_t write_blocks(struct ext2_volume* vol, const void* buf, uintptr_t blk, size_t cnt)
+static ssize_t write_blocks(struct ext2_volume* vol, const void* buf,
+                            uintptr_t blk, size_t cnt)
 {
     return vfs_write(vol->device, buf, blk * vol->blksize, vol->blksize * cnt);
 }
@@ -32,7 +35,8 @@ static void ext2_rewrite_bgds(struct ext2_volume* vol)
     }
 }
 
-static void ext2_read_inode(struct ext2_volume* ext2, unsigned int num, struct ext2_inode* inode)
+static void ext2_read_inode(struct ext2_volume* ext2, unsigned int num,
+                            struct ext2_inode* inode)
 {
     uint8_t* buf = kmalloc(ext2->blksize);
 
@@ -52,7 +56,8 @@ static void ext2_read_inode(struct ext2_volume* ext2, unsigned int num, struct e
     kfree(buf);
 }
 
-static void ext2_write_inode(struct ext2_volume* ext2, unsigned int num, struct ext2_inode* inode)
+static void ext2_write_inode(struct ext2_volume* ext2, unsigned int num,
+                             struct ext2_inode* inode)
 {
     uint8_t* buf = kmalloc(ext2->blksize);
 
@@ -73,7 +78,8 @@ static void ext2_write_inode(struct ext2_volume* ext2, unsigned int num, struct 
     kfree(buf);
 }
 
-static struct file* dirent2file(struct ext2_volume* vol, struct file* parent, struct ext2_dirent* dirent)
+static struct file* dirent2file(struct ext2_volume* vol, struct file* parent,
+                                struct ext2_dirent* dirent)
 {
     struct ext2_inode ino;
     ext2_read_inode(vol, dirent->inode, &ino);
@@ -107,7 +113,8 @@ static struct file* dirent2file(struct ext2_volume* vol, struct file* parent, st
 #define INO_DIND 13 // Doubly indirect
 #define INO_TIND 14 // Triply indirect
 
-static uint32_t ext2_inode_blk(struct ext2_volume* vol, struct ext2_inode* ino, uint32_t i)
+static uint32_t ext2_inode_blk(struct ext2_volume* vol, struct ext2_inode* ino,
+                               uint32_t i)
 {
     uint32_t bpp = vol->blksize / sizeof(uint32_t); // Blocks per pointer
 
@@ -164,7 +171,8 @@ static uint32_t ext2_inode_blk(struct ext2_volume* vol, struct ext2_inode* ino, 
     }
 }
 
-static void ext2_set_inode_blk(struct ext2_volume* vol, struct ext2_inode* ino, uint32_t i, uint32_t blk)
+static void ext2_set_inode_blk(struct ext2_volume* vol, struct ext2_inode* ino,
+                               uint32_t i, uint32_t blk)
 {
     uint32_t bpp = vol->blksize / sizeof(uint32_t); // Blocks per pointer
 
@@ -257,8 +265,8 @@ uint32_t ext2_alloc_blk(struct ext2_volume* vol)
         read_blocks(vol, buf, vol->groups[i].block_bmp, 1);
 
         // Find the first unset bit
-        int j;
-        for (j = 0; j < vol->blksize * 8 && (buf[j / 8] & (1 << (j % 8))); j++);
+        size_t j = 0;
+        for (; j < vol->blksize * 8 && (buf[j / 8] & (1 << (j % 8))); j++);
         if (j == vol->blksize * 8) continue;
         
         // Set it and return
@@ -288,8 +296,8 @@ uint32_t ext2_alloc_inode(struct ext2_volume* vol)
         read_blocks(vol, buf, vol->groups[i].inode_bmp, 1);
 
         // Find the first unset bit
-        int j;
-        for (j = 0; j < vol->blksize * 8 && (buf[j / 8] & (1 << (j % 8))); j++);
+        size_t j = 0;
+        for (; j < vol->blksize * 8 && (buf[j / 8] & (1 << (j % 8))); j++);
         if (j == vol->blksize * 8) continue;
         
         // Set it and return
@@ -332,7 +340,7 @@ ssize_t ext2_getdents(struct file* dir, off_t off, size_t n, struct dirent* dirp
         struct ext2_dirent* dirent = (struct ext2_dirent*)((uintptr_t)buf + offset);
         offset += dirent->size;
 
-        if (idx++ < off) continue;
+        if (idx++ < (size_t)off) continue;
 
         strncpy(dirp[dentidx].d_name, dirent->name, dirent->name_len);
         dentidx++;
@@ -586,6 +594,7 @@ void ext2_mkfile(struct file* dir, const char* name)
 
 void ext2_mkdir(struct file* dir, const char* name)
 {
+    (void)dir; (void)name;
     //ext2_mkentry(dir, name, INODE_DIR);
 }
 
@@ -596,11 +605,13 @@ void ext2_mknod(struct file* dir, struct file* file)
 
 void ext2_rm(struct file* dir, const char* name)
 {
-
+    (void)dir; (void)name;
 }
 
-static struct file* ext2_mount(const char* dev, void* data)
+static struct file* ext2_mount(const char* dev, const void* data)
 {
+    (void)data;
+
     struct ext2_volume* vol = kmalloc(sizeof(struct ext2_volume));
     vol->device = kmalloc(sizeof(struct file));
     vfs_resolve(dev, vol->device);
@@ -608,7 +619,9 @@ static struct file* ext2_mount(const char* dev, void* data)
     void* buf = kmalloc(512);
 
     vfs_read(vol->device, buf, SUPER_BLK * 1024, 512); // FIXME: here we assume that the blocks are 1024 in size
-    memcpy(&vol->sb, buf, sizeof(struct ext2_sb) + sizeof(struct ext2_sbext));
+
+    struct sb_full* sb = (struct sb_full*)&vol->sb;
+    memcpy(sb, buf, sizeof(struct ext2_sb) + sizeof(struct ext2_sbext));
 
     kfree(buf);
 
@@ -620,7 +633,8 @@ static struct file* ext2_mount(const char* dev, void* data)
 
     vol->groups = kmalloc(sizeof(struct ext2_bgd) * vol->group_cnt + vol->blksize);
 
-    read_blocks(vol, vol->groups, SUPER_BLK + 1, vol->group_cnt * sizeof(struct ext2_bgd) / vol->blksize + 1);
+    read_blocks(vol, vol->groups, SUPER_BLK + 1, 
+                vol->group_cnt * sizeof(struct ext2_bgd) / vol->blksize + 1);
 
     struct file* file  = vfs_create_file();
 

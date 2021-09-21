@@ -44,7 +44,7 @@ int module_load(void* data, size_t len)
         if (shdr->type == SHT_NOBITS)
         {
             shdr->addr = mmu_map_module(shdr->size);
-            memset(shdr->addr, 0, shdr->size);
+            memset((void*)shdr->addr, 0, shdr->size);
         }
         else
             shdr->addr = base + shdr->offset;
@@ -66,7 +66,7 @@ int module_load(void* data, size_t len)
 
         for (unsigned int j = 0; j < shdr->size / sizeof(struct elf_sym); j++)
         {
-            char* name = strsect->addr + symtab[j].name;
+            char* name = (char*)strsect->addr + symtab[j].name;
 
             if (symtab[j].shndx == SHN_UNDEF && name[0] != 0)
                 symtab[j].value = ksym_lookup(name);
@@ -78,7 +78,7 @@ int module_load(void* data, size_t len)
 
             // Module metadata defining init() and fini() among other things
             if (!strcmp(name, "meta"))
-                meta = symtab[j].value;
+                meta = (struct modmeta*)symtab[j].value;
         }
     }
 

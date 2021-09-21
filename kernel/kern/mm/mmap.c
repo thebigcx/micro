@@ -55,7 +55,7 @@ unsigned long ksys_do_mmap(void* addr, size_t length, int prot, int flags, int f
         }
     }
 
-    return addr;
+    return (unsigned long)addr;
 }
 
 // TODO: add support for shared memory

@@ -92,7 +92,7 @@ uintptr_t elf_load(struct task* task, void* data,
             void* data = kmalloc(interp->size);
             vfs_read(interp, data, 0, interp->size);
 
-            return elf_load(task, data, (const char*)nargv, envp);
+            return elf_load(task, data, (const char**)nargv, envp);
         }
     }
 
