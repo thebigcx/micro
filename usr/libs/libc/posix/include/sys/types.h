@@ -14,3 +14,5 @@ typedef long				blksize_t;
 typedef long				blkcnt_t;
 typedef long int            time_t;
 typedef long int            suseconds_t;
+typedef int                 sigset_t;
+typedef long                clock_t;

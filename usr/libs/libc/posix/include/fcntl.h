@@ -12,4 +12,17 @@
 #define O_TRUNC     0x020
 #define O_DIRECTORY 0x040
 
-int open(const char* pathname, int flags, mode_t mode);
+int open(const char* pathname, int flags, ...);
+
+#define F_DUPFD         0
+#define F_DUPFD_CLOEXEC 1
+#define F_GETFD         2
+#define F_SETFD         3
+#define F_GETFL         4
+#define F_SETFL         5
+#define F_SETLK         6
+#define F_SETLKW        7
+#define F_GETLK         8
+#define F_UNLCK         9
+
+int fcntl(int fd, int cmd, ...);

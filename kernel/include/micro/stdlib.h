@@ -128,6 +128,17 @@ FORCE_INLINE char* strdup(const char* s)
     return news;
 }
 
+FORCE_INLINE void* memmove(void* dst, const void* src, size_t n)
+{
+    void* imm = kmalloc(n);
+
+    memcpy(imm, src, n);
+    memcpy(dst, imm, n);
+
+    kfree(imm);
+    return dst;
+}
+
 extern void __assertion_failed(const char* expr, const char* file, int line);
 
 #define ASSERT(expr) if (!(expr)) __assertion_failed(#expr, __FILE__, __LINE__);

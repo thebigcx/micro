@@ -429,42 +429,6 @@ void fat_rm(struct file* dir, const char* name)
     kfree(buf);
 }
 
-/*int fat_readdir(struct file* dir, size_t idx, struct dirent* dirent)
-{
-    struct fat32_volume* vol = dir->device;
-    unsigned int clus = dir->inode;
-
-    struct fat_dirent* buf = kmalloc(512); // Hold the data we care about
-
-    unsigned int cnt = fat_cchain_cnt(vol, clus);
-    for (unsigned int i = 0; i < cnt; i++)
-    {
-        uint64_t lba = clus2lba(vol, clus);
-
-        vfs_read(vol->device, buf, lba * 512, 512);
-
-        for (unsigned int i = 0; i < 512 / sizeof(struct fat_dirent); i++)
-        {
-            if (   buf[i].name[0] == 0 || buf[i].name[0] == 0xe5
-                || buf[i].attr == FAT_ATTR_LFN || buf[i].attr & FAT_ATTR_VOLID) continue;
-            else
-            {
-                if (idx-- == 0)
-                {
-                    from8dot3(&buf[i], dirent->d_name);
-                    return 1;
-                }
-            }
-        }
-
-        clus = fat_table_read(vol, clus);
-    }
-
-    kfree(buf);
-
-    return 0;
-}*/
-
 #define DENTS_PER_SECT 512 / sizeof(struct fat_dirent)
 
 ssize_t fat_getdents(struct file* dir, off_t off, size_t size, struct dirent* dirp)
@@ -478,6 +442,9 @@ ssize_t fat_getdents(struct file* dir, off_t off, size_t size, struct dirent* di
     size_t dirp_idx = 0;
     size_t dirent_idx = 0;
 
+    char lfns[8][LFN_LEN + 1];
+    size_t lfncnt = 0;
+
     unsigned int cnt = fat_cchain_cnt(vol, clus);
     for (unsigned int i = 0; i < cnt; i++)
     {
@@ -487,8 +454,29 @@ ssize_t fat_getdents(struct file* dir, off_t off, size_t size, struct dirent* di
 
         for (unsigned int j = 0; j < DENTS_PER_SECT; j++)
         {
-            if (   buf[j].name[0] == 0 || buf[j].name[0] == 0xe5
-                || buf[j].attr == FAT_ATTR_LFN || buf[j].attr & FAT_ATTR_VOLID) continue;
+            if (buf[j].name[0] == 0) continue; // Unused
+            else if (buf[j].name[0] == 0xe5    // Unused
+                  || buf[j].attr == FAT_ATTR_VOLID)
+            {
+                lfncnt = 0;
+                continue;
+            }
+            else if (buf[j].attr == FAT_ATTR_LFN)
+            {
+                struct fat_lfn* lfn = &buf[j];
+
+                size_t k = 0;
+                for (size_t l = 0; l < LFN_CHARS1; l++)
+                    lfns[lfncnt][k++] = lfn->chars1[l];
+
+                for (size_t l = 0; l < LFN_CHARS2; l++)
+                    lfns[lfncnt][k++] = lfn->chars2[l];
+
+                for (size_t l = 0; l < LFN_CHARS3; l++)
+                    lfns[lfncnt][k++] = lfn->chars3[l];
+
+                lfns[lfncnt++][LFN_LEN] = 0;
+            }
             else
             {
                 if (dirent_idx >= off + size)
@@ -497,11 +485,26 @@ ssize_t fat_getdents(struct file* dir, off_t off, size_t size, struct dirent* di
                     return bytes;
                 }
 
-                if (dirent_idx++ < off) continue;
+                if (dirent_idx++ < off)
+                {
+                    lfncnt = 0; continue;
+                }
 
-                bytes += sizeof(struct fat_dirent);
-                from8dot3(&buf[j], dirp[dirp_idx].d_name);
+                bytes += sizeof(struct dirent);
+
+                char* dirpname = dirp[dirp_idx].d_name;
+                if (lfncnt)
+                {
+                    strcpy(dirpname, lfns[--lfncnt]);
+                    while (lfncnt--)
+                        strcpy(dirpname + strlen(dirpname), lfns[lfncnt]);
+                }
+                else
+                    from8dot3(&buf[j], dirpname);
+
                 dirp_idx++;
+
+                lfncnt = 0;
             }
         }
 
@@ -519,6 +522,9 @@ struct file* fat_find(struct file* dir, const char* name)
 
     struct fat_dirent* buf = kmalloc(512); // Hold the data we care about
 
+    char lfns[8][LFN_LEN + 1];
+    size_t lfncnt = 0;
+
     unsigned int cnt = fat_cchain_cnt(vol, clus);
     for (unsigned int i = 0; i < cnt; i++)
     {
@@ -529,11 +535,46 @@ struct file* fat_find(struct file* dir, const char* name)
         // clus
         for (unsigned int i = 0; i < 512 / sizeof(struct fat_dirent); i++)
         {
-            if (   buf[i].name[0] == 0 || buf[i].name[0] == 0xe5
-                || buf[i].attr == FAT_ATTR_LFN || buf[i].attr & FAT_ATTR_VOLID) continue;
+            if (buf[i].name[0] == 0) continue; // Unused
+            else if (buf[i].name[0] == 0xe5    // Unused
+                  || buf[i].attr == FAT_ATTR_VOLID)
+            {
+                lfncnt = 0;
+                continue;
+            }
+            else if (buf[i].attr == FAT_ATTR_LFN)
+            {
+                struct fat_lfn* lfn = &buf[i];
+
+                size_t j = 0;
+                for (size_t k = 0; k < LFN_CHARS1; k++)
+                    lfns[lfncnt][j++] = lfn->chars1[k];
+
+                for (size_t k = 0; k < LFN_CHARS2; k++)
+                    lfns[lfncnt][j++] = lfn->chars2[k];
+
+                for (size_t k = 0; k < LFN_CHARS3; k++)
+                    lfns[lfncnt][j++] = lfn->chars3[k];
+
+                lfns[lfncnt++][LFN_LEN] = 0;
+            }
             else
             {
-                if (fat_name_cmp(&buf[i], name))
+                int cmp = 0;
+
+                if (lfncnt)
+                {
+                    char lfn[128];
+                    strcpy(lfn, lfns[--lfncnt]);
+                    while (lfncnt--)
+                        strcpy(lfn + strlen(lfn), lfns[lfncnt]);
+
+                    cmp = !strcmp(lfn, name);
+                }
+                else
+                    cmp = fat_name_cmp(&buf[i], name);
+
+                if (cmp)
                 {
                     struct file* file  = vfs_create_file();
 
@@ -546,7 +587,6 @@ struct file* fat_find(struct file* dir, const char* name)
                     file->ops.read     = fat_read;
                     file->ops.write    = fat_write;
                     file->ops.find     = fat_find;
-                    //file->ops.readdir = fat_readdir;
                     file->ops.getdents = fat_getdents;
                     file->ops.mkfile   = fat_mkfile;
                     file->ops.mkdir    = fat_mkdir;
@@ -591,7 +631,6 @@ struct file* fat_mount(const char* dev, void* data)
     file->device       = vol;
     file->inode        = vol->record.ebr.cluster_num;
     file->ops.find     = fat_find;
-    //file->ops.readdir = fat_readdir;
     file->ops.getdents = fat_getdents;
     file->ops.mkfile   = fat_mkfile;
     file->ops.mkdir    = fat_mkdir;

@@ -71,6 +71,24 @@ struct fat32_volume
     struct file* device;
 };
 
+// Number of characters one LFN can hold
+#define LFN_LEN 13
+
+struct PACKED fat_lfn
+{
+    uint8_t  order;
+#define LFN_CHARS1 5
+    uint16_t chars1[LFN_CHARS1];
+    uint8_t  attr;
+    uint8_t  type;
+    uint8_t  checksum;
+#define LFN_CHARS2 6
+    uint16_t chars2[LFN_CHARS2];
+    uint16_t zero;
+#define LFN_CHARS3 2
+    uint16_t chars3[LFN_CHARS3];
+};
+
 struct dirent;
 
 void fat_init();
