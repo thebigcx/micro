@@ -35,6 +35,7 @@ SYSCALL_DEFINE(open, const char* path, uint32_t flags, mode_t mode)
     {
         if (!task->fds[i])
         {
+            printk("open(%s)\n", path);
             task->fds[i] = vfs_open(file, flags, mode);
             return i;
         }

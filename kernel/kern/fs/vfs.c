@@ -5,6 +5,7 @@
 #include <micro/heap.h>
 #include <micro/errno.h>
 #include <micro/debug.h>
+#include <micro/fcntl.h>
 
 struct tree root;
 
@@ -346,8 +347,11 @@ struct fd* vfs_open(struct file* file, uint32_t flags, mode_t mode)
     if (file->ops.open) return file->ops.open(file, flags, mode);
 
     struct fd* fd = kmalloc(sizeof(struct fd));
-    fd->filp = file;
-    fd->off = 0;
+
+    fd->filp  = file;
+    fd->off   = 0;
+    fd->flags = flags;
+
     return fd;
 }
 

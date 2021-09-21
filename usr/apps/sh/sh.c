@@ -14,10 +14,20 @@ int main(int argc, char** argv)
 {
     while (1)
     {
-        printf("$ ");
+        char cwd[128];
+        getcwd(cwd, 128);
+
+        printf("root@micro:%s$ ", cwd);
 
         char* line = malloc(256);
-        fgets(line, 256, stdin);
+        size_t lineptr = 0;
+        for (;;)
+        {
+            char c;
+            while (read(STDIN_FILENO, &c, 1) == 0);
+            line[lineptr++] = c;
+            if (c == '\n') break;
+        }
 
         char* ptr = strchr(line, '\n');
         if (ptr) *ptr = 0;
@@ -61,11 +71,12 @@ int main(int argc, char** argv)
         if (!strncmp(line, "cd", 2))
         {
             if (chdir(argv[1]) != 0)
-            {
                 perror("cd: ");
-            }
             continue;
         }
+
+        if (!strncmp(line, "exit", 4))
+            return 0;
 
         if (access(bin, F_OK) == -1)
         {

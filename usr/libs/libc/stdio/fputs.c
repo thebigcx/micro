@@ -2,5 +2,5 @@
 
 int fputs(const char* str, FILE* stream)
 {
-    fwrite(str, strlen(str), 1, stream);
+    return fwrite(str, strlen(str), 1, stream);
 }

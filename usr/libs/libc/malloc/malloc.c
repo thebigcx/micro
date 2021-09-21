@@ -21,7 +21,7 @@ static void* end;
 
 // Merge b2 into b1 (both must be free)
 // b1 and b2 are adjacent and in ascending order
-static void combine(struct block* b1, struct block* b2)
+static struct block* combine(struct block* b1, struct block* b2)
 {
     // Add the size and adjust 'next' to jump over b2
     b1->size += b2->size + sizeof(struct block);
@@ -32,6 +32,8 @@ static void combine(struct block* b1, struct block* b2)
         b1->next->prev = b1;
     else
         last = b1;
+
+    return b1;
 }
 
 static struct block* split(struct block* b, size_t n)
@@ -107,7 +109,7 @@ void* malloc(size_t n)
     // TODO: try to expand the heap
 
     printf("malloc(): unable to allocate 0x%x bytes (out of memory)\n", n);
-   	return NULL; 
+   	return NULL;
 }
 
 void free(void* ptr)
@@ -121,8 +123,8 @@ void free(void* ptr)
     struct block* block = (struct block*)ptr - 1;
     block->used = 0;
 
-    if (block->prev && !block->prev->used) combine(block->prev, block);
-    if (block->next && !block->next->used) combine(block, block->next);
+    if (block->prev && !block->prev->used) block = combine(block->prev, block);
+    if (block->next && !block->next->used) block = combine(block, block->next);
 }
 
 void* realloc(void* ptr, size_t size)
@@ -151,5 +153,9 @@ void* realloc(void* ptr, size_t size)
 
 void* calloc(size_t nitems, size_t size)
 {
-	return malloc(nitems * size);
+    void* p = malloc(nitems * size);
+    if (!p) return NULL;
+    
+    memset(p, 0, nitems * size);
+	return p;
 }

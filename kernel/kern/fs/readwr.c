@@ -1,5 +1,6 @@
 #include <micro/sys.h>
 #include <micro/vfs.h>
+#include <micro/fcntl.h>
 
 SYSCALL_DEFINE(read, int fdno, void* buf, size_t size)
 {
@@ -20,9 +21,16 @@ SYSCALL_DEFINE(write, int fdno, const void* buf, size_t size)
     FDVALID(fdno);
     PTRVALID(buf);
 
+    printk("write: ");
+    for (size_t i = 0; i < size; i++) printk("%c", ((char*)buf)[i]);
+    printk("\n");
+
     struct task* task = task_curr();
     
     struct fd* fd = task->fds[fdno];
+
+    if (fd->flags & O_APPEND) fd->off = fd->filp->size;
+
     ssize_t ret = vfs_write(fd->filp, buf, fd->off, size);
     fd->off += size;
 

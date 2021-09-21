@@ -158,14 +158,35 @@ static char ascii[] =
     'c', 'c', 'c', 'c', 'c', 'c', 'c'
 };
 
+static int ctrl = 0;
+
 void handle_kb(int sc)
 {
+    if (sc == 29)
+    {
+        ctrl = 1;
+        return;
+    }
+    else if (sc == 0x9d)
+    {
+        ctrl = 0;
+        return;
+    }
+
     if (sc < 88)
     {
         char ch = ascii[sc];
         putch(ch, 0xffffffff, 0);
-        write(ptm, &ch, 1);
+
+        if (ctrl)
+        {
+            write(ptm, "^[", 2);
+            write(ptm, &ch, 1);
+        }
+        else
+            write(ptm, &ch, 1);
     }
+
 }
 
 int main(int argc, char** argv)

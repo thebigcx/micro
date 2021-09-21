@@ -7,7 +7,8 @@ SRCS := cat.c 		\
 		rmmod.c 	\
 		mount.c 	\
 		umount.c	\
-		date.c
+		date.c		\
+		du.c
 
 OBJS := $(patsubst %.c, %.o, $(SRCS))
 TARGS := $(patsubst %.c, %, $(SRCS))
@@ -28,15 +29,6 @@ all: $(TARGS)
 install:
 	@mkdir -p $(DESTDIR)/usr/bin
 	$(foreach targ, $(TARGS), cp $(targ) $(DESTDIR)/usr/bin/;)
-
-#	@mkdir -p $(DESTDIR)/usr/bin
-#	@cp cat $(DESTDIR)/usr/bin
-#	@cp pwd $(DESTDIR)/usr/bin
-#	@cp ls $(DESTDIR)/usr/bin
-#	@cp touch $(DESTDIR)/usr/bin
-#	@cp mkdir $(DESTDIR)/usr/bin
-#	@cp insmod $(DESTDIR)/usr/bin
-#	@cp rmmod $(DESTDIR)/usr/bin
 
 clean:
 	@echo "    RM    $(TARGS)"

@@ -48,7 +48,8 @@ struct file_ops
 struct fd
 {
     struct file* filp;
-    off_t off;
+    off_t        off;
+    uint32_t     flags;
 };
 
 struct file

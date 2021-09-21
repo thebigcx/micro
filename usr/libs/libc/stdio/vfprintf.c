@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
 
 int vfprintf(FILE* file, const char* format, va_list args)
 {
@@ -6,10 +8,10 @@ int vfprintf(FILE* file, const char* format, va_list args)
     size_t len = 300;
     char* str = malloc(len);
 
-    vsnprintf(str, len, format, args);
+    int ret = vsnprintf(str, len, format, args);
 
     write(file->fd, str, strlen(str));
     free(str);
 
-    return 0;
+    return ret;
 }

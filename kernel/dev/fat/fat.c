@@ -273,12 +273,12 @@ ssize_t fat_write(struct file* file, const void* buf, off_t off, size_t size)
         {
             vfs_read(vol->device, fullbuf, lba * 512, 512);
 
-            unsigned int start = 0;
+            unsigned int byte_offset = 0;
             size_t bytes = 512;
 
             if (pos == start)
             {
-                start = off % 512;
+                byte_offset = off % 512;
                 bytes -= off % 512;
             }
             if (pos == end)
@@ -286,7 +286,7 @@ ssize_t fat_write(struct file* file, const void* buf, off_t off, size_t size)
                 bytes -= 512 - ((off + size) % 512);
             }
             
-            memcpy(fullbuf, buf + start, bytes);
+            memcpy(fullbuf + byte_offset, buf, bytes);
             vfs_write(vol->device, fullbuf, lba * 512, 512);
 
             buf = (void*)((uintptr_t)buf + bytes);

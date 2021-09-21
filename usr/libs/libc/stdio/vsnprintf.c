@@ -8,12 +8,17 @@
 #define STATE_LEN   2
 #define STATE_CONV  3
 
-#define IF_HEX    0
-#define IF_SIGNED 1
-#define IF_OCTAL  2
-#define IF_UPPER  3 // Used for the capital X format
+#define IF_HEX    1
+#define IF_SIGNED 2
+#define IF_OCTAL  4
+#define IF_UPPER  8 // Used for the capital X format
 
-static size_t __fmtint(char* str, size_t n, long int num, unsigned int int_flags)
+#define L_CHAR  1
+#define L_SHORT 2
+#define L_LONG  3
+#define L_LLONG 4
+
+static size_t __fmtint(char* str, size_t n, long long int num, unsigned int int_flags)
 {
     char buf[32]; // large enough for now
 
@@ -23,7 +28,7 @@ static size_t __fmtint(char* str, size_t n, long int num, unsigned int int_flags
 
     if (int_flags & IF_SIGNED)
     {
-        // TODO: long int to string
+        // TODO: long signed int to string
         itoa(num, buf, base);
     }
     else
@@ -65,6 +70,8 @@ int vsnprintf(char* str, size_t n, const char* format, va_list list)
     size_t i = 0;
     int state = STATE_NORM;
 
+    int len = 0;
+
     for (;;)
     {
         char c = *format;
@@ -92,6 +99,8 @@ int vsnprintf(char* str, size_t n, const char* format, va_list list)
         {
             switch (c)
             {
+                case 'l': len = len == L_LONG  ? L_LLONG : L_LONG; format++; break;
+                case 'h': len = len == L_SHORT ? L_CHAR  : L_SHORT; format++; break;
                 default: state = STATE_CONV; break;
             }
         }
@@ -100,11 +109,22 @@ int vsnprintf(char* str, size_t n, const char* format, va_list list)
             if (c == 'd' || c == 'i' || c == 'x' || c == 'o'
              || c == 'X' || c == 'u')
             {
-                unsigned long num;
+                long long int num;
                 unsigned int int_flags = 0;
 
-                // TODO: precision/width/length
-                num = va_arg(list, long);
+                // TODO: precision/width
+                if (len == L_CHAR)
+                    num = va_arg(list, char);
+                else if (len == L_SHORT)
+                    num = va_arg(list, short);
+                else if (len == L_LONG)
+                    num = va_arg(list, long);
+                else if (len == L_LLONG)
+                    num = va_arg(list, long long);
+                else
+                    num = va_arg(list, int);
+
+                len = 0;
 
                 if (c == 'x' || c == 'X')
                     int_flags |= IF_HEX;
@@ -129,6 +149,15 @@ int vsnprintf(char* str, size_t n, const char* format, va_list list)
             else if (c == '%')
             {
                 if (n - i) str[i++] = '%';
+            }
+            else if (c == 'p')
+            {
+                if (n - i >= 2)
+                {
+                    strcpy(str + i, "0x");
+                    i += 2;
+                }
+                i += __fmtint(str + i, n - i, va_arg(list, unsigned long), IF_HEX);
             }
             
             format++;
