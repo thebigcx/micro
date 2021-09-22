@@ -62,6 +62,7 @@ SYSCALL_DEFINE(ptrace,       unsigned long req, pid_t pid,
 SYSCALL_DEFINE(stat,         const char* path, struct stat* buf);
 SYSCALL_DEFINE(fstat,        int fd, struct stat* buf);
 SYSCALL_DEFINE(lstat,        const char* path, struct stat* buf);
+SYSCALL_DEFINE(unlink,       const char* pathname);
 SYSCALL_DEFINE(fork);
 
 void sys_init();

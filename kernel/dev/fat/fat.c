@@ -386,7 +386,8 @@ void fat_mkdir(struct file* dir, const char* name)
 
 // TODO: IMPORTANT: move directory entry parsing to a different function
 
-void fat_rm(struct file* dir, const char* name)
+// TODO: should return int error code
+void fat_unlink(struct file* dir, const char* name)
 {
     struct fat32_volume* vol = dir->device;
     unsigned int clus = dir->inode;
@@ -590,7 +591,7 @@ struct file* fat_find(struct file* dir, const char* name)
                     file->ops.getdents = fat_getdents;
                     file->ops.mkfile   = fat_mkfile;
                     file->ops.mkdir    = fat_mkdir;
-                    file->ops.rm       = fat_rm;
+                    file->ops.unlink   = fat_unlink;
 
                     strcpy(file->name, name);
                     
@@ -636,7 +637,7 @@ struct file* fat_mount(const char* dev, const void* data)
     file->ops.getdents = fat_getdents;
     file->ops.mkfile   = fat_mkfile;
     file->ops.mkdir    = fat_mkdir;
-    file->ops.rm       = fat_rm;
+    file->ops.unlink   = fat_unlink;
 
     return file;
 }

@@ -17,7 +17,7 @@ typedef ssize_t      (*getdents_t)(struct file* dir, off_t off, size_t n, struct
 typedef void         (*mkfile_t  )(struct file* dir, const char* name);
 typedef void         (*mkdir_t   )(struct file* dir, const char* name);
 typedef void         (*mknod_t   )(struct file* dir, struct file* file);
-typedef void         (*rm_t      )(struct file* dir, const char* name);
+typedef void         (*unlink_t  )(struct file* dir, const char* name);
 typedef void         (*mmap_t    )(struct file* file, struct vm_area* area);
 
 struct file_ops
@@ -32,7 +32,7 @@ struct file_ops
     mkfile_t   mkfile;
     mkdir_t    mkdir;
     mknod_t    mknod;
-    rm_t       rm;
+    unlink_t   unlink;
     mmap_t     mmap;
 };
 
@@ -76,10 +76,11 @@ ssize_t vfs_write(struct file* file, const void* buf, off_t off, size_t size);
 struct file* vfs_find(struct file* dir, const char* name);
 ssize_t vfs_getdents(struct file* dir, off_t off, size_t n, struct dirent* dirp);
 
-void vfs_mkfile(const char* path);
-void vfs_mkdir(const char* name);
+int vfs_mkfile(const char* path);
+int vfs_mkdir(const char* name);
 
-void vfs_rm(struct file* dir, const char* name);
+//void vfs_rm(struct file* dir, const char* name);
+int vfs_unlink(const char* pathname);
 
 int vfs_ioctl(struct file* file, unsigned long req, void* argp);
 

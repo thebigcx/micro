@@ -11,21 +11,6 @@ SYSCALL_DEFINE(getpid)
     return task_curr()->id;
 }
 
-SYSCALL_DEFINE(mkdir, const char* path)
-{
-    PTRVALID(path);
-
-    struct task* task = task_curr();
-    char* canon = vfs_mkcanon(path, task->workd);
-
-    if (canon[0] == 0) return -ENOENT;
-    if (sys_access(canon, F_OK) == 0) return -EEXIST;
-
-    vfs_mkdir(canon);
-
-    return 0;
-}
-
 typedef uintptr_t (*syscall_t)();
 
 static void* syscalls[] =
@@ -63,7 +48,8 @@ static void* syscalls[] =
     &sys_ptrace,
     &sys_stat,
     &sys_fstat,
-    &sys_lstat
+    &sys_lstat,
+    &sys_unlink
 };
 
 void syscall_handler(struct regs* r)

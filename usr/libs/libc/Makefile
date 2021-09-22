@@ -148,6 +148,7 @@ SOURCES := internal/generic/init.c				\
 		   sysdeps/micro/generic/stat.c 		\
 		   sysdeps/micro/generic/fstat.c 		\
 		   sysdeps/micro/generic/lstat.c 		\
+		   sysdeps/micro/generic/unlink.c 		\
 
 ASM :=     sysdeps/micro/generic/syscall.S
 

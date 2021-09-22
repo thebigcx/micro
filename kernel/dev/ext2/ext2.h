@@ -161,5 +161,5 @@ int ext2_readdir(struct file* dir, size_t size, struct dirent* dirent);
 ssize_t ext2_getdents(struct file* dir, off_t off, size_t n, struct dirent* dirp);
 void ext2_mkfile(struct file* dir, const char* name);
 void ext2_mkdir(struct file* dir, const char* name);
-void ext2_rm(struct file* dir, const char* name);
+void ext2_unlink(struct file* dir, const char* name);
 void ext2_mknod(struct file* dir, struct file* file);

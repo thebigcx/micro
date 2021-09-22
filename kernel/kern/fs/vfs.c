@@ -53,8 +53,7 @@ ssize_t vfs_getdents(struct file* dir, off_t off, size_t n, struct dirent* dirp)
     return -ENOTDIR;
 }
 
-// TODO: return int on sucess ?
-void vfs_mkfile(const char* path)
+static int get_parent_dir(const char* path, struct file* out, char** name)
 {
     char* relat;
     struct file* file = vfs_getmnt(path, &relat);
@@ -63,57 +62,76 @@ void vfs_mkfile(const char* path)
     char* token = strtok_r(relat, "/", &saveptr);
     char* next = strtok_r(NULL, "/", &saveptr);
 
-    if (!file || !(file->flags & FL_DIR) || !token) return;
+    if (!file || !token) return -ENOENT;
 
     while (next)
     {
+        if (!(file->flags & FL_DIR)) return -ENOTDIR;
+
         struct file* child = vfs_find(file, token);
-        //kfree(file);
+        kfree(file);
         file = child;
-        if (!file) return;
+        if (!file) return -ENOENT;
 
         token = next;
         next = strtok_r(NULL, "/", &saveptr);
     }
 
-    if (file && (file->flags & FL_DIR) && file->ops.mkfile)
-        file->ops.mkfile(file, token);
+    if (file->flags != FL_DIR) return -ENOTDIR;
 
-    kfree(relat);
+    memcpy(out, file, sizeof(struct file));
+    *name = strdup(token);
+
+    kfree(file);
+    return 0;
 }
 
-void vfs_mkdir(const char* path)
+int vfs_mkfile(const char* path)
 {
-    char* relat;
-    struct file* file = vfs_getmnt(path, &relat);
+    struct file dir;
+    char* name;
+    int e;
+    if ((e = get_parent_dir(path, &dir, &name))) return e;
 
-    char* saveptr;
-    char* token = strtok_r(relat, "/", &saveptr);
-    char* next = strtok_r(NULL, "/", &saveptr);
+    if (dir.ops.mkfile)
+        dir.ops.mkfile(&dir, name);
 
-    if (!file || !(file->flags & FL_DIR) || !token) return;
-
-    while (next)
-    {
-        struct file* child = vfs_find(file, token);
-        //kfree(file);
-        file = child;
-        if (!file) return;
-
-        token = next;
-        next = strtok_r(NULL, "/", &saveptr);
-    }
-
-    if (file && (file->flags & FL_DIR) && file->ops.mkdir)
-        file->ops.mkdir(file, token);
-
-    kfree(relat);
+    kfree(name);
+    return 0;
 }
 
-void vfs_rm(struct file* dir, const char* name)
+int vfs_mkdir(const char* path)
+{
+    struct file dir;
+    char* name;
+    int e;
+    if ((e = get_parent_dir(path, &dir, &name))) return e;
+
+    if (dir.ops.mkdir)
+        dir.ops.mkdir(&dir, name);
+
+    kfree(name);
+    return 0;
+}
+
+/*void vfs_rm(struct file* dir, const char* name)
 {
     if (dir && (dir->flags & FL_DIR) && dir->ops.rm)
         dir->ops.rm(dir, name);
+}*/
+
+int vfs_unlink(const char* pathname)
+{
+    struct file dir;
+    char* name;
+    int e;
+    if ((e = get_parent_dir(pathname, &dir, &name))) return e;
+
+    if (dir.ops.unlink)
+        dir.ops.unlink(&dir, name);
+
+    kfree(name);
+    return 0;
 }
 
 int vfs_ioctl(struct file* file, unsigned long req, void* argp)
@@ -305,19 +323,6 @@ int vfs_resolve(const char* path, struct file* out)
 
     char* saveptr;
     char* token = strtok_r(relat, "/", &saveptr);
-
-    // TODO: this is temporary
-    if (!file || !(file->flags & FL_DIR)) // Not a mounted filesystem
-    {
-        // TODO: use a device management system instead of this garbage
-        if (relat[0] == 0) // Virtual filesystem node
-        {
-            memcpy(out, file, sizeof(struct file));
-            return 0;
-        }
-        else return -ENOENT; // 'path' does not exist in the VFS
-    }
-    // -- up to here
 
     if (!token) // Return the mounted filesystem root
     {

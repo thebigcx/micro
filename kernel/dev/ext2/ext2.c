@@ -92,7 +92,7 @@ static struct file* dirent2file(struct ext2_volume* vol, struct file* parent,
     file->ops.getdents = ext2_getdents;
     file->ops.mkfile   = ext2_mkfile;
     file->ops.mkdir    = ext2_mkdir;
-    file->ops.rm       = ext2_rm;
+    file->ops.unlink   = ext2_unlink;
 
     file->parent       = parent;
     file->inode        = dirent->inode;
@@ -603,7 +603,7 @@ void ext2_mknod(struct file* dir, struct file* file)
     ext2_mkentry(dir, file);
 }
 
-void ext2_rm(struct file* dir, const char* name)
+void ext2_unlink(struct file* dir, const char* name)
 {
     (void)dir; (void)name;
 }
@@ -648,7 +648,7 @@ static struct file* ext2_mount(const char* dev, const void* data)
     file->ops.getdents = ext2_getdents;
     file->ops.mkfile   = ext2_mkfile;
     file->ops.mkdir    = ext2_mkdir;
-    file->ops.rm       = ext2_rm;
+    file->ops.unlink   = ext2_unlink;
 
     return file;
 }
