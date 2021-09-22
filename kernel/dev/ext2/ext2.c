@@ -180,8 +180,6 @@ static void ext2_set_inode_blk(struct ext2_volume* vol, struct ext2_inode* ino,
     uint32_t dind = sind + bpp;       // Doubly indirect start
     uint32_t tind = dind + bpp * bpp; // Triply indirect start
 
-    printk("ext2: setting %d to %d\n", i, blk);
-
     if (i < sind)
     {
         ino->directs[i] = blk;
@@ -631,10 +629,14 @@ static struct file* ext2_mount(const char* dev, const void* data)
                    ? (vol->sb.blk_cnt / vol->sb.blks_per_grp + 1)
                    : (vol->sb.blk_cnt / vol->sb.blks_per_grp);
 
-    vol->groups = kmalloc(sizeof(struct ext2_bgd) * vol->group_cnt + vol->blksize);
-
-    read_blocks(vol, vol->groups, SUPER_BLK + 1, 
+    void* group_buffer = kmalloc(sizeof(struct ext2_bgd) * vol->group_cnt + vol->blksize);
+    read_blocks(vol, group_buffer, SUPER_BLK + 1,
                 vol->group_cnt * sizeof(struct ext2_bgd) / vol->blksize + 1);
+
+    vol->groups = kmalloc(sizeof(struct ext2_bgd) * vol->group_cnt);
+    memcpy(vol->groups, group_buffer, vol->group_cnt * sizeof(struct ext2_bgd));
+
+    kfree(group_buffer);
 
     struct file* file  = vfs_create_file();
 

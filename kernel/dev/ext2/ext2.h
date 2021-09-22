@@ -63,9 +63,9 @@ struct PACKED ext2_bgd
     uint32_t block_bmp;     // Block address of block usage bitmap
     uint32_t inode_bmp;     // Block address of inode usage bitmap
     uint32_t inode_tbl;     // Starting block address of inode table
-    uint32_t free_blocks;   // Number of free blocks in group
-    uint32_t free_inodes;   // Number of free inodes in group
-    uint32_t dir_cnt;       // Number of directories in group
+    uint16_t free_blocks;   // Number of free blocks in group
+    uint16_t free_inodes;   // Number of free inodes in group
+    uint16_t dir_cnt;       // Number of directories in group
     uint16_t padding;
     uint8_t res[12];
 };

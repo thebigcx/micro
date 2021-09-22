@@ -39,3 +39,5 @@ int   ptsname_r(int fd, char* buf, size_t buflen);
 
 const char* getprogname();
 void setprogname(const char* name);
+
+char* realpath(const char* path, char* respath);

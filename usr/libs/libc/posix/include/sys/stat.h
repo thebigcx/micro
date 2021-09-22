@@ -22,13 +22,13 @@ struct stat
 
 // Macros to test 'st_mode'
 
-#define S_ISFIFO(m) (m & 0x1000)
-#define S_ISCHR(m)  (m & 0x2000)
-#define S_ISDIR(m)  (m & 0x4000)
-#define S_ISBLK(m)  (m & 0x6000)
-#define S_ISREG(m)  (m & 0x8000)
-#define S_ISLNK(m)  (m & 0xa000)
-#define S_ISSOCK(m) (m & 0xc000)
+#define S_ISFIFO(m) (m == 0x1000)
+#define S_ISCHR(m)  (m == 0x2000)
+#define S_ISDIR(m)  (m == 0x4000)
+#define S_ISBLK(m)  (m == 0x6000)
+#define S_ISREG(m)  (m == 0x8000)
+#define S_ISLNK(m)  (m == 0xa000)
+#define S_ISSOCK(m) (m == 0xc000)
 
 int    mkdir(const char* path, mode_t mode);
 int    stat(const char* path, struct stat* buf);

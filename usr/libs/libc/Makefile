@@ -44,6 +44,7 @@ SOURCES := internal/generic/init.c				\
 		   stdlib/abort.c						\
 		   stdlib/getenv.c						\
 		   stdlib/atexit.c						\
+		   stdlib/realpath.c					\
 		   stdio/fprintf.c						\
 		   stdio/printf.c						\
 		   stdio/snprintf.c						\
