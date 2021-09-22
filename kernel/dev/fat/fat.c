@@ -411,10 +411,12 @@ void fat_unlink(struct file* dir, const char* name)
                 {
                     struct fat_dirent* buf = kmalloc(512);
                     vfs_read(vol->device, buf, clus2lba(vol, clus) * 512, 512);
+                    
 
                     // TODO: delete the data
 
                     memset(&buf[i], 0, sizeof(struct fat_dirent));
+                    buf[i].name[0] = 0xe5; // Bit of a hack - mark the dirent as unused (no data is actually freed)
 
                     vfs_write(vol->device, buf, clus2lba(vol, clus) * 512, 512);
 

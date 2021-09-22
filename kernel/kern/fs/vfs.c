@@ -114,18 +114,16 @@ int vfs_mkdir(const char* path)
     return 0;
 }
 
-/*void vfs_rm(struct file* dir, const char* name)
-{
-    if (dir && (dir->flags & FL_DIR) && dir->ops.rm)
-        dir->ops.rm(dir, name);
-}*/
-
 int vfs_unlink(const char* pathname)
 {
     struct file dir;
     char* name;
     int e;
     if ((e = get_parent_dir(pathname, &dir, &name))) return e;
+
+    struct file file;
+    if ((e = vfs_resolve(pathname, &file))) return e;
+    if (file.flags == FL_DIR) return -EISDIR;
 
     if (dir.ops.unlink)
         dir.ops.unlink(&dir, name);

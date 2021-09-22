@@ -10,7 +10,8 @@ SRCS := cat.c 		\
 		date.c		\
 		du.c		\
 		stat.c		\
-		rm.c
+		rm.c		\
+		echo.c
 
 OBJS := $(patsubst %.c, %.o, $(SRCS))
 TARGS := $(patsubst %.c, %, $(SRCS))
