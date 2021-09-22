@@ -6,6 +6,10 @@
 
 #define FD_MAX 64
 
+#define TASK_RUNNING 0
+#define TASK_STOPPED 1
+#define TASK_DEAD    2
+
 struct task
 {
     unsigned int id;
@@ -27,10 +31,9 @@ struct task
     uintptr_t signals[32];
     uint32_t sigmask;
 
-    int dead;
     int status;
-
-    volatile int waiting;
+    volatile int state;
+    volatile int changed;
 
     uid_t ruid, euid, suid;
     gid_t rgid, egid, sgid;

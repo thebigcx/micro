@@ -113,13 +113,20 @@ void thread_handle_signals(struct thread* thread)
                 break;
 
             case SIGDEF_CORE:
-                task_exit(sig);
+                task_exit(sig | 0x80); // Core flag 0x80
                 break;
 
             case SIGDEF_STOP:
+                thread->parent->state = TASK_STOPPED; // TODO: make this better
+                thread->parent->status = (sig << 8) | 0x7f; // TODO: not actually an exit code, just a status
+                thread->parent->changed = 1;
+                switch_next();
                 break;
                 
             case SIGDEF_CONT:
+                thread->parent->state = TASK_RUNNING;
+                thread->parent->changed = 1;
+                thread->parent->status = 0xffff;
                 break;
         }
     }

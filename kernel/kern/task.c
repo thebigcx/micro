@@ -167,8 +167,9 @@ void task_exit(int status)
     task->main = NULL;
 
     if (task->parent) task_send(task->parent, SIGCHLD);
-    task->dead = 1;
     task->status = status;
+    task->state = TASK_DEAD;
+    task->changed = 1;
 
     switch_next();
 }

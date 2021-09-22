@@ -18,13 +18,18 @@ SYSCALL_DEFINE(waitpid, int pid, int* wstatus, int options)
     struct task* task = sched_task_fromid(pid);
     if (!task || task->parent != task_curr()) return -ECHILD;
 
-    if (!task->dead && options & WNOHANG) return 0;
+    if (!(options & WNOHANG))
+    {
+        while (!task->changed) sched_yield(); // FIXME: this is a pretty poor way of mimicking thread blocking
+    }
 
-    while (!task->dead) sched_yield(); // FIXME: this is a pretty poor way of mimicking thread blocking
+    if (wstatus)
+        *wstatus = task->status;
 
-    if (wstatus) *wstatus = task->status;
+    task->changed = 0;
 
-    task_delete(task);
+    if (task->state == TASK_DEAD) // Reap the task
+        task_delete(task);
 
     return pid;
 }

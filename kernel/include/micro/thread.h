@@ -6,7 +6,8 @@
 #define THREAD_RUNNING  0
 #define THREAD_READY    1
 #define THREAD_DEAD     2
-#define THREAD_WAIT     3
+#define THREAD_WAITING  3
+#define THREAD_BLOCKED  4
 
 struct task;
 

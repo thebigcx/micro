@@ -9,6 +9,7 @@
 #include <micro/heap.h>
 #include <micro/stdlib.h>
 #include <micro/devfs.h>
+#include <micro/errno.h>
 
 struct ahci_port
 {
@@ -69,8 +70,8 @@ int port_access(struct ahci_port* port, uintptr_t lba, uint32_t cnt, int write)
     port->port->int_stat = 0xffffffff;
     
     int slot = port_find_cmd_slot(port);
-    if (slot == -1)
-        return 0;
+    if (slot == -1) // No available command slots
+        return -EIO;
 
     struct hba_cmd_hdr* cmdhdr = &port->cmdlist[slot];
     cmdhdr->cmd_fis_len = sizeof(struct fis_reg_h2d) / sizeof(uint32_t);
@@ -110,11 +111,8 @@ int port_access(struct ahci_port* port, uintptr_t lba, uint32_t cnt, int write)
     {
         spin++;
     }
-    if (spin == 1000000)
-    {
-        printk("ahci: port has hung\n");
-        return 0;
-    }
+    if (spin == 1000000) // Hung
+        return -EIO;
 
     port->port->cmd_issue = 1 << slot;
 
@@ -122,20 +120,14 @@ int port_access(struct ahci_port* port, uintptr_t lba, uint32_t cnt, int write)
     while (port->port->cmd_issue & (1 << slot))
     {
         if (port->port->int_stat & HBA_PXIS_TFES) // Task file error
-        {
-            printk("ahci: read disk error\n");
-            return 0; // TODO: return -EIO for I/O error
-        }
+            return -EIO;
     }
 
     // Check again
-    if (port->port->int_stat & HBA_PXIS_TFES)
-    {
-        printk("ahci: read disk error\n");
-        return 0;
-    }
+    if (port->port->int_stat & HBA_PXIS_TFES) // Task file error
+        return -EIO;
 
-    return 1;
+    return 0;
 }
 
 ssize_t port_read(struct file* file, void* buf, off_t off, size_t size)
@@ -148,7 +140,9 @@ ssize_t port_read(struct file* file, void* buf, off_t off, size_t size)
     ssize_t read = 0;
     while (count)
     {
-        port_access(port, lba, count, 0);
+        int e;
+        if ((e = port_access(port, lba, count, 0))) return e;
+
         memcpy(buf, port->buffer, 512);
         buf = (void*)((uintptr_t)buf + 512);
         count--;
@@ -170,7 +164,10 @@ ssize_t port_write(struct file* file, const void* buf, off_t off, size_t size)
     while (count)
     {
         memcpy(port->buffer, buf, 512);
-        port_access(port, lba, count, 1);
+
+        int e;
+        if ((e = port_access(port, lba, count, 1))) return e;
+
         buf = (void*)((uintptr_t)buf + 512);
         count--;
         lba++;
