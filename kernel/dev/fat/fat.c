@@ -7,14 +7,6 @@
 #include <micro/debug.h>
 #include <micro/module.h>
 
-#define FAT_ATTR_RO             0x01
-#define FAT_ATTR_HIDDEN         0x02
-#define FAT_ATTR_SYS            0x04
-#define FAT_ATTR_VOLID          0x08
-#define FAT_ATTR_DIR            0x10
-#define FAT_ATTR_AR             0x20
-#define FAT_ATTR_LFN            0x0f
-
 // TODO: cache the FATs in memory
 
 uint64_t clus2lba(struct fat32_volume* vol, unsigned int cluster)
@@ -244,6 +236,100 @@ void fat_resize_file(struct file* file, size_t size)
     }
 
     file->size = size;
+}
+
+struct file* fat_find(struct file* dir, const char* name)
+{
+    struct fat32_volume* vol = dir->device;
+    unsigned int clus = dir->inode;
+
+    struct fat_dirent* buf = kmalloc(512); // Hold the data we care about
+
+    char lfns[8][LFN_LEN + 1];
+    size_t lfncnt = 0;
+
+    unsigned int cnt = fat_cchain_cnt(vol, clus);
+    for (unsigned int i = 0; i < cnt; i++)
+    {
+        uint64_t lba = clus2lba(vol, clus);
+
+        vfs_read(vol->device, buf, lba * 512, 512);
+
+        // clus
+        for (unsigned int i = 0; i < 512 / sizeof(struct fat_dirent); i++)
+        {
+            if (buf[i].name[0] == 0) continue; // Unused
+            else if (buf[i].name[0] == 0xe5    // Unused
+                  || buf[i].attr == FAT_ATTR_VOLID)
+            {
+                lfncnt = 0;
+                continue;
+            }
+            else if (buf[i].attr == FAT_ATTR_LFN)
+            {
+                struct fat_lfn* lfn = (struct fat_lfn*)&buf[i];
+
+                size_t j = 0;
+                for (size_t k = 0; k < LFN_CHARS1; k++)
+                    lfns[lfncnt][j++] = lfn->chars1[k];
+
+                for (size_t k = 0; k < LFN_CHARS2; k++)
+                    lfns[lfncnt][j++] = lfn->chars2[k];
+
+                for (size_t k = 0; k < LFN_CHARS3; k++)
+                    lfns[lfncnt][j++] = lfn->chars3[k];
+
+                lfns[lfncnt++][LFN_LEN] = 0;
+            }
+            else
+            {
+                int cmp = 0;
+
+                if (lfncnt)
+                {
+                    char lfn[128];
+                    strcpy(lfn, lfns[--lfncnt]);
+                    while (lfncnt--)
+                        strcpy(lfn + strlen(lfn), lfns[lfncnt]);
+
+                    cmp = !strcmp(lfn, name);
+                }
+                else
+                    cmp = fat_name_cmp(&buf[i], name);
+
+                if (cmp)
+                {
+                    struct file* file  = vfs_create_file();
+
+                    file->parent       = dir;
+                    file->device       = vol;
+                    file->flags        = (buf[i].attr & FAT_ATTR_DIR) ? FL_DIR : FL_FILE;
+                    file->inode        = (buf[i].cluster_u << 16) | buf[i].cluster;
+                    file->size         = buf[i].file_sz;
+
+                    file->ops.read     = fat_read;
+                    file->ops.write    = fat_write;
+                    file->ops.find     = fat_find;
+                    file->ops.getdents = fat_getdents;
+                    file->ops.mkfile   = fat_mkfile;
+                    file->ops.mkdir    = fat_mkdir;
+                    file->ops.unlink   = fat_unlink;
+
+                    strcpy(file->name, name);
+                    
+                    kfree(buf);
+
+                    return file;
+                }
+            }
+        }
+
+        clus = fat_table_read(vol, clus);
+    }
+
+    kfree(buf);
+
+    return NULL;
 }
 
 ssize_t fat_write(struct file* file, const void* buf, off_t off, size_t size)
@@ -516,100 +602,6 @@ ssize_t fat_getdents(struct file* dir, off_t off, size_t size, struct dirent* di
 
     kfree(buf);
     return bytes;
-}
-
-struct file* fat_find(struct file* dir, const char* name)
-{
-    struct fat32_volume* vol = dir->device;
-    unsigned int clus = dir->inode;
-
-    struct fat_dirent* buf = kmalloc(512); // Hold the data we care about
-
-    char lfns[8][LFN_LEN + 1];
-    size_t lfncnt = 0;
-
-    unsigned int cnt = fat_cchain_cnt(vol, clus);
-    for (unsigned int i = 0; i < cnt; i++)
-    {
-        uint64_t lba = clus2lba(vol, clus);
-
-        vfs_read(vol->device, buf, lba * 512, 512);
-
-        // clus
-        for (unsigned int i = 0; i < 512 / sizeof(struct fat_dirent); i++)
-        {
-            if (buf[i].name[0] == 0) continue; // Unused
-            else if (buf[i].name[0] == 0xe5    // Unused
-                  || buf[i].attr == FAT_ATTR_VOLID)
-            {
-                lfncnt = 0;
-                continue;
-            }
-            else if (buf[i].attr == FAT_ATTR_LFN)
-            {
-                struct fat_lfn* lfn = (struct fat_lfn*)&buf[i];
-
-                size_t j = 0;
-                for (size_t k = 0; k < LFN_CHARS1; k++)
-                    lfns[lfncnt][j++] = lfn->chars1[k];
-
-                for (size_t k = 0; k < LFN_CHARS2; k++)
-                    lfns[lfncnt][j++] = lfn->chars2[k];
-
-                for (size_t k = 0; k < LFN_CHARS3; k++)
-                    lfns[lfncnt][j++] = lfn->chars3[k];
-
-                lfns[lfncnt++][LFN_LEN] = 0;
-            }
-            else
-            {
-                int cmp = 0;
-
-                if (lfncnt)
-                {
-                    char lfn[128];
-                    strcpy(lfn, lfns[--lfncnt]);
-                    while (lfncnt--)
-                        strcpy(lfn + strlen(lfn), lfns[lfncnt]);
-
-                    cmp = !strcmp(lfn, name);
-                }
-                else
-                    cmp = fat_name_cmp(&buf[i], name);
-
-                if (cmp)
-                {
-                    struct file* file  = vfs_create_file();
-
-                    file->parent       = dir;
-                    file->device       = vol;
-                    file->flags        = (buf[i].attr & FAT_ATTR_DIR) ? FL_DIR : FL_FILE;
-                    file->inode        = (buf[i].cluster_u << 16) | buf[i].cluster;
-                    file->size         = buf[i].file_sz;
-
-                    file->ops.read     = fat_read;
-                    file->ops.write    = fat_write;
-                    file->ops.find     = fat_find;
-                    file->ops.getdents = fat_getdents;
-                    file->ops.mkfile   = fat_mkfile;
-                    file->ops.mkdir    = fat_mkdir;
-                    file->ops.unlink   = fat_unlink;
-
-                    strcpy(file->name, name);
-                    
-                    kfree(buf);
-
-                    return file;
-                }
-            }
-        }
-
-        clus = fat_table_read(vol, clus);
-    }
-
-    kfree(buf);
-
-    return NULL;
 }
 
 struct file* fat_mount(const char* dev, const void* data)

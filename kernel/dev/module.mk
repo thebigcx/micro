@@ -1,15 +1,16 @@
 OBJ = $(patsubst %.c, %.o, $(SRC))
 
-CFLAGS = -Wall -Wextra -ffreestanding -fno-stack-protector -O3 -mno-red-zone -nostdinc -I../../include -I../../arch/amd64/include -I../../include/uapi -mcmodel=large
-LDFLAGS = -static -nostdlib -Wl,-relocatable
+CFLAGS = -Wall -Wextra -ffreestanding -fno-stack-protector -O3 -fno-pic -mno-red-zone -nostdinc -I../../include -I../../arch/amd64/include -I../../include/uapi -mcmodel=large
+LDFLAGS = -T../../kernel.ld -static -nostdlib
 
 all: $(TARG)
 
 .PHONY: clean all install
 
+# TODO: multiple source files
 $(TARG): $(OBJ)
-	@echo "    CC $@"
-	@x86_64-micro-gcc $^ -o $@ $(LDFLAGS)
+	@echo "    LD $@"
+	@x86_64-micro-ld -r $^ -o $@ $(LDFLAGS)
 
 %.o: %.c
 	@echo "    CC $@"

@@ -89,13 +89,22 @@ struct PACKED fat_lfn
     uint16_t chars3[LFN_CHARS3];
 };
 
+#define FAT_ATTR_RO             0x01
+#define FAT_ATTR_HIDDEN         0x02
+#define FAT_ATTR_SYS            0x04
+#define FAT_ATTR_VOLID          0x08
+#define FAT_ATTR_DIR            0x10
+#define FAT_ATTR_AR             0x20
+#define FAT_ATTR_LFN            0x0f
+
 struct dirent;
 
 void fat_init();
 
 ssize_t fat_read(struct file* file, void* buf, off_t off, size_t size);
+ssize_t fat_write(struct file* file, const void* buf, off_t off, size_t size);
 struct file* fat_find(struct file* dir, const char* name);
-int fat_readdir(struct file* dir, size_t size, struct dirent* dirent);
+ssize_t fat_getdents(struct file* dir, off_t off, size_t size, struct dirent* dirp);
 void fat_mkfile(struct file* dir, const char* name);
 void fat_mkdir(struct file* dir, const char* name);
 void fat_rm(struct file* dir, const char* name);
