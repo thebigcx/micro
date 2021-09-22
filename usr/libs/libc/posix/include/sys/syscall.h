@@ -31,5 +31,8 @@
 #define SYS_ptsname         28
 #define SYS_gettimeofday    29
 #define SYS_ptrace          30
+#define SYS_stat            31
+#define SYS_fstat           32
+#define SYS_lstat           33
 
 extern long syscall(long sysno, ...);

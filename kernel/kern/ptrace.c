@@ -17,7 +17,7 @@ long ptrace_getregs(struct task* task, struct user_regs* regs)
     return 0;
 }
 
-SYSCALL_DEFINE(ptrace, enum ptrace_req req, pid_t pid, void* addr, void* data)
+SYSCALL_DEFINE(ptrace, unsigned long req, pid_t pid, void* addr, void* data)
 {
     struct task* task = sched_task_fromid(pid);
     if (!task) return -ESRCH;

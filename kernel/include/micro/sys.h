@@ -23,6 +23,7 @@
 struct dirent;
 struct timeval;
 struct timezone;
+struct stat;
 
 SYSCALL_DEFINE(open,         const char* pathname, uint32_t flags, mode_t mode);
 SYSCALL_DEFINE(close,        int fd);
@@ -56,6 +57,11 @@ SYSCALL_DEFINE(mount,        const char* src, const char* dst,
 SYSCALL_DEFINE(umount,       const char* target);
 SYSCALL_DEFINE(mkdir,        const char* path);
 SYSCALL_DEFINE(gettimeofday, struct timeval* tv, struct timezone* tz);
+SYSCALL_DEFINE(ptrace,       unsigned long req, pid_t pid,
+                             void* addr, void* data);
+SYSCALL_DEFINE(stat,         const char* path, struct stat* buf);
+SYSCALL_DEFINE(fstat,        int fd, struct stat* buf);
+SYSCALL_DEFINE(lstat,        const char* path, struct stat* buf);
 SYSCALL_DEFINE(fork);
 
 void sys_init();

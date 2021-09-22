@@ -35,4 +35,5 @@ SRC += kern/init.c          \
        kern/ksym.c          \
        kern/pci.c           \
        kern/dev.c           \
-       kern/ptrace.c
+       kern/ptrace.c        \
+       kern/stat.c

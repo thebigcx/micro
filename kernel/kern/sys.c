@@ -59,7 +59,11 @@ static void* syscalls[] =
     &sys_pread,
     &sys_pwrite,
     &sys_ptsname,
-    &sys_gettimeofday
+    &sys_gettimeofday,
+    &sys_ptrace,
+    &sys_stat,
+    &sys_fstat,
+    &sys_lstat
 };
 
 void syscall_handler(struct regs* r)

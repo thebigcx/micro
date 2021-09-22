@@ -15,10 +15,12 @@ struct stat
 	off_t 		st_size;
 	blksize_t 	st_blksize;
 	blkcnt_t 	st_blocks;
-
-	struct timespec st_atim;
-	struct timespec st_mtim;
-	struct timespec st_ctim;
+	time_t      st_atim;
+	time_t      st_mtim;
+	time_t      st_ctim;
 };
 
 int mkdir(const char* path, mode_t mode);
+int stat(const char* path, struct stat* buf);
+int fstat(int fd, struct stat* buf);
+int lstat(const char* path, struct stat* buf);

@@ -145,6 +145,9 @@ SOURCES := internal/generic/init.c				\
 		   sysdeps/micro/generic/time.c			\
 		   sysdeps/micro/generic/gettimeofday.c \
 		   sysdeps/micro/generic/ptrace.c 		\
+		   sysdeps/micro/generic/stat.c 		\
+		   sysdeps/micro/generic/fstat.c 		\
+		   sysdeps/micro/generic/lstat.c 		\
 
 ASM :=     sysdeps/micro/generic/syscall.S
 
