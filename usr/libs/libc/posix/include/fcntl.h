@@ -11,6 +11,7 @@
 #define O_TMPFILE   0x010
 #define O_TRUNC     0x020
 #define O_DIRECTORY 0x040
+#define O_EXCL      0x080
 
 int open(const char* pathname, int flags, ...);
 
@@ -24,5 +25,7 @@ int open(const char* pathname, int flags, ...);
 #define F_SETLKW        7
 #define F_GETLK         8
 #define F_UNLCK         9
+
+#define FD_CLOEXEC      0
 
 int fcntl(int fd, int cmd, ...);

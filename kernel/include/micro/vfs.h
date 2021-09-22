@@ -36,13 +36,13 @@ struct file_ops
     mmap_t     mmap;
 };
 
-#define FL_FILE     1
-#define FL_DIR      2
-#define FL_CHARDEV  3
-#define FL_BLOCKDEV 4
-#define FL_FIFO     5
-#define FL_SOCKET   6
-#define FL_SYMLINK  7
+#define FL_FIFO    (0x1000)
+#define FL_CHRDEV  (0x2000)
+#define FL_DIR     (0x4000)
+#define FL_BLKDEV  (0x6000)
+#define FL_FILE    (0x8000)
+#define FL_SYMLINK (0xa000)
+#define FL_SOCKET  (0xc000)
 
 // TODO: flags, modes, etc
 struct fd

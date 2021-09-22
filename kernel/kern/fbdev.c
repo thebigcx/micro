@@ -80,7 +80,7 @@ void fb_mmap(struct file* file, struct vm_area* area)
 void fb_init_dev()
 {
     struct file* file = vfs_create_file();
-    file->flags       = FL_CHARDEV;
+    file->flags       = FL_CHRDEV;
     file->size        = fb.width * fb.height * (fb.bpp / 8);
     file->ops.read    = fb_read;
     file->ops.write   = fb_write;

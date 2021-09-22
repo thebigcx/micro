@@ -2,5 +2,5 @@
 
 typedef unsigned long jmp_buf[8];
 
-int setjmp(int environment);
-void longjmp(jmp_buf environment, int value);
+int setjmp(jmp_buf env);
+void longjmp(jmp_buf env, int value);

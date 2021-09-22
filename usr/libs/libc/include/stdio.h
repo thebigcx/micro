@@ -57,6 +57,9 @@ ssize_t getline(char** lineptr, size_t* n, FILE* stream);
 char* fgets(char* str, int n, FILE* stream);
 int   fgetc(FILE* stream);
 
+int getc(FILE* stream);
+int getchar();
+
 int ungetc(int c, FILE* stream);
 
 int feof(FILE* stream);

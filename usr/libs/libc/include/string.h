@@ -26,3 +26,7 @@ char*  strerror_r(int errnum, char* buf, size_t len);
 char*  strrchr(const char* str, int c);
 char*  strcat(char* dst, const char* src);
 char*  strndup(const char* str, size_t size);
+
+// POSIX compatibility (see strings.h)
+int    strcasecmp(const char* str1, const char* str2);
+int    strncasecmp(const char* str1, const char* str2, size_t n);

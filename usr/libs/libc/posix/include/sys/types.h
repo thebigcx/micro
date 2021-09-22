@@ -16,3 +16,4 @@ typedef long int            time_t;
 typedef long int            suseconds_t;
 typedef int                 sigset_t;
 typedef long                clock_t;
+typedef int                 socklen_t;

@@ -46,7 +46,7 @@ void initrd_init(uintptr_t start, uintptr_t end)
 
     file->ops.read = initrd_read;
     file->ops.write = initrd_write;
-    file->flags = FL_BLOCKDEV;
+    file->flags = FL_BLKDEV;
     file->device = initrd;
 
     strcpy(file->name, "initrd");

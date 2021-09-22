@@ -96,7 +96,7 @@ struct file* ptm_open(struct pt* pt)
 
     ptm->ops.read    = ptm_read;
     ptm->ops.write   = ptm_write;
-    ptm->flags       = FL_CHARDEV;
+    ptm->flags       = FL_CHRDEV;
     ptm->device      = pt;
     
     return ptm;
@@ -108,7 +108,7 @@ struct file* pts_open(struct pt* pt)
 
     pts->ops.read    = pts_read;
     pts->ops.write   = pts_write;
-    pts->flags       = FL_CHARDEV;
+    pts->flags       = FL_CHRDEV;
     pts->device      = pt;
 
     // TODO: generate a unique name
@@ -137,7 +137,7 @@ void tty_init()
     struct file* ptmx = vfs_create_file();
 
     ptmx->ops.open    = ptmx_open;
-    ptmx->flags       = FL_CHARDEV;
+    ptmx->flags       = FL_CHRDEV;
 
     strcpy(ptmx->name, "ptmx");
     devfs_register(ptmx);

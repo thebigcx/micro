@@ -42,3 +42,5 @@ int dup(int oldfd);
 int dup2(int oldfd, int newfd);
 
 int unlink(const char* pathname);
+
+void _exit(int status);

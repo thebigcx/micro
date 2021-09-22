@@ -79,6 +79,8 @@ SOURCES := internal/generic/init.c				\
 		   stdio/stdio.c						\
 		   stdio/freopen.c						\
 		   stdio/vprintf.c						\
+		   stdio/getc.c							\
+		   stdio/getchar.c						\
 		   time/gmtime_r.c						\
 		   time/gmtime.c						\
 		   time/localtime_r.c					\
@@ -149,6 +151,7 @@ SOURCES := internal/generic/init.c				\
 		   sysdeps/micro/generic/fstat.c 		\
 		   sysdeps/micro/generic/lstat.c 		\
 		   sysdeps/micro/generic/unlink.c 		\
+		   sysdeps/micro/generic/_exit.c 		\
 
 ASM :=     sysdeps/micro/generic/syscall.S
 

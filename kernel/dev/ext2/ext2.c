@@ -214,9 +214,9 @@ static uint8_t ext2_dirent_type(unsigned int type)
             return DIRENT_FILE;
         case FL_DIR:
             return DIRENT_DIR;
-        case FL_CHARDEV:
+        case FL_CHRDEV:
             return DIRENT_CHARDEV;
-        case FL_BLOCKDEV:
+        case FL_BLKDEV:
             return DIRENT_BLOCKDEV;
         case FL_FIFO:
             return DIRENT_FIFO;
@@ -238,9 +238,9 @@ static uint16_t ext2_inode_type(unsigned int type)
             return INODE_FILE;
         case FL_DIR:
             return INODE_DIR;
-        case FL_CHARDEV:
+        case FL_CHRDEV:
             return INODE_CHARDEV;
-        case FL_BLOCKDEV:
+        case FL_BLKDEV:
             return INODE_BLOCKDEV;
         case FL_FIFO:
             return INODE_FIFO;

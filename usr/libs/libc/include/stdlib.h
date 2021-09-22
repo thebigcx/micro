@@ -19,6 +19,8 @@ int atoi(const char* str);
 int abs(int n);
 
 unsigned long strtoul(const char* str, char** endptr, int base);
+unsigned long long strtoull(const char* str, char** endptr, int base);
+long int strtol(const char* str, char** endptr, int base);
 
 int rand();
 void srand(unsigned int seed);
@@ -34,3 +36,6 @@ void qsort(void* base, size_t nitems, size_t size, int (*compar)(const void*, co
 
 char* ptsname(int fd);
 int   ptsname_r(int fd, char* buf, size_t buflen);
+
+const char* getprogname();
+void setprogname(const char* name);

@@ -2,7 +2,7 @@
 #include <libc/syscall.h>
 
 int gettimeofday(struct timeval* tv,
-                 struct timezone* tz)
+                 void* tz)
 {
     return SYSCALL_ERR(gettimeofday, tv, tz);
 }

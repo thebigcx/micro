@@ -1,6 +1,9 @@
 #include <setjmp.h>
 
-int setjmp(int environment)
+#include <assert.h>
+
+int setjmp(jmp_buf env)
 {
+    assert(!"FIXME: implement setjmp()\n");
     return 0;
 }

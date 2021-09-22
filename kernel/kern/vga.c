@@ -168,7 +168,7 @@ void vga_init()
     
     vga->ops.read    = vga_read;
     vga->ops.write   = vga_write;
-    vga->flags       = FL_CHARDEV;
+    vga->flags       = FL_CHRDEV;
 
     strcpy(vga->name, "vga0");
     devfs_register(vga);
