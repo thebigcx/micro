@@ -124,6 +124,11 @@ struct task* task_clone(struct task* src, struct thread* calling)
 
     strcpy(task->workd, src->workd);
 
+    task->euid = src->euid;
+    task->egid = src->egid;
+    task->ruid = src->ruid;
+    task->rgid = src->rgid;
+
     return task;
 }
 

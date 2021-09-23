@@ -48,17 +48,22 @@ struct file_ops
 #define FL_SYMLINK (0xa000)
 #define FL_SOCKET  (0xc000)
 
-#define FL_OEXEC   (0x001)
-#define FL_OWRITE  (0x002)
-#define FL_OREAD   (0x004)
-#define FL_GEXEC   (0x008)
-#define FL_GWRITE  (0x010)
-#define FL_GREAD   (0x020)
-#define FL_UEXEC   (0x040)
-#define FL_UWRITE  (0x080)
-#define FL_UREAD   (0x100)
-#define FL_SETGID  (0x400)
-#define FL_SETUID  (0x800)
+#define FL_OEXEC   (00001)
+#define FL_OWRITE  (00002)
+#define FL_OREAD   (00004)
+#define FL_GEXEC   (00010)
+#define FL_GWRITE  (00020)
+#define FL_GREAD   (00040)
+#define FL_UEXEC   (00100)
+#define FL_UWRITE  (00200)
+#define FL_UREAD   (00400)
+#define FL_STICKY  (01000)
+#define FL_SETGID  (02000)
+#define FL_SETUID  (04000)
+
+#define CHECK_RPERM(file) if (vfs_checkperm(file, 04) == -1) return -EACCES;
+#define CHECK_WPERM(file) if (vfs_checkperm(file, 02) == -1) return -EACCES;
+#define CHECK_XPERM(file) if (vfs_checkperm(file, 01) == -1) return -EACCES;
 
 // TODO: flags, modes, etc
 struct fd
@@ -130,7 +135,7 @@ void vfs_mmap(struct file* file, struct vm_area* area);
 int vfs_chmod(struct file* file, mode_t mode);
 int vfs_chown(struct file* file, uid_t uid, gid_t gid);
 
-int vfs_checkperm(struct file* file);
+int vfs_checkperm(struct file* file, unsigned int mask);
 
 typedef struct file* (*mount_t)(const char*, const void* data);
 

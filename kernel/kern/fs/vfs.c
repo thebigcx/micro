@@ -8,8 +8,6 @@
 #include <micro/fcntl.h>
 #include <micro/task.h>
 
-#define CHECKPERM(file) if (vfs_checkperm(file) == -1) return -EACCES;
-
 struct tree root;
 
 struct file* vfs_create_file()
@@ -19,13 +17,23 @@ struct file* vfs_create_file()
     return file;
 }
 
-int vfs_checkperm(struct file* file)
+int vfs_checkperm(struct file* file, unsigned int mask)
 {
     if (task_curr() && task_curr()->euid != 0)
     {
-        if (task_curr()->euid == file->uid && !(file->perms & FL_UREAD)) return -1;
-        else if (task_curr()->egid == file->gid && !(file->perms & FL_GREAD)) return -1;
-        else if (!(file->perms & FL_OREAD)) return -1;
+        if (task_curr()->euid == file->uid)
+        {
+            if(!(file->perms & (mask << 6))) return -1;
+            else return 0;
+        }
+
+        if (task_curr()->egid == file->gid)
+        {
+            if (!(file->perms & (mask << 3))) return -1;
+            else return 0;
+        }
+
+        if (!(file->perms & mask)) return -1;
     }
 
     return 0;
@@ -83,7 +91,7 @@ static int get_parent_dir(const char* path, struct file* out, char** name)
     {
         if (!(file->type == FL_DIR)) return -ENOTDIR;
 
-        CHECKPERM(file);
+        CHECK_RPERM(file);
 
         struct file* child = vfs_find(file, token);
         kfree(file);
@@ -109,6 +117,8 @@ int vfs_mkfile(const char* path, mode_t mode, uid_t uid, gid_t gid)
     char* name;
     int e;
     if ((e = get_parent_dir(path, &dir, &name))) return e;
+
+    CHECK_WPERM(&dir);
 
     if (dir.ops.mkfile)
         dir.ops.mkfile(&dir, name, mode, uid, gid);
@@ -349,7 +359,7 @@ int vfs_resolve(const char* path, struct file* out)
     {
         if (file->type != FL_DIR) return -ENOTDIR;
 
-        CHECKPERM(file);
+        CHECK_RPERM(file);
 
         struct file* child = vfs_find(file, token);
         kfree(file);

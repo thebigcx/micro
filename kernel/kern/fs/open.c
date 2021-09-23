@@ -20,8 +20,10 @@ SYSCALL_DEFINE(open, const char* path, uint32_t flags, mode_t mode)
     if (e == -ENOENT)
     {
         if (!(flags & O_CREAT)) return -ENOENT;
-        // TODO: this hshoudl be better
-        vfs_mkfile(canon, mode, task->euid, task->egid);
+        
+        if ((e = vfs_mkfile(canon, mode, task->euid, task->egid)))
+            return e;
+
         vfs_resolve(canon, file);
     }
     else
@@ -31,11 +33,13 @@ SYSCALL_DEFINE(open, const char* path, uint32_t flags, mode_t mode)
 
     kfree(canon);
 
+    if (flags & O_RDONLY || flags & O_RDWR) CHECK_RPERM(file);
+    if (flags & O_WRONLY || flags & O_RDWR) CHECK_WPERM(file);
+
     for (unsigned int i = 0; i < FD_MAX; i++)
     {
         if (!task->fds[i])
         {
-            //printk("open(%s)\n", path);
             task->fds[i] = vfs_open(file, flags, mode);
             return i;
         }

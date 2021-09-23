@@ -12,6 +12,8 @@
 
 int main(int argc, char** argv)
 {
+    seteuid(1000);
+
     while (1)
     {
         char cwd[128];

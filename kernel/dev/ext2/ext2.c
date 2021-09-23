@@ -78,12 +78,10 @@ static void ext2_write_inode(struct ext2_volume* ext2, unsigned int num,
     kfree(buf);
 }
 
-static struct file* dirent2file(struct ext2_volume* vol, struct file* parent,
-                                struct ext2_dirent* dirent)
+static struct file* inode2file(struct ext2_volume* vol, struct file* parent,
+                               unsigned int inonum, struct ext2_inode* ino,
+                               const char* name)
 {
-    struct ext2_inode ino;
-    ext2_read_inode(vol, dirent->inode, &ino);
-    
     struct file* file  = vfs_create_file();
 
     file->ops.read     = ext2_read;
@@ -97,22 +95,38 @@ static struct file* dirent2file(struct ext2_volume* vol, struct file* parent,
     file->ops.chown    = ext2_chown;
 
     file->parent       = parent;
-    file->inode        = dirent->inode;
-    file->size         = INOSIZE(ino);
+    file->inode        = inonum;
+    file->size         = INOSIZE(*ino);
     file->device       = vol;
-    file->links        = ino.nlink;
+    file->links        = ino->nlink;
 
-    file->atime        = ino.atime;
-    file->ctime        = ino.ctime;
-    file->mtime        = ino.mtime;
+    file->atime        = ino->atime;
+    file->ctime        = ino->ctime;
+    file->mtime        = ino->mtime;
 
-    file->type         = ino.mode & 0xf000;
-    file->perms        = ino.mode & 0x0fff;
+    file->type         = ino->mode & 0xf000;
+    file->perms        = ino->mode & 0x0fff;
 
-    file->uid          = ino.uid;
-    file->gid          = ino.gid;
+    file->uid          = ino->uid;
+    file->gid          = ino->gid;
 
-    strncpy(file->name, dirent->name, dirent->name_len);
+    strcpy(file->name, name);
+
+    return file;
+}
+
+static struct file* dirent2file(struct ext2_volume* vol, struct file* parent,
+                                struct ext2_dirent* dirent)
+{
+    struct ext2_inode ino;
+    ext2_read_inode(vol, dirent->inode, &ino);
+    
+    char* name = kmalloc(dirent->name_len + 1);
+    strncpy(name, dirent->name, dirent->name_len);
+
+    struct file* file = inode2file(vol, parent, dirent->inode, &ino, name);
+
+    kfree(name);
 
     return file;
 }
@@ -726,23 +740,10 @@ static struct file* ext2_mount(const char* dev, const void* data)
 
     kfree(group_buffer);
 
-    struct file* file  = vfs_create_file();
+    struct ext2_inode ino;
+    ext2_read_inode(vol, 2, &ino);
 
-    file->device       = vol;
-    file->type         = FL_DIR;
-    file->inode        = 2;
-
-    file->ops.read     = ext2_read;
-    file->ops.write    = ext2_write;
-    file->ops.find     = ext2_find;
-    file->ops.getdents = ext2_getdents;
-    file->ops.mkfile   = ext2_mkfile;
-    file->ops.mkdir    = ext2_mkdir;
-    file->ops.unlink   = ext2_unlink;
-    file->ops.chmod    = ext2_chmod;
-    file->ops.chown    = ext2_chown;
-
-    return file;
+    return inode2file(vol, NULL, 2, &ino, "/");
 }
 
 void ext2_init()
