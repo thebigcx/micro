@@ -44,3 +44,6 @@ int dup2(int oldfd, int newfd);
 int unlink(const char* pathname);
 
 void _exit(int status);
+
+int seteuid(uid_t euid);
+int setreuid(uid_t ruid, uid_t euid);

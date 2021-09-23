@@ -153,6 +153,10 @@ SOURCES := internal/generic/init.c				\
 		   sysdeps/micro/generic/lstat.c 		\
 		   sysdeps/micro/generic/unlink.c 		\
 		   sysdeps/micro/generic/_exit.c 		\
+		   sysdeps/micro/generic/chmod.c 		\
+		   sysdeps/micro/generic/seteuid.c 		\
+		   sysdeps/micro/generic/setreuid.c 	\
+		   sysdeps/micro/generic/chown.c 		\
 
 ASM :=     sysdeps/micro/generic/syscall.S
 

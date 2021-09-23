@@ -438,8 +438,10 @@ void fat_mkdirent(struct file* dir, struct fat_dirent* dirent)
     fat_dirent_append(dir, &zero);
 }
 
-void fat_mkfile(struct file* dir, const char* name)
+void fat_mkfile(struct file* dir, const char* name, mode_t mode, uid_t uid, gid_t gid)
 {
+    (void)mode; (void)uid; (void)gid;
+
     struct fat32_volume* vol = dir->device;
 
     struct fat_dirent dirent;
@@ -453,8 +455,10 @@ void fat_mkfile(struct file* dir, const char* name)
     fat_table_write(vol, dirent.cluster, 0xffffff8);
 }
 
-void fat_mkdir(struct file* dir, const char* name)
+void fat_mkdir(struct file* dir, const char* name, mode_t mode, uid_t uid, gid_t gid)
 {
+    (void)mode; (void)uid; (void)gid;
+    
     struct fat32_volume* vol = dir->device;
     
     struct fat_dirent dirent;

@@ -35,5 +35,8 @@
 #define SYS_fstat           32
 #define SYS_lstat           33
 #define SYS_unlink          34
+#define SYS_chmod           35
+#define SYS_setreuid        36
+#define SYS_chown           37
 
 extern long syscall(long sysno, ...);

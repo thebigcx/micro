@@ -24,5 +24,6 @@ extern int errno;
 #define EACCES          19
 #define EIO             20
 #define EINTR           21
+#define EPERM           22
 
-#define EMAXERRNO       22
+#define EMAXERRNO       23

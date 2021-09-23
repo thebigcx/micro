@@ -2,7 +2,7 @@
 #include <micro/vfs.h>
 #include <micro/heap.h>
 
-SYSCALL_DEFINE(mkdir, const char* path)
+SYSCALL_DEFINE(mkdir, const char* path, mode_t mode)
 {
     PTRVALID(path);
 
@@ -12,7 +12,7 @@ SYSCALL_DEFINE(mkdir, const char* path)
     if (canon[0] == 0) return -ENOENT;
     if (sys_access(canon, F_OK) == 0) return -EEXIST;
 
-    return vfs_mkdir(canon);
+    return vfs_mkdir(canon, mode, task->euid, task->egid);
 }
 
 SYSCALL_DEFINE(unlink, const char* pathname)

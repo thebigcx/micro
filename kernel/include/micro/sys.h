@@ -55,7 +55,7 @@ SYSCALL_DEFINE(mount,        const char* src, const char* dst,
                              const char* fs, unsigned long flags,
                              const void* data);
 SYSCALL_DEFINE(umount,       const char* target);
-SYSCALL_DEFINE(mkdir,        const char* path);
+SYSCALL_DEFINE(mkdir,        const char* path, mode_t mode);
 SYSCALL_DEFINE(gettimeofday, struct timeval* tv, struct timezone* tz);
 SYSCALL_DEFINE(ptrace,       unsigned long req, pid_t pid,
                              void* addr, void* data);
@@ -63,6 +63,9 @@ SYSCALL_DEFINE(stat,         const char* path, struct stat* buf);
 SYSCALL_DEFINE(fstat,        int fd, struct stat* buf);
 SYSCALL_DEFINE(lstat,        const char* path, struct stat* buf);
 SYSCALL_DEFINE(unlink,       const char* pathname);
+SYSCALL_DEFINE(chmod,        const char* pathname, mode_t mode);
+SYSCALL_DEFINE(setreuid,     uid_t ruid, uid_t euid);
+SYSCALL_DEFINE(chown,        const char* pathname, uid_t uid, uid_t gid);
 SYSCALL_DEFINE(fork);
 
 void sys_init();

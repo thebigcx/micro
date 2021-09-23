@@ -192,5 +192,6 @@ void task_send(struct task* task, int signal)
 
 struct task* task_curr()
 {
+    if (!thread_curr()) return NULL;
     return thread_curr()->parent;
 }

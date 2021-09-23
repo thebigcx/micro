@@ -80,7 +80,7 @@ int main(int argc, char** argv)
 
         if (access(bin, F_OK) == -1)
         {
-            printf("%s: no such file or directory\n", bin);
+            perror("");
             continue;
         }
 

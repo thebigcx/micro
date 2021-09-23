@@ -21,7 +21,7 @@ SYSCALL_DEFINE(open, const char* path, uint32_t flags, mode_t mode)
     {
         if (!(flags & O_CREAT)) return -ENOENT;
         // TODO: this hshoudl be better
-        vfs_mkfile(canon);
+        vfs_mkfile(canon, mode, task->euid, task->egid);
         vfs_resolve(canon, file);
     }
     else
@@ -101,4 +101,36 @@ SYSCALL_DEFINE(getcwd, char* buf, size_t size)
     strcpy(buf, task->workd);
 
     return size;
+}
+
+SYSCALL_DEFINE(chmod, const char* pathname, mode_t mode)
+{
+    PTRVALID(pathname);
+
+    char* canon = vfs_mkcanon(pathname, task_curr()->workd);
+    
+    struct file file;
+    int e;
+    if ((e = vfs_resolve(canon, &file)))
+        return e;
+
+    if (file.uid != task_curr()->euid) return -EPERM;
+
+    return vfs_chmod(&file, mode);
+}
+
+SYSCALL_DEFINE(chown, const char* pathname, uid_t uid, uid_t gid)
+{
+    PTRVALID(pathname);
+
+    char* canon = vfs_mkcanon(pathname, task_curr()->workd);
+    
+    struct file file;
+    int e;
+    if ((e = vfs_resolve(canon, &file)))
+        return e;
+
+    if (task_curr()->euid != 0) return -EPERM;
+
+    return vfs_chown(&file, uid, gid);
 }

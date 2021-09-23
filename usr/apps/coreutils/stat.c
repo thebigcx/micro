@@ -40,5 +40,34 @@ int main(int argc, char** argv)
     else if (S_ISSOCK(buf.st_mode)) printf("socket\n");
     else printf("unknown\n");
 
+    printf("Access: ");
+
+    if (buf.st_mode & S_IRUSR) printf("r");
+    else printf("-");
+    if (buf.st_mode & S_IWUSR) printf("w");
+    else printf("-");
+    if (buf.st_mode & S_IXUSR) printf("x");
+    else if (buf.st_mode & S_ISUID) printf("s");
+    else printf("-");
+    
+
+    if (buf.st_mode & S_IRGRP) printf("r");
+    else printf("-");
+    if (buf.st_mode & S_IWGRP) printf("w");
+    else printf("-");
+    if (buf.st_mode & S_IXGRP) printf("x");
+    else if (buf.st_mode & S_ISGID) printf("s");
+    else printf("-");
+
+    if (buf.st_mode & S_IROTH) printf("r");
+    else printf("-");
+    if (buf.st_mode & S_IWOTH) printf("w");
+    else printf("-");
+    if (buf.st_mode & S_IXOTH) printf("x");
+    else if (buf.st_mode & S_ISUID) printf("t");
+    else printf("-");
+
+    printf("\n");
+
     return 0;
 }

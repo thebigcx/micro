@@ -93,6 +93,8 @@ static struct file* dirent2file(struct ext2_volume* vol, struct file* parent,
     file->ops.mkfile   = ext2_mkfile;
     file->ops.mkdir    = ext2_mkdir;
     file->ops.unlink   = ext2_unlink;
+    file->ops.chmod    = ext2_chmod;
+    file->ops.chown    = ext2_chown;
 
     file->parent       = parent;
     file->inode        = dirent->inode;
@@ -232,30 +234,6 @@ static uint8_t ext2_dirent_type(unsigned int type)
 
     printk("ext2: unknown file type %d\n", type);
     return DIRENT_UNK;
-}
-
-static uint16_t ext2_inode_type(unsigned int type)
-{
-    switch (type)
-    {
-        case FL_FILE:
-            return INODE_FILE;
-        case FL_DIR:
-            return INODE_DIR;
-        case FL_CHRDEV:
-            return INODE_CHARDEV;
-        case FL_BLKDEV:
-            return INODE_BLOCKDEV;
-        case FL_FIFO:
-            return INODE_FIFO;
-        case FL_SOCKET:
-            return INODE_SOCKET;
-        case FL_SYMLINK:
-            return INODE_SYMLINK;
-    }
-
-    printk("ext2: unknown file type %d\n", type);
-    return 0;
 }
 
 uint32_t ext2_alloc_blk(struct ext2_volume* vol)
@@ -524,10 +502,12 @@ void ext2_init_inode(struct ext2_volume* vol, struct ext2_inode* ino, struct fil
 {
     memset(ino, 0, sizeof(struct ext2_inode));
 
-    //ino->mode |= perms & 0xfff;
-    ino->mode |= ext2_inode_type(file->type);
-    ino->size = 0;
+    ino->mode  |= file->perms & 0x0fff;
+    ino->mode  |= file->type & 0xf000;
+    ino->uid    = file->uid;
+    ino->gid    = file->gid;
 
+    ino->size    = 0;
     ino->sectors = vol->blksize / 512;
     ino->nlink   = 1;
     
@@ -607,23 +587,29 @@ void ext2_mkentry(struct file* dir, struct file* file)
     kfree(buf);
 }
 
-void ext2_mkfile(struct file* dir, const char* name)
+void ext2_mkfile(struct file* dir, const char* name, mode_t mode, uid_t uid, gid_t gid)
 {
     struct file file;
     memset(&file, 0, sizeof(struct file));
 
+    file.uid   = uid;
+    file.gid   = gid;
+    file.perms = mode & 0x0fff;
     file.type = FL_FILE;
     strcpy(file.name, name);
 
     ext2_mkentry(dir, &file);
 }
 
-void ext2_mkdir(struct file* dir, const char* name)
+void ext2_mkdir(struct file* dir, const char* name, mode_t mode, uid_t uid, gid_t gid)
 {
     struct file file;
     memset(&file, 0, sizeof(struct file));
 
-    file.type = FL_DIR;
+    file.uid   = uid;
+    file.gid   = gid;
+    file.perms = mode & 0x0fff;
+    file.type  = FL_DIR;
     strcpy(file.name, name);
 
     ext2_mkentry(dir, &file);
@@ -676,6 +662,38 @@ void ext2_unlink(struct file* dir, const char* name)
     (void)dir; (void)name;
 }
 
+int ext2_chmod(struct file* file, mode_t mode)
+{
+    struct ext2_volume* vol = file->device;
+
+    struct ext2_inode ino;
+    ext2_read_inode(vol, file->inode, &ino);
+    ino.mode = (ino.mode & 0xf000) | (mode & 0x0fff);
+    ext2_write_inode(vol, file->inode, &ino);
+
+    file->perms = mode & 0x0fff;
+
+    return 0;
+}
+
+int ext2_chown(struct file* file, uid_t uid, gid_t gid)
+{
+    struct ext2_volume* vol = file->device;
+
+    struct ext2_inode ino;
+    ext2_read_inode(vol, file->inode, &ino);
+    
+    if (uid != -1) ino.uid = uid;
+    if (gid != -1) ino.gid = gid;
+
+    ext2_write_inode(vol, file->inode, &ino);
+
+    file->uid = ino.uid;
+    file->gid = ino.gid;
+
+    return 0;
+}
+
 static struct file* ext2_mount(const char* dev, const void* data)
 {
     (void)data;
@@ -721,6 +739,8 @@ static struct file* ext2_mount(const char* dev, const void* data)
     file->ops.mkfile   = ext2_mkfile;
     file->ops.mkdir    = ext2_mkdir;
     file->ops.unlink   = ext2_unlink;
+    file->ops.chmod    = ext2_chmod;
+    file->ops.chown    = ext2_chown;
 
     return file;
 }

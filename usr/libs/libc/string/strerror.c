@@ -22,7 +22,11 @@ static const char* errno_strs[] =
     [EINVAL      ] = "Invalid argument",
     [EEXIST      ] = "Already exists",
     [EMFILE      ] = "Too many open files",
-    [ENODEV      ] = "No such device"
+    [ENODEV      ] = "No such device",
+    [EACCES      ] = "Operation not permitted",
+    [EIO         ] = "I/O error",
+    [EINTR       ] = "Interrupted syscall",
+    [EPERM       ] = "Permission denied"
 };
 
 char* strerror(int errnum)

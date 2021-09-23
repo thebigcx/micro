@@ -14,11 +14,13 @@ typedef ssize_t      (*write_t   )(struct file* file, const void* buf, off_t off
 typedef int          (*ioctl_t   )(struct file* file, unsigned long req, void* argp);
 typedef struct file* (*find_t    )(struct file* dir, const char* name);
 typedef ssize_t      (*getdents_t)(struct file* dir, off_t off, size_t n, struct dirent* dirp);
-typedef void         (*mkfile_t  )(struct file* dir, const char* name);
-typedef void         (*mkdir_t   )(struct file* dir, const char* name);
+typedef void         (*mkfile_t  )(struct file* dir, const char* name, mode_t mode, uid_t uid, gid_t gid);
+typedef void         (*mkdir_t   )(struct file* dir, const char* name, mode_t mode, uid_t uid, gid_t gid);
 typedef void         (*mknod_t   )(struct file* dir, struct file* file);
 typedef void         (*unlink_t  )(struct file* dir, const char* name);
 typedef void         (*mmap_t    )(struct file* file, struct vm_area* area);
+typedef int          (*chmod_t   )(struct file* file, mode_t mode);
+typedef int          (*chown_t   )(struct file* file, uid_t uid, gid_t gid);
 
 struct file_ops
 {
@@ -34,6 +36,8 @@ struct file_ops
     mknod_t    mknod;
     unlink_t   unlink;
     mmap_t     mmap;
+    chmod_t    chmod;
+    chown_t    chown;
 };
 
 #define FL_FIFO    (0x1000)
@@ -96,8 +100,8 @@ ssize_t vfs_write(struct file* file, const void* buf, off_t off, size_t size);
 struct file* vfs_find(struct file* dir, const char* name);
 ssize_t vfs_getdents(struct file* dir, off_t off, size_t n, struct dirent* dirp);
 
-int vfs_mkfile(const char* path);
-int vfs_mkdir(const char* name);
+int vfs_mkfile(const char* path, mode_t mode, uid_t uid, gid_t gid);
+int vfs_mkdir(const char* name, mode_t mode, uid_t uid, gid_t gid);
 
 //void vfs_rm(struct file* dir, const char* name);
 int vfs_unlink(const char* pathname);
@@ -122,6 +126,11 @@ int vfs_resolve(const char* path, struct file* out);
 int vfs_access(const char* path, int mode);
 
 void vfs_mmap(struct file* file, struct vm_area* area);
+
+int vfs_chmod(struct file* file, mode_t mode);
+int vfs_chown(struct file* file, uid_t uid, gid_t gid);
+
+int vfs_checkperm(struct file* file);
 
 typedef struct file* (*mount_t)(const char*, const void* data);
 

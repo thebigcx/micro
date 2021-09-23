@@ -11,6 +11,25 @@ SYSCALL_DEFINE(getpid)
     return task_curr()->id;
 }
 
+SYSCALL_DEFINE(setreuid, uid_t ruid, uid_t euid)
+{
+    struct task* task = task_curr();
+
+    if (ruid != -1)
+    {
+        if (task->euid != 0) return -EPERM;
+        task->ruid = ruid;
+    }
+
+    if (euid != -1)
+    {
+        if (task->euid != 0) return -EPERM;
+        task->euid = euid;
+    }
+
+    return 0;
+}
+
 typedef uintptr_t (*syscall_t)();
 
 static void* syscalls[] =
@@ -49,7 +68,10 @@ static void* syscalls[] =
     &sys_stat,
     &sys_fstat,
     &sys_lstat,
-    &sys_unlink
+    &sys_unlink,
+    &sys_chmod,
+    &sys_setreuid,
+    &sys_chown
 };
 
 void syscall_handler(struct regs* r)

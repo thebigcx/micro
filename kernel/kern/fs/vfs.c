@@ -6,6 +6,9 @@
 #include <micro/errno.h>
 #include <micro/debug.h>
 #include <micro/fcntl.h>
+#include <micro/task.h>
+
+#define CHECKPERM(file) if (vfs_checkperm(file) == -1) return -EACCES;
 
 struct tree root;
 
@@ -14,6 +17,18 @@ struct file* vfs_create_file()
     struct file* file = kmalloc(sizeof(struct file));
     memset(file, 0, sizeof(struct file));
     return file;
+}
+
+int vfs_checkperm(struct file* file)
+{
+    if (task_curr() && task_curr()->euid != 0)
+    {
+        if (task_curr()->euid == file->uid && !(file->perms & FL_UREAD)) return -1;
+        else if (task_curr()->egid == file->gid && !(file->perms & FL_GREAD)) return -1;
+        else if (!(file->perms & FL_OREAD)) return -1;
+    }
+
+    return 0;
 }
 
 void vfs_init()
@@ -68,6 +83,8 @@ static int get_parent_dir(const char* path, struct file* out, char** name)
     {
         if (!(file->type == FL_DIR)) return -ENOTDIR;
 
+        CHECKPERM(file);
+
         struct file* child = vfs_find(file, token);
         kfree(file);
         file = child;
@@ -86,7 +103,7 @@ static int get_parent_dir(const char* path, struct file* out, char** name)
     return 0;
 }
 
-int vfs_mkfile(const char* path)
+int vfs_mkfile(const char* path, mode_t mode, uid_t uid, gid_t gid)
 {
     struct file dir;
     char* name;
@@ -94,13 +111,13 @@ int vfs_mkfile(const char* path)
     if ((e = get_parent_dir(path, &dir, &name))) return e;
 
     if (dir.ops.mkfile)
-        dir.ops.mkfile(&dir, name);
+        dir.ops.mkfile(&dir, name, mode, uid, gid);
 
     kfree(name);
     return 0;
 }
 
-int vfs_mkdir(const char* path)
+int vfs_mkdir(const char* path, mode_t mode, uid_t uid, gid_t gid)
 {
     struct file dir;
     char* name;
@@ -108,7 +125,7 @@ int vfs_mkdir(const char* path)
     if ((e = get_parent_dir(path, &dir, &name))) return e;
 
     if (dir.ops.mkdir)
-        dir.ops.mkdir(&dir, name);
+        dir.ops.mkdir(&dir, name, mode, uid, gid);
 
     kfree(name);
     return 0;
@@ -332,6 +349,8 @@ int vfs_resolve(const char* path, struct file* out)
     {
         if (file->type != FL_DIR) return -ENOTDIR;
 
+        CHECKPERM(file);
+
         struct file* child = vfs_find(file, token);
         kfree(file);
         file = child;
@@ -384,6 +403,22 @@ void vfs_mmap(struct file* file, struct vm_area* area)
 {
     if (file->ops.mmap)
         file->ops.mmap(file, area);
+}
+
+int vfs_chmod(struct file* file, mode_t mode)
+{
+    if (file->ops.chmod)
+        return file->ops.chmod(file, mode);
+
+    return -ENOENT;
+}
+
+int vfs_chown(struct file* file, uid_t uid, gid_t gid)
+{
+    if (file->ops.chown)
+        return file->ops.chown(file, uid, gid);
+
+    return -ENOENT;
 }
 
 static struct fs_type fs_types[64];
