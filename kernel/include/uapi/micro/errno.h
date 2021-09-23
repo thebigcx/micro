@@ -23,3 +23,4 @@
 #define EINTR           21
 #define EPERM           22
 #define ENOEXEC         23
+#define ELIBBAD         24

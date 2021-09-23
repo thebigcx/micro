@@ -62,12 +62,17 @@ void setup_user_stack(struct task* task, const char* argv[], const char* envp[])
     task->main->regs.rdx = envp_ptr;
 }
 
+// TODO: this is very architecture-dependent
 int valid_elf(struct elf_hdr* header)
 {
-    return header->ident[0] == ELFMAG0
-        && header->ident[1] == ELFMAG1
-        && header->ident[2] == ELFMAG2
-        && header->ident[3] == ELFMAG3;
+    return header->ident[0]          == ELFMAG0
+        && header->ident[1]          == ELFMAG1
+        && header->ident[2]          == ELFMAG2
+        && header->ident[3]          == ELFMAG3
+        && header->ident[EI_CLASS]   == ELFCLASS64
+        && header->ident[EI_DATA]    == ELFDATA2LSB
+        && header->machine           == EM_X86_64
+        && header->ident[EI_VERSION] == EV_CURRENT;
 }
 
 int elf_load(struct vm_map* vm_map, void* data, const char* argv[],
@@ -93,13 +98,20 @@ int elf_load(struct vm_map* vm_map, void* data, const char* argv[],
             memcpy(&nargv[1], &argv[0], argc * sizeof(const char*));
 
             // TODO: this leaks memory
-            struct file* interp = kmalloc(sizeof(struct file));
-            int e = vfs_resolve(nargv[0], interp);
+            struct file interp;
 
-            if (e) return e;
+            int e;
+            if ((e = vfs_resolve(nargv[0], &interp))) return e;
 
-            void* data = kmalloc(interp->size);
-            vfs_read(interp, data, 0, interp->size);
+            // Don't know why POSIX defines these as different error codes
+            if (interp.type == FL_DIR) return -EISDIR;
+            if (interp.type != FL_FILE) return -EACCES;
+
+            void* data = kmalloc(interp.size);
+            vfs_read(&interp, data, 0, interp.size);
+
+            if (!valid_elf(header))
+                return -ELIBBAD;
 
             return elf_load(vm_map, data, (const char**)nargv, envp, rip);
         }
@@ -118,11 +130,11 @@ int elf_load(struct vm_map* vm_map, void* data, const char* argv[],
             uintptr_t page_begin = begin - (begin % PAGE4K);
             uintptr_t page_cnt = memsize - (memsize % PAGE4K) + PAGE4K * 2;
 
+            unsigned int flags = PAGE_PR | PAGE_USR;
+            if (phdr->flags & PF_W) flags |= PAGE_RW;
+
             for (uintptr_t i = page_begin; i < page_begin + page_cnt; i += PAGE4K)
-            {
-                // TODO: use the PHDR flags to determine page flags
-                mmu_map(vm_map, i, mmu_alloc_phys(), PAGE_PR | PAGE_RW | PAGE_USR);
-            }
+                mmu_map(vm_map, i, mmu_alloc_phys(), flags);
 
             uintptr_t cr3 = rcr3();
             

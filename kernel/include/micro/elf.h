@@ -26,6 +26,17 @@ struct elf_hdr
     uint16_t sh_str_idx;
 };
 
+#define EI_CLASS    4
+#define ELFCLASS64  2 // 64-bit object
+
+#define EI_DATA     5
+#define ELFDATA2LSB 1 // 2's complement, little endian
+
+#define EI_VERSION  6
+#define EV_CURRENT  1
+
+#define EM_X86_64 62
+
 struct elf_phdr
 {
     uint32_t type;
@@ -84,6 +95,10 @@ struct elf_sym
 #define PT_LOAD    1
 #define PT_DYNAMIC 2
 #define PT_INTERP  3
+
+#define PF_X       (1 << 0)
+#define PF_W       (1 << 1)
+#define PF_R       (1 << 2)
 
 struct elf_rela
 {
