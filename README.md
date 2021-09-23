@@ -30,6 +30,7 @@ Run ```sh build-initrd``` in /build to generate an ```initrd.img``` to pass to t
 - RTC driver
 - PS/2 keyboard driver
 - UNIX Signals
+- Pseudoterminals through /dev/ptmx and /dev/pts filesystem
 
 # Userland Features
 - Respectable libc
