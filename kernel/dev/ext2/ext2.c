@@ -98,13 +98,17 @@ static struct file* dirent2file(struct ext2_volume* vol, struct file* parent,
     file->inode        = dirent->inode;
     file->size         = INOSIZE(ino);
     file->device       = vol;
-    file->links        = ino.link_cnt;
+    file->links        = ino.nlink;
 
-    file->atime        = ino.last_access;
-    file->ctime        = ino.creation_time;
-    file->mtime        = ino.last_mod_time;
+    file->atime        = ino.atime;
+    file->ctime        = ino.ctime;
+    file->mtime        = ino.mtime;
 
-    file->flags        = ino.mode & 0xf000;
+    file->type         = ino.mode & 0xf000;
+    file->perms        = ino.mode & 0x0fff;
+
+    file->uid          = ino.uid;
+    file->gid          = ino.gid;
 
     strncpy(file->name, dirent->name, dirent->name_len);
 
@@ -185,7 +189,7 @@ static void ext2_set_inode_blk(struct ext2_volume* vol, struct ext2_inode* ino,
     if (i < sind)
     {
         ino->directs[i] = blk;
-        ino->sector_cnt += vol->blksize / 512;
+        ino->sectors += vol->blksize / 512;
     }
     else if (i < dind)
     {
@@ -378,7 +382,7 @@ void ext2_resize(struct file* file, size_t size)
     while (cnt--)
     {
         // Allocate blocks on the end
-        uint32_t i = ino.sector_cnt / (vol->blksize / 512);
+        uint32_t i = ino.sectors / (vol->blksize / 512);
         ext2_set_inode_blk(vol, &ino, i, ext2_alloc_blk(vol));
     }
 
@@ -521,11 +525,11 @@ void ext2_init_inode(struct ext2_volume* vol, struct ext2_inode* ino, struct fil
     memset(ino, 0, sizeof(struct ext2_inode));
 
     //ino->mode |= perms & 0xfff;
-    ino->mode |= ext2_inode_type(file->flags);
+    ino->mode |= ext2_inode_type(file->type);
     ino->size = 0;
 
-    ino->sector_cnt = vol->blksize / 512;
-    ino->link_cnt = 1;
+    ino->sectors = vol->blksize / 512;
+    ino->nlink   = 1;
     
     ext2_set_inode_blk(vol, ino, 0, ext2_alloc_blk(vol)); // One block to start off with
 }
@@ -549,7 +553,7 @@ void ext2_mkentry(struct file* dir, struct file* file)
 
     struct ext2_dirent* dirent = kmalloc(size);
 
-    dirent->type     = ext2_dirent_type(file->flags);
+    dirent->type     = ext2_dirent_type(file->type);
     dirent->inode    = inonum;
     dirent->name_len = strlen(file->name);
     dirent->size     = size;
@@ -608,7 +612,7 @@ void ext2_mkfile(struct file* dir, const char* name)
     struct file file;
     memset(&file, 0, sizeof(struct file));
 
-    file.flags = FL_FILE;
+    file.type = FL_FILE;
     strcpy(file.name, name);
 
     ext2_mkentry(dir, &file);
@@ -619,7 +623,7 @@ void ext2_mkdir(struct file* dir, const char* name)
     struct file file;
     memset(&file, 0, sizeof(struct file));
 
-    file.flags = FL_DIR;
+    file.type = FL_DIR;
     strcpy(file.name, name);
 
     ext2_mkentry(dir, &file);
@@ -707,7 +711,7 @@ static struct file* ext2_mount(const char* dev, const void* data)
     struct file* file  = vfs_create_file();
 
     file->device       = vol;
-    file->flags        = FL_DIR;
+    file->type         = FL_DIR;
     file->inode        = 2;
 
     file->ops.read     = ext2_read;

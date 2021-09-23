@@ -79,7 +79,7 @@ SYSCALL_DEFINE(chdir, const char* path)
     int e = vfs_resolve(new, dir);
     
     if (e) return e;
-    if (dir->flags != FL_DIR) return -ENOTDIR;
+    if (dir->type != FL_DIR) return -ENOTDIR;
 
     strcpy(task->workd, new);
 

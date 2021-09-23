@@ -73,15 +73,15 @@ struct PACKED ext2_bgd
 struct PACKED ext2_inode
 {
     uint16_t mode;          // Types and Permissions
-    uint16_t userid;        // User ID
+    uint16_t uid;           // User ID
     uint32_t size;          // Lower 32 bits of size
-    uint32_t last_access;   // Last access time in POSIX time
-    uint32_t creation_time; // Creation time in POSIX time
-    uint32_t last_mod_time; // Last modification time in POSIX time
-    uint32_t del_time;      // Deletion time in POSIX time
-    uint16_t grpid;         // Group ID
-    uint16_t link_cnt;      // Amount of hard links (directory entries)
-    uint32_t sector_cnt;    // Count of disk sectors
+    uint32_t atime;         // Last access time in POSIX time
+    uint32_t ctime;         // Creation time in POSIX time
+    uint32_t mtime;         // Last modification time in POSIX time
+    uint32_t dtime;         // Deletion time in POSIX time
+    uint16_t gid;           // Group ID
+    uint16_t nlink;         // Amount of hard links (directory entries)
+    uint32_t sectors;       // Count of disk sectors
     uint32_t flags;         // Flags
     uint32_t os_spec1;      // OS-specific value #1
     uint32_t directs[12];   // Direct block pointers

@@ -9,7 +9,7 @@ SYSCALL_DEFINE(getdents, int fdno, struct dirent* dirp, size_t n)
 
     struct fd* fd = task_curr()->fds[fdno];
 
-    if (fd->filp->flags != FL_DIR) return -ENOTDIR;
+    if (fd->filp->type != FL_DIR) return -ENOTDIR;
 
     return vfs_getdents(fd->filp, fd->off++, n, dirp);
 }

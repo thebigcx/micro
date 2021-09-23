@@ -7,10 +7,10 @@ static void do_kstat(struct file* file, struct stat* buf)
 {
     buf->st_dev     = 0;
     buf->st_ino     = file->inode;
-    buf->st_mode    = file->flags;
+    buf->st_mode    = file->type | file->perms;
     buf->st_nlink   = file->links;
-    buf->st_uid     = 0;
-    buf->st_gid     = 0;
+    buf->st_uid     = file->uid;
+    buf->st_gid     = file->gid;
     buf->st_rdev    = (file->major << 32) | file->minor;
     buf->st_size    = file->size;
     buf->st_blksize = 1024;

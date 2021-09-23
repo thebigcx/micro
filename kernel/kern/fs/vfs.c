@@ -35,7 +35,7 @@ ssize_t vfs_write(struct file* file, const void* buf, off_t off, size_t size)
 
 struct file* vfs_find(struct file* dir, const char* name)
 {
-    if (dir && (dir->flags & FL_DIR) && dir->ops.find)
+    if (dir && (dir->type == FL_DIR) && dir->ops.find)
     {
         return dir->ops.find(dir, name);
     }
@@ -45,7 +45,7 @@ struct file* vfs_find(struct file* dir, const char* name)
 
 ssize_t vfs_getdents(struct file* dir, off_t off, size_t n, struct dirent* dirp)
 {
-    if (dir && (dir->flags & FL_DIR) && dir->ops.getdents)
+    if (dir && (dir->type == FL_DIR) && dir->ops.getdents)
     {
         return dir->ops.getdents(dir, off, n, dirp);
     }
@@ -66,7 +66,7 @@ static int get_parent_dir(const char* path, struct file* out, char** name)
 
     while (next)
     {
-        if (!(file->flags & FL_DIR)) return -ENOTDIR;
+        if (!(file->type == FL_DIR)) return -ENOTDIR;
 
         struct file* child = vfs_find(file, token);
         kfree(file);
@@ -77,7 +77,7 @@ static int get_parent_dir(const char* path, struct file* out, char** name)
         next = strtok_r(NULL, "/", &saveptr);
     }
 
-    if (file->flags != FL_DIR) return -ENOTDIR;
+    if (file->type != FL_DIR) return -ENOTDIR;
 
     memcpy(out, file, sizeof(struct file));
     *name = strdup(token);
@@ -123,7 +123,7 @@ int vfs_unlink(const char* pathname)
 
     struct file file;
     if ((e = vfs_resolve(pathname, &file))) return e;
-    if (file.flags == FL_DIR) return -EISDIR;
+    if (file.type == FL_DIR) return -EISDIR;
 
     if (dir.ops.unlink)
         dir.ops.unlink(&dir, name);
@@ -176,7 +176,7 @@ int vfs_addnode(struct file* file, const char* path)
             {
                 nfile = vfs_create_file();
                 strcpy(nfile->name, old);
-                nfile->flags = FL_DIR;
+                nfile->type = FL_DIR;
             }
             else
                 nfile = file;
@@ -330,7 +330,7 @@ int vfs_resolve(const char* path, struct file* out)
 
     while (token)
     {
-        if (file->flags != FL_DIR) return -ENOTDIR;
+        if (file->type != FL_DIR) return -ENOTDIR;
 
         struct file* child = vfs_find(file, token);
         kfree(file);

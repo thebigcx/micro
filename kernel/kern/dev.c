@@ -19,7 +19,7 @@ void init_devices()
 
     null->ops.read    = null_read;
     null->ops.write   = null_write;
-    null->flags       = FL_CHRDEV;
+    null->type        = FL_CHRDEV;
 
     strcpy(null->name, "null");
     devfs_register(null);

@@ -42,7 +42,7 @@ void devfs_init()
 
     devfs = vfs_create_file();
 
-    devfs->flags        = FL_DIR;
+    devfs->type         = FL_DIR;
     devfs->ops.find     = devfs_find;
     devfs->ops.getdents = devfs_getdents;
 

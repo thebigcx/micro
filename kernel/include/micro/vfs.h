@@ -44,6 +44,18 @@ struct file_ops
 #define FL_SYMLINK (0xa000)
 #define FL_SOCKET  (0xc000)
 
+#define FL_OEXEC   (0x001)
+#define FL_OWRITE  (0x002)
+#define FL_OREAD   (0x004)
+#define FL_GEXEC   (0x008)
+#define FL_GWRITE  (0x010)
+#define FL_GREAD   (0x020)
+#define FL_UEXEC   (0x040)
+#define FL_UWRITE  (0x080)
+#define FL_UREAD   (0x100)
+#define FL_SETGID  (0x400)
+#define FL_SETUID  (0x800)
+
 // TODO: flags, modes, etc
 struct fd
 {
@@ -57,7 +69,8 @@ struct file
     char            name[64];
     uint64_t        inode;
     void*           device;
-    uint32_t        flags;
+    uint32_t        type;
+    uint32_t        perms;
     size_t          size;
     struct file_ops ops;
     struct file*    parent;
@@ -67,6 +80,9 @@ struct file
     time_t          atime;
 	time_t          mtime;
 	time_t          ctime;
+
+    uid_t           uid;
+    gid_t           gid;
 };
 
 struct dirent;

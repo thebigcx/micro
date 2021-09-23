@@ -18,7 +18,7 @@ SYSCALL_DEFINE(execve, const char* path, const char* argv[], const char* envp[])
     kfree(canon);
 
     if (e) return e;
-    if (file->flags == FL_DIR) return -EISDIR;
+    if (file->type == FL_DIR) return -EISDIR;
 
     char* argv_copy[16];
     size_t argc = 0;

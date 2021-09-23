@@ -39,15 +39,17 @@ ssize_t initrd_write(struct file* file, const void* buf, off_t off, size_t size)
 void initrd_init(uintptr_t start, uintptr_t end)
 {
     printk("mounting initial ramdisk\n");
+
     struct file* file = vfs_create_file();
     struct initrd* initrd = kmalloc(sizeof(struct initrd));
-    initrd->start = start;
-    initrd->end = end;
 
-    file->ops.read = initrd_read;
+    initrd->start = start;
+    initrd->end   = end;
+
+    file->ops.read  = initrd_read;
     file->ops.write = initrd_write;
-    file->flags = FL_BLKDEV;
-    file->device = initrd;
+    file->type      = FL_BLKDEV;
+    file->device    = initrd;
 
     strcpy(file->name, "initrd");
     devfs_register(file);
@@ -87,7 +89,7 @@ struct file* initramfs_find(struct file* dir, const char* name)
         {
             struct file* file = kmalloc(sizeof(struct file));
             file->ops.read = initramfs_read;
-            file->flags = FL_FILE;
+            file->type = FL_FILE;
 
             struct initramfs_file* ramfile = kmalloc(sizeof(struct initramfs_file));
             ramfile->start = (uintptr_t)curr + sizeof(struct fheader);
@@ -113,7 +115,7 @@ struct file* initramfs_mount(const char* dev, const void* data)
 
     struct file* file = kmalloc(sizeof(struct file));
     file->ops.find = initramfs_find;
-    file->flags = FL_DIR;
+    file->type = FL_DIR;
     file->device = ramfs;
 
     return file;
