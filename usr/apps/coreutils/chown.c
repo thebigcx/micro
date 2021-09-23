@@ -16,14 +16,14 @@ int main(int argc, char** argv)
 
     char* saveptr;
     // TODO: temp
-    char* token = strtok_r(argv[1], "[", &saveptr);
+    char* token = strtok_r(argv[1], ":", &saveptr);
     
     if (token)
     {
         uid = atoi(token);
     }
 
-    token = strtok_r(NULL, "[", &saveptr);
+    token = strtok_r(NULL, ":", &saveptr);
 
     if (token)
     {
