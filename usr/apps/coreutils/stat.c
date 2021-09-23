@@ -23,6 +23,11 @@ int main(int argc, char** argv)
     printf("User ID: %ld\n", buf.st_uid);
     printf("Group ID: %ld\n", buf.st_gid);
     printf("Size: %ld\n", buf.st_size);
+    printf("Link count: %d\n", buf.st_nlink);
+
+    printf("Last access: %s", ctime(&buf.st_atime));
+    printf("Creation time: %s", ctime(&buf.st_ctime));
+    printf("Last modification: %s", ctime(&buf.st_mtime));
 
     printf("Type: ");
 

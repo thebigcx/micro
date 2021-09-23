@@ -63,6 +63,10 @@ struct file
     struct file*    parent;
     dev_t           major;
     dev_t           minor;
+    unsigned int    links;
+    time_t          atime;
+	time_t          mtime;
+	time_t          ctime;
 };
 
 struct dirent;

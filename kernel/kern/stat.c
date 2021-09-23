@@ -8,16 +8,16 @@ static void do_kstat(struct file* file, struct stat* buf)
     buf->st_dev     = 0;
     buf->st_ino     = file->inode;
     buf->st_mode    = file->flags;
-    buf->st_nlink   = 0;
+    buf->st_nlink   = file->links;
     buf->st_uid     = 0;
     buf->st_gid     = 0;
     buf->st_rdev    = (file->major << 32) | file->minor;
     buf->st_size    = file->size;
     buf->st_blksize = 1024;
     buf->st_blocks  = 0;
-    buf->st_atime   = 0;
-    buf->st_mtime   = 0;
-    buf->st_ctime   = 0;
+    buf->st_atime   = file->atime;
+    buf->st_mtime   = file->mtime;
+    buf->st_ctime   = file->ctime;
 }
 
 SYSCALL_DEFINE(stat, const char* path, struct stat* buf)

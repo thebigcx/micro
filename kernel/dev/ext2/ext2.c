@@ -98,13 +98,15 @@ static struct file* dirent2file(struct ext2_volume* vol, struct file* parent,
     file->inode        = dirent->inode;
     file->size         = INOSIZE(ino);
     file->device       = vol;
+    file->links        = ino.link_cnt;
+
+    file->atime        = ino.last_access;
+    file->ctime        = ino.creation_time;
+    file->mtime        = ino.last_mod_time;
+
+    file->flags        = ino.mode & 0xf000;
 
     strncpy(file->name, dirent->name, dirent->name_len);
-
-    if (ino.mode & INODE_FILE)
-        file->flags = FL_FILE;
-    else if (ino.mode & INODE_DIR)
-        file->flags = FL_DIR;
 
     return file;
 }
@@ -306,7 +308,7 @@ uint32_t ext2_alloc_inode(struct ext2_volume* vol)
         ext2_rewrite_bgds(vol);
 
         kfree(buf);
-        return i * vol->sb.inodes_per_grp + j;
+        return i * vol->sb.inodes_per_grp + j + 1; // Inode addresses start at 1
     }
 
     printk("ext2: could not allocate a free inode\n");
@@ -514,12 +516,18 @@ struct file* ext2_find(struct file* dir, const char* name)
     return NULL;
 }
 
-void ext2_init_inode(struct ext2_inode* ino, struct file* file)
+void ext2_init_inode(struct ext2_volume* vol, struct ext2_inode* ino, struct file* file)
 {
     memset(ino, 0, sizeof(struct ext2_inode));
 
     //ino->mode |= perms & 0xfff;
     ino->mode |= ext2_inode_type(file->flags);
+    ino->size = vol->blksize;
+
+    ino->sector_cnt = vol->blksize / 512;
+    ino->link_cnt = 1;
+    
+    ext2_set_inode_blk(vol, ino, 0, ext2_alloc_blk(vol)); // One block to start off with
 }
 
 void ext2_mkentry(struct file* dir, struct file* file)
@@ -528,10 +536,12 @@ void ext2_mkentry(struct file* dir, struct file* file)
 
     uint32_t inonum = ext2_alloc_inode(vol);
 
+    file->inode = inonum;
+
     // Initialize the inode and write to disk
     struct ext2_inode ino;
     ext2_read_inode (vol, inonum, &ino);
-    ext2_init_inode (&ino, file);     // TODO: convert the type
+    ext2_init_inode (vol, &ino, file);
     ext2_write_inode(vol, inonum, &ino);
 
     // Create the directory entry
@@ -547,7 +557,7 @@ void ext2_mkentry(struct file* dir, struct file* file)
     // Copy the name into the flexible array
     memcpy(dirent->name, file->name, strlen(file->name));
 
-    /*struct ext2_inode pino; // Parent inode
+    struct ext2_inode pino; // Parent inode
     ext2_read_inode(vol, dir->inode, &pino);
 
     // Find the end of the directory
@@ -559,8 +569,28 @@ void ext2_mkentry(struct file* dir, struct file* file)
 
     while (offset + blk * vol->blksize < INOSIZE(pino))
     {
-        struct ext2_dirent* dirent = (struct ext2_dirent*)((uintptr_t)buf + offset);
-        offset += dirent->size;
+        struct ext2_dirent* entry = (struct ext2_dirent*)((uintptr_t)buf + offset);
+        offset += entry->size;
+
+        size_t expect = sizeof(struct ext2_dirent) + entry->name_len;
+        expect = (expect & 0xfffffffc) + 4; // 4-byte alignment
+
+        if (expect < entry->size)
+        {
+            if (entry->size - expect >= dirent->size)
+            {
+                size_t orig = dirent->size;
+                dirent->size = entry->size - expect; // Padded to fit the rest of empty space
+
+                // Copy the data and write the block
+                memcpy((void*)entry + expect, dirent, orig);
+                entry->size = expect;
+                write_blocks(vol, buf, ext2_inode_blk(vol, &pino, blk), 1);
+
+                kfree(buf);
+                return;
+            }
+        }
 
         if (offset >= vol->blksize)
         {
@@ -569,14 +599,8 @@ void ext2_mkentry(struct file* dir, struct file* file)
         }
     }
 
-    printk("%d %d\n", offset, blk);
-    memcpy(buf + offset, dirent, size);
-    //write_blocks(vol, buf, ext2_inode_blk(vol, &pino, blk), 1);
-
-    pino.size += 1024;
-    //ext2_write_inode(vol, dir->inode, &pino);
-
-    kfree(buf);*/
+    // TODO: allocate next block and write the dent there
+    kfree(buf);
 }
 
 void ext2_mkfile(struct file* dir, const char* name)
@@ -592,8 +616,50 @@ void ext2_mkfile(struct file* dir, const char* name)
 
 void ext2_mkdir(struct file* dir, const char* name)
 {
-    (void)dir; (void)name;
-    //ext2_mkentry(dir, name, INODE_DIR);
+    struct file file;
+    memset(&file, 0, sizeof(struct file));
+
+    file.flags = FL_DIR;
+    strcpy(file.name, name);
+
+    ext2_mkentry(dir, &file);
+
+    struct ext2_volume* vol = dir->device;
+
+    struct ext2_inode ino;
+    ext2_read_inode(vol, file.inode, &ino);
+
+    // Create a directory entry to fill the block
+    void* buf = kmalloc(vol->blksize);
+
+    read_blocks(vol, buf, ext2_inode_blk(vol, &ino, 0), 1);
+
+    // Hard link to the same directory
+    size_t dotsize = sizeof(struct ext2_dirent) + 1;
+    struct ext2_dirent* dot = kmalloc(dotsize);
+    
+    dot->inode    = file.inode;
+    dot->type     = DIRENT_DIR;
+    dot->name_len = strlen(".");
+    dot->size     = dotsize;
+    
+    memcpy(dot->name, ".", 1);
+
+    // Hard link to parent directory
+    size_t parentsize = sizeof(struct ext2_dirent) + 2;
+    struct ext2_dirent* parent = kmalloc(parentsize);
+    
+    parent->inode    = dir->inode;
+    parent->type     = DIRENT_DIR;
+    parent->name_len = strlen("..");
+    parent->size     = vol->blksize - dotsize; // Rest of block
+    
+    memcpy(parent->name, "..", 2);
+
+    memcpy(buf, dot, dot->size);
+    memcpy(buf + dotsize, parent, parent->size);
+
+    write_blocks(vol, buf, ext2_inode_blk(vol, &ino, 0), 1);
 }
 
 void ext2_mknod(struct file* dir, struct file* file)
