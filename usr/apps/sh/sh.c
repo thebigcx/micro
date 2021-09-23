@@ -80,17 +80,16 @@ int main(int argc, char** argv)
         if (!strncmp(line, "exit", 4))
             return 0;
 
-        if (access(bin, F_OK) == -1)
-        {
-            perror("");
-            continue;
-        }
-
         pid_t child = fork();
         if (child == 0)
         {
             const char* envp[] = { NULL };
-            execve(bin, (const char**)argv, envp);
+            
+            if (execve(bin, (const char**)argv, envp))
+            {
+                perror("sh: ");
+                continue;
+            }
         }
         else
         {

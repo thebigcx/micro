@@ -12,29 +12,31 @@ SYSCALL_DEFINE(execve, const char* path, const char* argv[], const char* envp[])
 
     char* canon = vfs_mkcanon(path, task_curr()->workd);
 
-    struct file* file = kmalloc(sizeof(struct file));
-    int e = vfs_resolve(canon, file);
+    struct file file;
+    int e = vfs_resolve(canon, &file);
     
     kfree(canon);
 
     if (e) return e;
-    if (file->type == FL_DIR) return -EISDIR;
+    if (file.type != FL_FILE) return -EACCES;
 
-    char* argv_copy[16];
+    CHECK_XPERM(&file);
+
+    char* arg_copy[16];
     size_t argc = 0;
     while (argv[argc] != NULL)
     {
         PTRVALID(argv[argc]);
 
-        argv_copy[argc] = kmalloc(strlen(argv[argc]) + 1);
-        strcpy(argv_copy[argc], argv[argc]);
+        arg_copy[argc] = kmalloc(strlen(argv[argc]) + 1);
+        strcpy(arg_copy[argc], argv[argc]);
         argc++;
     }
-    argv_copy[argc] = NULL;
+    arg_copy[argc] = NULL;
 
     char* env_copy[32];
     size_t envc = 0;
-    while (env_copy[envc] != NULL)
+    while (envp[envc] != NULL)
     {
         PTRVALID(envp[envc]);
 
@@ -45,7 +47,11 @@ SYSCALL_DEFINE(execve, const char* path, const char* argv[], const char* envp[])
     env_copy[envc] = NULL;
 
     // TODO: return error code from task_execve
-    task_execve(task_curr(), canon, (const char**)argv_copy, (const char**)env_copy);
+    if ((e = task_execve(task_curr(), canon,
+                         (const char**)arg_copy,
+                         (const char**)env_copy)))
+        return e;
+        
     sched_yield();
     return -1;
 }

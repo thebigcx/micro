@@ -7,6 +7,7 @@
 #include <micro/binfmt.h>
 #include <micro/vfs.h>
 #include <micro/stdlib.h>
+#include <micro/errno.h>
 
 // TODO: needs WAY more locking
 
@@ -36,13 +37,16 @@ static struct task* mktask(struct task* parent, struct vm_map* vm_map)
 
 // TODO: fix this up - should move into a more syscall-oriented approach, as this
 // is never called from the kernel (execept for /bin/init)
-static void init_user_task(struct task* task, const char* path, const char* argv[], const char* envp[])
+static void init_user_task(struct task* task, const char* path,
+                          const char* argv[], const char* envp[], uintptr_t entry)
 {
-    struct file* file = kmalloc(sizeof(struct file));
-    vfs_resolve(path, file);
+    /*struct file file;
 
-    void* data = kmalloc(file->size);
-    vfs_read(file, data, 0, file->size);
+    int e;
+    if ((e = vfs_resolve(path, &file))) return e;
+
+    void* data = kmalloc(file.size);
+    vfs_read(&file, data, 0, file.size);*/
 
     task->main = thread_creat(task, 0, 1);
 
@@ -56,7 +60,11 @@ static void init_user_task(struct task* task, const char* path, const char* argv
     task->main->regs.rsp = stack;
     task->main->regs.rbp = stack;
 
-    task->main->regs.rip = elf_load(task, data, argv, envp);
+    //if ((e = elf_load(task, data, argv, envp, &task->main->regs.rip)))
+        //return e;
+    task->main->regs.rip = entry;
+
+    setup_user_stack(task, argv, envp);
 
     list_push_back(&task->threads, task->main);
 }
@@ -75,10 +83,21 @@ struct task* task_init_creat()
 {
     struct task* task = mktask(NULL, mmu_create_vmmap());
 
+    struct file file;
+    int e;
+    if ((e = vfs_resolve("/init", &file))) return e;
+
+    void* data = kmalloc(file.size);
+    vfs_read(&file, data, 0, file.size);
+
     const char* argv[] = { "/init", NULL };
     const char* envp[] = { NULL };
 
-    init_user_task(task, argv[0], argv, envp);
+    uintptr_t entry;
+    if ((e = elf_load(task->vm_map, data, argv, envp, &entry)))
+        return e;
+
+    init_user_task(task, argv[0], argv, envp, entry);
 
     struct file* null = kmalloc(sizeof(struct file));
     vfs_resolve("/dev/null", null);
@@ -132,12 +151,29 @@ struct task* task_clone(struct task* src, struct thread* calling)
     return task;
 }
 
-void task_execve(struct task* task, const char* path, const char* argv[], const char* envp[])
+int task_execve(struct task* task, const char* path, const char* argv[], const char* envp[])
 {
+    struct vm_map* vm_map = mmu_create_vmmap();
+
+    struct file file;
+    int e;
+    if ((e = vfs_resolve(path, &file))) return e;
+
+    void* data = kmalloc(file.size);
+    vfs_read(&file, data, 0, file.size);
+
+    uintptr_t entry;
+    if ((e = elf_load(vm_map, data, argv, envp, &entry)))
+        return e;
+
+    // Only delete vm_map and set new one if elf_load passed
+
     // About to delete the in-use pml4
     mmu_set_kpml4();
+
     mmu_destroy_vmmap(task->vm_map);
-    task->vm_map = mmu_create_vmmap();
+    task->vm_map = vm_map;
+    
     lcr3(task->vm_map->pml4_phys);
 
     // Clean threads
@@ -148,9 +184,10 @@ void task_execve(struct task* task, const char* path, const char* argv[], const 
     }
     list_clear(&task->threads);
     
-    init_user_task(task, path, argv, envp);
+    init_user_task(task, path, argv, envp, entry);
 
     sched_start(task); // Start the new main thread
+    return 0;
 }
 
 void task_exit(int status)

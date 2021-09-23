@@ -3,6 +3,9 @@
 #include <micro/types.h>
 
 struct task;
+struct vm_map;
 
-uintptr_t elf_load(struct task* task, void* data,
-                   const char* argv[], const char* envp[]);
+void setup_user_stack(struct task* task, const char* argv[],
+                      const char* envp[]);
+int elf_load(struct vm_map* task, void* data, const char* argv[],
+             const char* envp[], uintptr_t* rip);

@@ -6,11 +6,12 @@
 #include <arch/cpu_func.h>
 #include <micro/thread.h>
 #include <micro/vfs.h>
+#include <micro/errno.h>
 
 #define PUSH_STR(stack, x) { stack -= strlen(x) + 1; strcpy((char*)stack, x); }
 #define PUSH(stack, type, x) { stack -= sizeof(type); *((type*)stack) = x; }
 
-static void setup_user_stack(struct task* task, const char* argv[], const char* envp[])
+void setup_user_stack(struct task* task, const char* argv[], const char* envp[])
 {
     int argc = 0, envc = 0;
     uintptr_t args[64], envs[64];
@@ -61,13 +62,21 @@ static void setup_user_stack(struct task* task, const char* argv[], const char* 
     task->main->regs.rdx = envp_ptr;
 }
 
-uintptr_t elf_load(struct task* task, void* data,
-                   const char* argv[], const char* envp[])
+int valid_elf(struct elf_hdr* header)
+{
+    return header->ident[0] == ELFMAG0
+        && header->ident[1] == ELFMAG1
+        && header->ident[2] == ELFMAG2
+        && header->ident[3] == ELFMAG3;
+}
+
+int elf_load(struct vm_map* vm_map, void* data, const char* argv[],
+             const char* envp[], uintptr_t* rip)
 {
     struct elf_hdr* header = (struct elf_hdr*)data;
     
-    //if (!valid_elf(*header)) // TODO: return -ELIBBAD
-        //return -1;
+    if (!valid_elf(header))
+        return -ENOEXEC;
 
     // Check if need to load a dynamic linker
     for (unsigned int i = 0; i < header->ph_num; i++)
@@ -92,7 +101,7 @@ uintptr_t elf_load(struct task* task, void* data,
             void* data = kmalloc(interp->size);
             vfs_read(interp, data, 0, interp->size);
 
-            return elf_load(task, data, (const char**)nargv, envp);
+            return elf_load(vm_map, data, (const char**)nargv, envp, rip);
         }
     }
 
@@ -112,19 +121,18 @@ uintptr_t elf_load(struct task* task, void* data,
             for (uintptr_t i = page_begin; i < page_begin + page_cnt; i += PAGE4K)
             {
                 // TODO: use the PHDR flags to determine page flags
-                mmu_map(task->vm_map, i, mmu_alloc_phys(), PAGE_PR | PAGE_RW | PAGE_USR);
+                mmu_map(vm_map, i, mmu_alloc_phys(), PAGE_PR | PAGE_RW | PAGE_USR);
             }
 
             uintptr_t cr3 = rcr3();
             
-            lcr3(task->vm_map->pml4_phys);
+            lcr3(vm_map->pml4_phys);
             memset((void*)begin, 0, memsize);
             memcpy((void*)begin, (void*)((uintptr_t)data + phdr->offset), filesize);
             lcr3(cr3);
         }
     }
 
-    setup_user_stack(task, argv, envp);
-
-    return header->entry;
+    *rip = header->entry;
+    return 0;
 }

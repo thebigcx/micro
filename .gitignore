@@ -12,3 +12,4 @@ usr/srv/init/init
 root
 *.a
 *.so
+uncrustify.cfg

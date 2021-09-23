@@ -26,7 +26,8 @@ static const char* errno_strs[] =
     [EACCES      ] = "Operation not permitted",
     [EIO         ] = "I/O error",
     [EINTR       ] = "Interrupted syscall",
-    [EPERM       ] = "Permission denied"
+    [EPERM       ] = "Permission denied",
+    [ENOEXEC     ] = "Invalid executable"
 };
 
 char* strerror(int errnum)
