@@ -277,7 +277,7 @@ uint32_t ext2_alloc_blk(struct ext2_volume* vol)
         ext2_rewrite_bgds(vol);
 
         kfree(buf);
-        return i * vol->sb.blks_per_grp + j;
+        return i * vol->sb.blks_per_grp + j + 1;
     }
 
     printk("ext2: out of blocks\n");
@@ -371,9 +371,9 @@ void ext2_resize(struct file* file, size_t size)
 
     // Get number of blocks needed to resize
     size_t diff = size - file->size;
-    size_t cnt = diff % vol->blksize == 0
-               ? diff / vol->blksize
-               : diff / vol->blksize + 1;
+    size_t cnt = diff % vol->blksize
+               ? diff / vol->blksize + 1
+               : diff / vol->blksize;
 
     while (cnt--)
     {
@@ -522,7 +522,7 @@ void ext2_init_inode(struct ext2_volume* vol, struct ext2_inode* ino, struct fil
 
     //ino->mode |= perms & 0xfff;
     ino->mode |= ext2_inode_type(file->flags);
-    ino->size = vol->blksize;
+    ino->size = 0;
 
     ino->sector_cnt = vol->blksize / 512;
     ino->link_cnt = 1;

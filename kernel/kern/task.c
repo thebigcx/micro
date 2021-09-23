@@ -48,7 +48,10 @@ static void init_user_task(struct task* task, const char* path, const char* argv
 
     // Top of canonical lower-half
     uintptr_t stack = 0x8000000000;
-    mmu_map(task->vm_map, stack - 0x1000, mmu_alloc_phys(), PAGE_PR | PAGE_RW);
+    for (size_t i = 0; i < 16; i++)
+    {
+        mmu_map(task->vm_map, stack - i * PAGE4K, mmu_alloc_phys(), PAGE_PR | PAGE_RW);
+    }
 
     task->main->regs.rsp = stack;
     task->main->regs.rbp = stack;
