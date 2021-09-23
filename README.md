@@ -25,10 +25,14 @@ Run ```sh build-initrd``` in /build to generate an ```initrd.img``` to pass to t
 - Syscalls
 - ELF loading
 - Module loading
-- Framebuffer TTY console and VGA test-mode console
+- DevFS filesystem
+- AHCI disk driver
+- RTC driver
 - PS/2 keyboard driver
+- UNIX Signals
 
 # Userland Features
 - Respectable libc
 - Basic shell
-- Basic coreutils (cat, ls, pwd, etc)
+- Coreutils (ls, pwd, cat, date, rm, mkdir, ...)
+- Work-in-progress ports - nasm, GNU binutils, and Lua
