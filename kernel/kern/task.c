@@ -85,7 +85,7 @@ struct task* task_init_creat()
 
     struct file file;
     int e;
-    if ((e = vfs_resolve("/init", &file))) return e;
+    if ((e = vfs_resolve("/init", &file, 1))) return e;
 
     void* data = kmalloc(file.size);
     vfs_read(&file, data, 0, file.size);
@@ -100,7 +100,7 @@ struct task* task_init_creat()
     init_user_task(task, argv[0], argv, envp, entry);
 
     struct file* null = kmalloc(sizeof(struct file));
-    vfs_resolve("/dev/null", null);
+    vfs_resolve("/dev/null", null, 1);
     task->fds[0] = vfs_open(null, 0, 0);
     task->fds[1] = vfs_open(null, 0, 0);
     task->fds[2] = vfs_open(null, 0, 0);
@@ -157,7 +157,7 @@ int task_execve(struct task* task, const char* path, const char* argv[], const c
 
     struct file file;
     int e;
-    if ((e = vfs_resolve(path, &file))) return e;
+    if ((e = vfs_resolve(path, &file, 1))) return e;
 
     void* data = kmalloc(file.size);
     vfs_read(&file, data, 0, file.size);

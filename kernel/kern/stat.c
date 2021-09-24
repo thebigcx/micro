@@ -28,7 +28,7 @@ SYSCALL_DEFINE(stat, const char* path, struct stat* buf)
     char* canon = vfs_mkcanon(path, task_curr()->workd);
 
     struct file file;
-    int e = vfs_resolve(canon, &file);
+    int e = vfs_resolve(canon, &file, 1);
 
     kfree(canon);
     if (e) return e;
@@ -55,11 +55,29 @@ SYSCALL_DEFINE(lstat, const char* path, struct stat* buf)
     char* canon = vfs_mkcanon(path, task_curr()->workd);
 
     struct file file;
-    int e = vfs_resolve(canon, &file);
+    int e = vfs_resolve(canon, &file, 1);
 
     kfree(canon);
     if (e) return e;
 
     do_kstat(&file, buf);
     return 0;
+}
+
+SYSCALL_DEFINE(readlink, const char* pathname, char* buf, size_t n)
+{
+    PTRVALID(pathname);
+    PTRVALID(buf);
+
+    char* canon = vfs_mkcanon(pathname, task_curr()->workd);
+
+    struct file file;
+    int e = vfs_resolve(canon, &file, 0);
+
+    kfree(canon);
+
+    if (e) return e;
+    if (file.type != FL_SYMLINK) return -EINVAL;
+
+    return vfs_readlink(&file, buf, n);
 }

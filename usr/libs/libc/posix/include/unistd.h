@@ -47,3 +47,5 @@ void _exit(int status);
 
 int seteuid(uid_t euid);
 int setreuid(uid_t ruid, uid_t euid);
+
+ssize_t readlink(const char* path, char* buf, size_t n);

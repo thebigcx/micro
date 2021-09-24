@@ -38,5 +38,6 @@
 #define SYS_chmod           35
 #define SYS_setreuid        36
 #define SYS_chown           37
+#define SYS_readlink        38
 
 extern long syscall(long sysno, ...);

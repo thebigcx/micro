@@ -71,7 +71,8 @@ static void* syscalls[] =
     &sys_unlink,
     &sys_chmod,
     &sys_setreuid,
-    &sys_chown
+    &sys_chown,
+    &sys_readlink
 };
 
 void syscall_handler(struct regs* r)

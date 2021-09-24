@@ -6,7 +6,6 @@
 #include <micro/fs.h>
 #include <micro/heap.h>
 #include <micro/stdlib.h>
-#include <micro/ps2.h>
 #include <micro/fbdev.h>
 #include <micro/sys.h>
 #include <micro/errno.h>
@@ -109,7 +108,7 @@ struct file* initramfs_find(struct file* dir, const char* name)
 struct file* initramfs_mount(const char* dev, const void* data)
 {
     struct file* device = kmalloc(sizeof(struct file));
-    vfs_resolve(dev, device);
+    vfs_resolve(dev, device, 1);
     struct initramfs* ramfs = kmalloc(sizeof(struct initramfs));
     ramfs->device = device->device;
 
@@ -129,7 +128,7 @@ void initramfs_init()
 static void kmod_load(const char* path)
 {
     struct file* mod = kmalloc(sizeof(struct file));
-    vfs_resolve(path, mod);
+    vfs_resolve(path, mod, 1);
     void* buffer = kmalloc(mod->size);
     vfs_read(mod, buffer, 0, mod->size);
 

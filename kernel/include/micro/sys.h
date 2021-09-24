@@ -66,6 +66,7 @@ SYSCALL_DEFINE(unlink,       const char* pathname);
 SYSCALL_DEFINE(chmod,        const char* pathname, mode_t mode);
 SYSCALL_DEFINE(setreuid,     uid_t ruid, uid_t euid);
 SYSCALL_DEFINE(chown,        const char* pathname, uid_t uid, uid_t gid);
+SYSCALL_DEFINE(readlink,     const char* pathname, char* buf, size_t n);
 SYSCALL_DEFINE(fork);
 
 void sys_init();

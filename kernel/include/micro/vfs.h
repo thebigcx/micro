@@ -21,6 +21,7 @@ typedef void         (*unlink_t  )(struct file* dir, const char* name);
 typedef void         (*mmap_t    )(struct file* file, struct vm_area* area);
 typedef int          (*chmod_t   )(struct file* file, mode_t mode);
 typedef int          (*chown_t   )(struct file* file, uid_t uid, gid_t gid);
+typedef int          (*readlink_t)(struct file* file, char* buf, size_t n);
 
 struct file_ops
 {
@@ -38,6 +39,7 @@ struct file_ops
     mmap_t     mmap;
     chmod_t    chmod;
     chown_t    chown;
+    readlink_t readlink;
 };
 
 #define FL_FIFO    (0x1000)
@@ -126,7 +128,7 @@ void vfs_close(struct fd* fd);
 
 char* vfs_mkcanon(const char* path, const char* work);
 
-int vfs_resolve(const char* path, struct file* out);
+int vfs_resolve(const char* path, struct file* out, int symlinks);
 
 int vfs_access(const char* path, int mode);
 
@@ -136,6 +138,8 @@ int vfs_chmod(struct file* file, mode_t mode);
 int vfs_chown(struct file* file, uid_t uid, gid_t gid);
 
 int vfs_checkperm(struct file* file, unsigned int mask);
+
+int vfs_readlink(struct file* file, char* buf, size_t n);
 
 typedef struct file* (*mount_t)(const char*, const void* data);
 

@@ -149,7 +149,7 @@ int vfs_unlink(const char* pathname)
     if ((e = get_parent_dir(pathname, &dir, &name))) return e;
 
     struct file file;
-    if ((e = vfs_resolve(pathname, &file))) return e;
+    if ((e = vfs_resolve(pathname, &file, 1))) return e;
     if (file.type == FL_DIR) return -EISDIR;
 
     if (dir.ops.unlink)
@@ -341,8 +341,11 @@ char* vfs_mkcanon(const char* path, const char* work)
     return ret;
 }
 
-int vfs_resolve(const char* path, struct file* out)
+// Hold the depth of symlinks, so we can return ELOOP is necessary
+static int do_vfs_resolve(const char* path, struct file* out, int symlinks, int depth)
 {
+    if (depth >= 8) return -ELOOP;
+
     char* relat;
     struct file* file = vfs_getmnt(path, &relat);
 
@@ -367,11 +370,25 @@ int vfs_resolve(const char* path, struct file* out)
 
         if (!file) return -ENOENT;
 
+        if (file->type == FL_SYMLINK && symlinks)
+        {
+            char link[60];
+            ssize_t n = vfs_readlink(file, link, 60);
+            link[n] = 0; // Must null-terminate as readlink() does not
+            
+            return do_vfs_resolve(link, out, 1, ++depth); // Resolve the symlink path
+        }
+
         token = strtok_r(NULL, "/", &saveptr);
     }
 
     memcpy(out, file, sizeof(struct file));
     return 0;
+}
+
+int vfs_resolve(const char* path, struct file* out, int symlinks)
+{
+    return do_vfs_resolve(path, out, symlinks, 0);
 }
 
 struct fd* vfs_open(struct file* file, uint32_t flags, mode_t mode)
@@ -403,7 +420,7 @@ void vfs_close(struct fd* fd)
 int vfs_access(const char* path, int mode)
 {
     struct file* file = kmalloc(sizeof(struct file));
-    int e = vfs_resolve(path, file);
+    int e = vfs_resolve(path, file, 1);
 
     if (e) return e;
     return 0;
@@ -429,6 +446,14 @@ int vfs_chown(struct file* file, uid_t uid, gid_t gid)
         return file->ops.chown(file, uid, gid);
 
     return -ENOENT;
+}
+
+int vfs_readlink(struct file* file, char* buf, size_t n)
+{
+    if (file->ops.readlink)
+        return file->ops.readlink(file, buf, n);
+
+    return -EINVAL;
 }
 
 static struct fs_type fs_types[64];

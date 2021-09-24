@@ -101,7 +101,7 @@ int elf_load(struct vm_map* vm_map, void* data, const char* argv[],
             struct file interp;
 
             int e;
-            if ((e = vfs_resolve(nargv[0], &interp))) return e;
+            if ((e = vfs_resolve(nargv[0], &interp, 1))) return e;
 
             // Don't know why POSIX defines these as different error codes
             if (interp.type == FL_DIR) return -EISDIR;

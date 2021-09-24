@@ -613,7 +613,7 @@ struct file* fat_mount(const char* dev, const void* data)
     (void)data;
     
     struct file* device = kmalloc(sizeof(struct file));
-    vfs_resolve(dev, device);
+    vfs_resolve(dev, device, 1);
 
     struct fat32_volume* vol = kmalloc(sizeof(struct fat32_volume));
     vol->device = device;

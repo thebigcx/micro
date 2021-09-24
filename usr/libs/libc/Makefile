@@ -157,6 +157,7 @@ SOURCES := internal/generic/init.c				\
 		   sysdeps/micro/generic/seteuid.c 		\
 		   sysdeps/micro/generic/setreuid.c 	\
 		   sysdeps/micro/generic/chown.c 		\
+		   sysdeps/micro/generic/readlink.c		\
 
 ASM :=     sysdeps/micro/generic/syscall.S
 

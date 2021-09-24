@@ -84,11 +84,7 @@ struct PACKED ext2_inode
     uint32_t sectors;       // Count of disk sectors
     uint32_t flags;         // Flags
     uint32_t os_spec1;      // OS-specific value #1
-    uint32_t directs[12];   // Direct block pointers
-
-    uint32_t sind;          // Singly-indirect block pointers
-    uint32_t dind;          // Doubly-indirect block pointers
-    uint32_t tind;          // Triply-indirect block pointers
+    uint32_t blocks[15];
 
     uint32_t gen_num;       // Generation number
     uint32_t file_acl;      // Extended attributes for file
@@ -165,3 +161,4 @@ void ext2_unlink(struct file* dir, const char* name);
 void ext2_mknod(struct file* dir, struct file* file);
 int ext2_chmod(struct file* file, mode_t mode);
 int ext2_chown(struct file* file, uid_t uid, gid_t gid);
+int ext2_readlink(struct file* file, char* buf, size_t n);

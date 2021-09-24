@@ -13,6 +13,8 @@ SYSCALL_DEFINE(exit, int stat)
 
 SYSCALL_DEFINE(waitpid, int pid, int* wstatus, int options)
 {
+    PTRVALID(wstatus);
+
     if (options > (WNOHANG | WUNTRACED) || options < 0) return -EINVAL;
     if (pid == INT_MIN) return -ESRCH;
 

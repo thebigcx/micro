@@ -13,7 +13,7 @@ SYSCALL_DEFINE(execve, const char* path, const char* argv[], const char* envp[])
     char* canon = vfs_mkcanon(path, task_curr()->workd);
 
     struct file file;
-    int e = vfs_resolve(canon, &file);
+    int e = vfs_resolve(canon, &file, 1);
     
     kfree(canon);
 

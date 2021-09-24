@@ -4,7 +4,6 @@
 #include <micro/termios.h>
 #include <micro/errno.h>
 #include <micro/heap.h>
-#include <micro/ps2.h>
 #include <micro/fbdev.h>
 #include <micro/ringbuf.h>
 #include <micro/sys.h>
