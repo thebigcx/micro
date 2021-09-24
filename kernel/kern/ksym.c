@@ -6,6 +6,7 @@
 #include <micro/vfs.h>
 #include <micro/stdlib.h>
 #include <micro/devfs.h>
+#include <arch/descs.h>
 
 struct ksym
 {
@@ -36,7 +37,8 @@ static struct ksym ksyms[] =
     { "vfs_resolve",           &vfs_resolve           },
     { "vfs_register_fs",       &vfs_register_fs       },
     { "vfs_access",            &vfs_access            },
-    { "devfs_register",        &devfs_register        }
+    { "devfs_register",        &devfs_register        },
+    { "register_irq_handler",  &register_irq_handler  }
 };
 
 uintptr_t ksym_lookup(const char* name)

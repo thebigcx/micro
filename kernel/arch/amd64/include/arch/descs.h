@@ -87,3 +87,5 @@ extern void rel_segs(uint16_t, uint16_t);
 void idt_init();
 void idt_init_cpu(struct cpu_info* cpu);
 void idt_set_handler(unsigned int n, void (*handler)(struct regs*));
+
+void register_irq_handler(unsigned int n, void (*handler)(struct regs*));

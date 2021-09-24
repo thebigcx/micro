@@ -144,8 +144,6 @@ void generic_init(struct genbootparams params)
     vfs_init();
 
     devfs_init();
-    
-    ps2_init();
 
     initrd_init(params.initrd_start, params.initrd_end);
 
@@ -166,6 +164,8 @@ void generic_init(struct genbootparams params)
 
     printk("mounting root filesystem\n");
     vfs_mount_fs("/dev/sda", "/", "ext2", NULL);
+
+    kmod_load("/lib/modules/ps2kb.ko");
 
     init_devices();
 

@@ -7,6 +7,7 @@
 #include <arch/except.h>
 #include <micro/stdlib.h>
 #include <arch/cpu_func.h>
+#include <arch/ioapic.h>
 
 #define REGISTER_ISR(i) mkintr(i, isr##i, 0)
 #define REGISTER_IRQ(i) mkintr(i + 32, irq##i, 0)
@@ -57,6 +58,13 @@ void idt_set_handler(unsigned int n, void (*handler)(struct regs*))
 {
     ASSERT(n < 256);
     s_handlers[n] = handler;
+}
+
+// Architecture-independent version that deals with IOAPIC and stuff
+void register_irq_handler(unsigned int n, void (*handler)(struct regs*))
+{
+    idt_set_handler(n + 32, handler);
+    ioapic_redir(n, n + 32, DELIV_LOWEST);
 }
 
 void idt_init()

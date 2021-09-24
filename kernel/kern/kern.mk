@@ -27,7 +27,6 @@ SRC += kern/init.c          \
        kern/signal.c        \
        kern/time.c          \
        kern/binfmt.c        \
-       kern/ps2.c           \
        kern/module.c        \
        kern/fbdev.c         \
        kern/tty.c           \
