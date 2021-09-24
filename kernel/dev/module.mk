@@ -1,6 +1,6 @@
 OBJ = $(patsubst %.c, %.o, $(SRC))
 
-CFLAGS = -Wall -Wextra -ffreestanding -fno-stack-protector -O3 -fno-pic -mno-red-zone -nostdinc -I../../include -I../../arch/amd64/include -I../../include/uapi -mcmodel=large
+CFLAGS = -Wall -Wextra -ffreestanding -fno-stack-protector -Ofast -fno-pic -mno-red-zone -nostdinc -I../../include -I../../arch/amd64/include -I../../include/uapi -mcmodel=large
 LDFLAGS = -T../../kernel.ld -static -nostdlib
 
 all: $(TARG)

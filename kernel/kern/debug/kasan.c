@@ -1,7 +1,7 @@
 #include <micro/debug.h>
 #include <micro/types.h>
 
-#ifdef DEBUG
+#if defined(DEBUG) && !defined(NOSANITIZE)
 
 void __asan_load1_noabort(uintptr_t addr)
 {

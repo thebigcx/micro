@@ -15,7 +15,7 @@ xorriso -as mkisofs -b limine-cd.bin \
 ./limine/limine-install dist/image.iso
 qemu-system-x86_64                              \
     dist/image.iso                              \
-    -serial stdio                               \
+    -serial stdio				\
     -m 512                                      \
     -smp 1                                      \
     -s -d guest_errors                          \

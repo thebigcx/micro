@@ -1,5 +1,5 @@
 LDFLAGS = -Tkernel.ld -nostdlib -zmax-page-size=0x1000 -static -pie --no-dynamic-linker -ztext
-CFLAGS = -Wall -Wextra -Wno-unused-parameter -Wno-unused-function -ffreestanding -fno-stack-protector -fno-pic -fpie -mno-red-zone -mno-80387 -mno-mmx -mno-3dnow -mno-sse -mno-sse2 -nostdinc -Iinclude -Iinclude/uapi
+CFLAGS = -Wall -Wextra -Wno-unused-parameter -Wno-unused-function -ffreestanding -fno-stack-protector -fno-pic -fpie -mno-red-zone -nostdinc -Iinclude -Iinclude/uapi
 
 include arch/amd64/amd64.mk
 include kern/kern.mk
@@ -7,10 +7,10 @@ include kern/kern.mk
 OBJ = $(patsubst %.c, %.o, $(SRC)) $(patsubst %.S, %.o, $(ASM))
 TARGET = dist/vmkernel
 
-release: CFLAGS += -O3
+release: CFLAGS += -Ofast
 release: $(TARGET) dev
 
-debug: CFLAGS += -g -DDEBUG -fsanitize=undefined -fsanitize=kernel-address
+debug: CFLAGS += -Ofast -g -DDEBUG -fsanitize=undefined -fsanitize=kernel-address
 debug: $(TARGET) dev
 
 .PHONY: clean dev install

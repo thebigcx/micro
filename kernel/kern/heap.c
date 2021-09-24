@@ -73,25 +73,15 @@ void* kmalloc(size_t n)
         {
             if (curr->size > n)
             {
-                heap_check();
                 struct block* b = split(curr, n);
                 b->used = 1;
                 UNLOCK(lock);
-                heap_check();
-#ifdef DEBUG
-                memset((void*)(b + 1), 0xcb, b->size);
-#endif
-                heap_check();
                 return b + 1;
             }
             else if (curr->size == n)
             {
                 curr->used = 1;
                 UNLOCK(lock);
-#ifdef DEBUG
-                memset((void*)(curr + 1), 0xcb, curr->size);
-#endif
-                heap_check();
                 return curr + 1;
             }
         }
@@ -108,8 +98,6 @@ void kfree(void* ptr)
 {
     LOCK(lock);
 
-    heap_check();
-
     struct block* block = (struct block*)ptr - 1;
 #ifdef DEBUG
     if (!block->used)
@@ -118,14 +106,9 @@ void kfree(void* ptr)
     }
 #endif
     block->used = 0;
-#ifdef DEBUG
-    memset(block + 1, 0xcb, block->size);
-#endif
 
     if (block->prev && !block->prev->used) block = combine(block->prev, block);
     if (block->next && !block->next->used) block = combine(block, block->next);
-
-    heap_check();
 
     UNLOCK(lock);
 }

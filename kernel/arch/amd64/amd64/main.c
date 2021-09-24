@@ -63,10 +63,6 @@ void main(struct bootparams params)
     idt_init();
     idt_init_cpu(&g_cpus[0]);
     printk("done\n");
-
-    printk("initializing fpu...");
-    fpu_init();
-    printk("done\n");
     
     printk("initializing kernel heap...");
     heap_init();

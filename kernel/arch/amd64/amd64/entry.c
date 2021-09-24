@@ -70,6 +70,10 @@ void kmain_st2(struct st2struct* st2)
     //vga_set_addr(0xb8000);
 
     struct bootparams params;
+
+    //printk("initializing fpu...");
+    fpu_init();
+    //printk("done\n");
  
     mmu_phys_init();
 

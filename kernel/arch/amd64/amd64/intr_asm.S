@@ -48,7 +48,6 @@
 .global isr\num
 
 isr\num:
-    cli
     pushaq
     movq    $\num, %rdi
     movq    %rsp, %rsi
@@ -65,7 +64,6 @@ isr\num:
 .global isr\num
 
 isr\num:
-    cli
     pushq   40(%rsp) # SS
     pushq   40(%rsp) # RSP
     pushq   40(%rsp) # RFLAGS
@@ -87,7 +85,6 @@ isr\num:
 .global irq\num
 
 irq\num:
-    cli
     pushaq
     movq    $\intnum, %rdi
     movq    %rsp, %rsi
