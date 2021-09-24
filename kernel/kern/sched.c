@@ -112,14 +112,19 @@ void sched_tick(struct regs* r)
     switch_task(r);
 }
 
+void sched_spawnthread(struct thread* thread)
+{
+    thread->state = THREAD_READY;
+    list_push_back(&ready_queue, thread);
+}
+
 void sched_start(struct task* task)
 {
     list_push_back(&tasks, task);
     LIST_FOREACH(&task->threads)
     {
         struct thread* thread = node->data;
-        thread->state = THREAD_READY;
-        list_push_back(&ready_queue, thread);
+        sched_spawnthread(thread);
     }
 }
 

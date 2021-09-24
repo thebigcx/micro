@@ -1,11 +1,12 @@
 #include <micro/sys.h>
 #include <micro/wait.h>
+#include <micro/thread.h>
 #include <micro/sched.h>
 
 SYSCALL_DEFINE(exit, int stat)
 {
     task_exit((stat & 0xff) << 8);
-    return -1; // Should be unreachable
+    return 0; // Should be unreachable
 }
 
 // TODO: add support for thread blocking
@@ -18,15 +19,14 @@ SYSCALL_DEFINE(waitpid, int pid, int* wstatus, int options)
     struct task* task = sched_task_fromid(pid);
     if (!task || task->parent != task_curr()) return -ECHILD;
 
-    if (!(options & WNOHANG))
+    if (!(options & WNOHANG) && !task->changed) // Make sure it hasn't already changed
     {
-        while (!task->changed) sched_yield(); // FIXME: this is a pretty poor way of mimicking thread blocking
+        task->waiter = thread_curr();
+        thread_block(); // Block until child finished
     }
 
     if (wstatus)
         *wstatus = task->status;
-
-    task->changed = 0;
 
     if (task->state == TASK_DEAD) // Reap the task
         task_delete(task);

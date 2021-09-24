@@ -60,6 +60,7 @@ void scroll_down()
 
 void newline()
 {
+    drawch(' ', 0, 0);
     cy++;
     cx = 0;
 
@@ -71,16 +72,34 @@ void newline()
 
 void tab()
 {
+    for (size_t i = 0; i < 4 - (cx % 4); i++)
+    {
+        drawch(' ', 0, 0);
+    }
+
     cx += 4 - (cx % 4);
     if (cx >= info.xres / 8)
     {
         newline();
     }
+
+    draw_cursor();
 }
 
 void backspace()
 {
 
+}
+
+void draw_cursor()
+{
+    for (uint64_t j = 0; j < 16; j++)
+    for (uint64_t i = 0; i < 8; i++)
+    {
+        uint32_t x = (cx * 8 ) + i;
+        uint32_t y = (cy * 16) + j;
+        *((uint32_t*)fbaddr + x + y * info.xres) = 0xffffffff;
+    }
 }
 
 void putch(char c, uint32_t fg, uint32_t bg)
@@ -103,8 +122,14 @@ void putch(char c, uint32_t fg, uint32_t bg)
 
     if (c < 32)
     {
+        drawch(' ', 0, 0);
         cx++;
-        if (cx == info.xres / 8) newline();
+        if (cx == info.xres / 8)
+        {
+            cx = 0;
+            newline();
+        }
+        draw_cursor();
         return;
     }
 
@@ -112,6 +137,8 @@ void putch(char c, uint32_t fg, uint32_t bg)
 
     cx++;
     if (cx == info.xres / 8) newline();
+
+    draw_cursor();
 }
 
 void drawch(char c, uint32_t fg, uint32_t bg)

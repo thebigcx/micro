@@ -1,10 +1,12 @@
 #include <unistd.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <sys/wait.h>
 
 int main(int argc, char** argv)
 {
-    if (fork() == 0)
+    pid_t pid = fork();
+    if (pid == 0)
     {
         // Run the shell
         const char* argv[] = { "/usr/bin/term", NULL };
@@ -13,8 +15,8 @@ int main(int argc, char** argv)
     }
     else
     {
-        // Wait forever
-        for(;;);
+        // Wait forever (term won't finish)
+        waitpid(pid, NULL, 0);
     }
 
     return 0;

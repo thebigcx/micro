@@ -7,13 +7,6 @@
 #include <micro/debug.h>
 #include <micro/heap.h>
 
-void thread_start(struct thread* thread)
-{
-    // TODO: TEMP SMP
-    //list_push_back(&g_cpus[0].threads, thread);
-    //thread->state = THREAD_READY;
-}
-
 struct thread* thread_creat(struct task* parent, uintptr_t entry, int usr)
 {
     struct thread* thread = kmalloc(sizeof(struct thread));
@@ -120,13 +113,27 @@ void thread_handle_signals(struct thread* thread)
                 thread->parent->state = TASK_STOPPED; // TODO: make this better
                 thread->parent->status = (sig << 8) | 0x7f; // TODO: not actually an exit code, just a status
                 thread->parent->changed = 1;
+                
+                if (thread->parent->waiter)
+                {
+                    sched_spawnthread(thread->parent->waiter);
+                    thread->parent->waiter = NULL;
+                }
+
                 switch_next();
                 break;
                 
             case SIGDEF_CONT:
                 thread->parent->state = TASK_RUNNING;
-                thread->parent->changed = 1;
                 thread->parent->status = 0xffff;
+                thread->parent->changed = 1;
+                
+                if (thread->parent->waiter)
+                {
+                    sched_spawnthread(thread->parent->waiter);
+                    thread->parent->waiter = NULL;
+                }
+
                 break;
         }
     }
@@ -134,4 +141,10 @@ void thread_handle_signals(struct thread* thread)
     {
         // TODO: set up signal handler stuff
     }
+}
+
+void thread_block()
+{
+    thread_curr()->state = THREAD_BLOCKED;
+    sched_yield();
 }

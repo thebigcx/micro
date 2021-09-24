@@ -212,9 +212,16 @@ void task_exit(int status)
     task->main = NULL;
 
     if (task->parent) task_send(task->parent, SIGCHLD);
+
     task->status = status;
     task->state = TASK_DEAD;
     task->changed = 1;
+
+    if (task->waiter)
+    {
+        sched_spawnthread(task->waiter);
+        task->waiter = NULL;
+    }
 
     switch_next();
 }

@@ -10,6 +10,8 @@
 #define TASK_STOPPED 1
 #define TASK_DEAD    2
 
+struct thread;
+
 struct task
 {
     unsigned int id;
@@ -32,8 +34,10 @@ struct task
     uint32_t sigmask;
 
     int status;
-    volatile int state;
+    int state;
     volatile int changed;
+
+    struct thread* waiter;
 
     uid_t ruid, euid, suid;
     gid_t rgid, egid, sgid;

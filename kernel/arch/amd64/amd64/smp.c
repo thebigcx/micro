@@ -10,6 +10,7 @@
 #include <arch/cpu_func.h>
 #include <micro/acpi.h>
 #include <micro/acpi_defs.h>
+#include <arch/fpu.h>
 
 #define TRMP_ENTRY 0x8000
 #define AP_CR3     0x1000
@@ -25,10 +26,11 @@ extern void* _ap_bs_end;
 
 static void ap_entry(uint16_t id)
 {
+    fpu_init();
+
     g_cpu_cnt++;
 
     struct cpu_info* cpu = &g_cpus[id];
-    //cpu->threads = list_create();
     cpu->current = NULL;
     cpu->lock = 0;
 
