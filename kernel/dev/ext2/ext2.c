@@ -97,6 +97,7 @@ static struct file* inode2file(struct ext2_volume* vol, struct file* parent,
     file->ops.chown    = ext2_chown;
     file->ops.readlink = ext2_readlink;
     file->ops.symlink  = ext2_symlink;
+    file->ops.link     = ext2_link;
 
     file->parent       = parent;
     file->inode        = inonum;
@@ -532,32 +533,9 @@ void ext2_init_inode(struct ext2_volume* vol, struct ext2_inode* ino, struct fil
     ext2_set_inode_blk(vol, ino, 0, ext2_alloc_blk(vol)); // One block to start off with
 }
 
-void ext2_mkentry(struct file* dir, struct file* file)
+static void ext2_append_dirent(struct file* dir, struct ext2_dirent* dirent)
 {
     struct ext2_volume* vol = dir->device;
-
-    uint32_t inonum = ext2_alloc_inode(vol);
-
-    file->inode = inonum;
-
-    // Initialize the inode and write to disk
-    struct ext2_inode ino;
-    ext2_read_inode (vol, inonum, &ino);
-    ext2_init_inode (vol, &ino, file);
-    ext2_write_inode(vol, inonum, &ino);
-
-    // Create the directory entry
-    size_t size = sizeof(struct ext2_dirent) + strlen(file->name);
-
-    struct ext2_dirent* dirent = kmalloc(size);
-
-    dirent->type     = ext2_dirent_type(file->type);
-    dirent->inode    = inonum;
-    dirent->name_len = strlen(file->name);
-    dirent->size     = size;
-
-    // Copy the name into the flexible array
-    memcpy(dirent->name, file->name, strlen(file->name));
 
     struct ext2_inode pino; // Parent inode
     ext2_read_inode(vol, dir->inode, &pino);
@@ -603,6 +581,80 @@ void ext2_mkentry(struct file* dir, struct file* file)
 
     // TODO: allocate next block and write the dent there
     kfree(buf);
+}
+
+void ext2_mkentry(struct file* dir, struct file* file)
+{
+    struct ext2_volume* vol = dir->device;
+
+    uint32_t inonum = ext2_alloc_inode(vol);
+
+    file->inode = inonum;
+
+    // Initialize the inode and write to disk
+    struct ext2_inode ino;
+    ext2_read_inode (vol, inonum, &ino);
+    ext2_init_inode (vol, &ino, file);
+    ext2_write_inode(vol, inonum, &ino);
+
+    // Create the directory entry
+    size_t size = sizeof(struct ext2_dirent) + strlen(file->name);
+
+    struct ext2_dirent* dirent = kmalloc(size);
+
+    dirent->type     = ext2_dirent_type(file->type);
+    dirent->inode    = inonum;
+    dirent->name_len = strlen(file->name);
+    dirent->size     = size;
+
+    // Copy the name into the flexible array
+    memcpy(dirent->name, file->name, strlen(file->name));
+
+    /*struct ext2_inode pino; // Parent inode
+    ext2_read_inode(vol, dir->inode, &pino);
+
+    // Find the end of the directory
+    uintptr_t offset = 0;
+    uintptr_t blk    = 0;
+
+    void* buf = kmalloc(vol->blksize);
+    read_blocks(vol, buf, ext2_inode_blk(vol, &pino, blk), 1);
+
+    while (offset + blk * vol->blksize < INOSIZE(pino))
+    {
+        struct ext2_dirent* entry = (struct ext2_dirent*)((uintptr_t)buf + offset);
+        offset += entry->size;
+
+        size_t expect = sizeof(struct ext2_dirent) + entry->name_len;
+        expect = (expect & 0xfffffffc) + 4; // 4-byte alignment
+
+        if (expect < entry->size)
+        {
+            if (entry->size - expect >= dirent->size)
+            {
+                size_t orig = dirent->size;
+                dirent->size = entry->size - expect; // Padded to fit the rest of empty space
+
+                // Copy the data and write the block
+                memcpy((void*)entry + expect, dirent, orig);
+                entry->size = expect;
+                write_blocks(vol, buf, ext2_inode_blk(vol, &pino, blk), 1);
+
+                kfree(buf);
+                return;
+            }
+        }
+
+        if (offset >= vol->blksize)
+        {
+            blk++; offset = 0;
+            read_blocks(vol, buf, ext2_inode_blk(vol, &pino, blk), 1);
+        }
+    }
+
+    // TODO: allocate next block and write the dent there
+    kfree(buf);*/
+    ext2_append_dirent(dir, dirent);
 }
 
 void ext2_mkfile(struct file* dir, const char* name, mode_t mode, uid_t uid, gid_t gid)
@@ -755,6 +807,28 @@ int ext2_symlink(struct file* file, const char* link)
     ext2_write_inode(vol, file->inode, &ino);
 
     file->size = INOSIZE(ino);
+
+    return 0;
+}
+
+int ext2_link(struct file* old, const char* name, struct file* dir)
+{
+    struct ext2_volume* vol = old->device;
+
+    size_t size = sizeof(struct ext2_dirent) + strlen(name);
+
+    struct ext2_dirent* dirent = kmalloc(size);
+    
+    dirent->inode = old->inode;
+    dirent->name_len = strlen(name);
+    dirent->size = size;
+    dirent->type = ext2_dirent_type(old->type);
+    
+    strncpy(dirent->name, name, strlen(name));
+
+    ext2_append_dirent(dir, dirent);
+
+    // TODO: increment inode 'links' field
 
     return 0;
 }

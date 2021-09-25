@@ -163,3 +163,4 @@ int ext2_chmod(struct file* file, mode_t mode);
 int ext2_chown(struct file* file, uid_t uid, gid_t gid);
 int ext2_readlink(struct file* file, char* buf, size_t n);
 int ext2_symlink(struct file* file, const char* link);
+int ext2_link(struct file* old, const char* name, struct file* dir);

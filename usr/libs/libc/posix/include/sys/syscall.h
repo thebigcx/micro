@@ -47,5 +47,6 @@
 #define SYS_setgroups       44
 #define SYS_setregid        45
 #define SYS_symlink         46
+#define SYS_link            47
 
 extern long syscall(long sysno, ...);

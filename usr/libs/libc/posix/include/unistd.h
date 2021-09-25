@@ -41,7 +41,9 @@ int isatty(int fd);
 int dup(int oldfd);
 int dup2(int oldfd, int newfd);
 
+int link(const char* old, const char* new);
 int unlink(const char* pathname);
+int symlink(const char* target, const char* link);
 
 void _exit(int status);
 

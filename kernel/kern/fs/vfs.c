@@ -500,6 +500,22 @@ int vfs_symlink(const char* target, const char* link)
     return -ENOENT;
 }
 
+int vfs_link(const char* old, const char* new)
+{
+    struct file file;
+    int e;
+    if ((e = vfs_resolve(old, &file, 1))) return e;
+
+    struct file dir;
+    char* name;
+    if ((e = get_parent_dir(new, &dir, &name))) return e;
+
+    if (file.ops.link)
+        return file.ops.link(&file, name, &dir);
+
+    return -ENOENT;
+}
+
 static struct fs_type fs_types[64];
 static unsigned int fs_count;
 

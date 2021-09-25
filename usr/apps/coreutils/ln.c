@@ -10,7 +10,8 @@ int main(int argc, char** argv)
     }
 
     // TODO: hardlinks and command line options
-    if (symlink(argv[1], argv[2]))
+    //if (symlink(argv[1], argv[2]))
+    if (link(argv[1], argv[2]))
     {
         perror("ln: ");
         return -1;

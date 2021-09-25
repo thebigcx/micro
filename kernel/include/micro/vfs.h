@@ -23,7 +23,8 @@ typedef void         (*mmap_t    )(struct file* file, struct vm_area* area);
 typedef int          (*chmod_t   )(struct file* file, mode_t mode);
 typedef int          (*chown_t   )(struct file* file, uid_t uid, gid_t gid);
 typedef int          (*readlink_t)(struct file* file, char* buf, size_t n);
-typedef int          (*symlink_t )(struct file* file, const char* link); 
+typedef int          (*symlink_t )(struct file* file, const char* link);
+typedef int          (*link_t    )(struct file* old, const char* new, struct file* dir); 
 
 struct file_ops
 {
@@ -43,6 +44,7 @@ struct file_ops
     chown_t    chown;
     readlink_t readlink;
     symlink_t  symlink;
+    link_t     link;
 };
 
 #define FL_FIFO    (0x1000)
@@ -145,6 +147,7 @@ int vfs_checkperm(struct file* file, unsigned int mask);
 
 int vfs_readlink(struct file* file, char* buf, size_t n);
 int vfs_symlink(const char* target, const char* link);
+int vfs_link(const char* old, const char* new);
 
 typedef struct file* (*mount_t)(const char*, const void* data);
 

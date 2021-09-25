@@ -39,3 +39,18 @@ SYSCALL_DEFINE(symlink, const char* target, const char* linkpath)
     kfree(canon);
     return ret;
 }
+
+SYSCALL_DEFINE(link, const char* old, const char* new)
+{
+    PTRVALID(old);
+    PTRVALID(new);
+
+    char* oldcanon = vfs_mkcanon(old, task_curr()->workd);
+    char* newcanon = vfs_mkcanon(new, task_curr()->workd);
+
+    int ret = vfs_link(oldcanon, newcanon);
+
+    kfree(oldcanon);
+    kfree(newcanon);
+    return ret;
+}
