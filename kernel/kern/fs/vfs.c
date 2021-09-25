@@ -526,8 +526,11 @@ int vfs_mount_fs(const char* dev, const char* mnt,
     {
         if (!strcmp(fs_types[i].name, fs))
         {
-            struct file* file = fs_types[i].mount(dev, data);
-            vfs_addnode(file, mnt);
+            struct file* fsroot = kmalloc(sizeof(struct file));
+            int e;
+            if ((e = fs_types[i].mount(dev, data, fsroot))) return e;
+            
+            vfs_addnode(fsroot, mnt);
             return 0;
         }
     }

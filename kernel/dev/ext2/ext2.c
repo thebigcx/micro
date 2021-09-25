@@ -833,13 +833,15 @@ int ext2_link(struct file* old, const char* name, struct file* dir)
     return 0;
 }
 
-static struct file* ext2_mount(const char* dev, const void* data)
+static int ext2_mount(const char* dev, const void* data, struct file* fsroot)
 {
     (void)data;
 
     struct ext2_volume* vol = kmalloc(sizeof(struct ext2_volume));
     vol->device = kmalloc(sizeof(struct file));
-    vfs_resolve(dev, vol->device, 1);
+    
+    int e;
+    if ((e = vfs_resolve(dev, vol->device, 1))) return e;
 
     void* buf = kmalloc(512);
 
@@ -847,6 +849,8 @@ static struct file* ext2_mount(const char* dev, const void* data)
 
     struct sb_full* sb = (struct sb_full*)&vol->sb;
     memcpy(sb, buf, sizeof(struct ext2_sb) + sizeof(struct ext2_sbext));
+
+    if (vol->sb.ext2_sig != 0xef53) return -EINVAL;
 
     kfree(buf);
 
@@ -868,7 +872,8 @@ static struct file* ext2_mount(const char* dev, const void* data)
     struct ext2_inode ino;
     ext2_read_inode(vol, 2, &ino);
 
-    return inode2file(vol, NULL, 2, &ino, "/");
+    memcpy(fsroot, inode2file(vol, NULL, 2, &ino, "/"), sizeof(struct file));
+    return 0;
 }
 
 void ext2_init()

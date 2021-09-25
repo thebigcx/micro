@@ -149,7 +149,7 @@ int vfs_readlink(struct file* file, char* buf, size_t n);
 int vfs_symlink(const char* target, const char* link);
 int vfs_link(const char* old, const char* new);
 
-typedef struct file* (*mount_t)(const char*, const void* data);
+typedef int (*mount_t)(const char*, const void* data, struct file* fsroot);
 
 struct fs_type
 {

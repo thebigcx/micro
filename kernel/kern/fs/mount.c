@@ -11,7 +11,12 @@ SYSCALL_DEFINE(mount, const char* src, const char* dst,
 
     PTRVALIDNULL(data);
 
-    // TODO: vfs_mount_fs should return an error code
+    struct file target;
+    int e;
+    if ((e = vfs_resolve(dst, &target, 1))) return e;
+
+    if (target.type != FL_DIR) return -ENOTDIR;
+
     return vfs_mount_fs(src, dst, fs, data);
 }
 

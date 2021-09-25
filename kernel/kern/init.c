@@ -106,19 +106,18 @@ struct file* initramfs_find(struct file* dir, const char* name)
     return NULL;
 }
 
-struct file* initramfs_mount(const char* dev, const void* data)
+int initramfs_mount(const char* dev, const void* data, struct file* fsroot)
 {
     struct file* device = kmalloc(sizeof(struct file));
     vfs_resolve(dev, device, 1);
     struct initramfs* ramfs = kmalloc(sizeof(struct initramfs));
     ramfs->device = device->device;
 
-    struct file* file = kmalloc(sizeof(struct file));
-    file->ops.find = initramfs_find;
-    file->type = FL_DIR;
-    file->device = ramfs;
+    fsroot->ops.find = initramfs_find;
+    fsroot->type = FL_DIR;
+    fsroot->device = ramfs;
 
-    return file;
+    return 0;
 }
 
 void initramfs_init()
