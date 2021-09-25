@@ -7,6 +7,7 @@ struct file;
 struct vm_area;
 
 // TODO: should all return int's (errors), and store result in pointer
+// TODO: function called sync(), which will sync the file to the inode on disk, reducing extra unneeded functions like chmod(), and symlink()
 typedef struct fd*   (*open_t    )(struct file* file, uint32_t flags, mode_t mode);
 typedef void         (*close_t   )(struct fd* fd);
 typedef ssize_t      (*read_t    )(struct file* file, void* buf, off_t off, size_t size);
@@ -16,12 +17,13 @@ typedef struct file* (*find_t    )(struct file* dir, const char* name);
 typedef ssize_t      (*getdents_t)(struct file* dir, off_t off, size_t n, struct dirent* dirp);
 typedef void         (*mkfile_t  )(struct file* dir, const char* name, mode_t mode, uid_t uid, gid_t gid);
 typedef void         (*mkdir_t   )(struct file* dir, const char* name, mode_t mode, uid_t uid, gid_t gid);
-typedef void         (*mknod_t   )(struct file* dir, struct file* file);
+typedef void         (*mknod_t   )(struct file* dir, const char* name, mode_t mode, dev_t dev, uid_t uid, gid_t gid);
 typedef void         (*unlink_t  )(struct file* dir, const char* name);
 typedef void         (*mmap_t    )(struct file* file, struct vm_area* area);
 typedef int          (*chmod_t   )(struct file* file, mode_t mode);
 typedef int          (*chown_t   )(struct file* file, uid_t uid, gid_t gid);
 typedef int          (*readlink_t)(struct file* file, char* buf, size_t n);
+typedef int          (*symlink_t )(struct file* file, const char* link); 
 
 struct file_ops
 {
@@ -40,6 +42,7 @@ struct file_ops
     chmod_t    chmod;
     chown_t    chown;
     readlink_t readlink;
+    symlink_t  symlink;
 };
 
 #define FL_FIFO    (0x1000)
@@ -109,6 +112,7 @@ ssize_t vfs_getdents(struct file* dir, off_t off, size_t n, struct dirent* dirp)
 
 int vfs_mkfile(const char* path, mode_t mode, uid_t uid, gid_t gid);
 int vfs_mkdir(const char* name, mode_t mode, uid_t uid, gid_t gid);
+int vfs_mknod(const char* path, mode_t mode, dev_t dev, uid_t uid, gid_t gid);
 
 //void vfs_rm(struct file* dir, const char* name);
 int vfs_unlink(const char* pathname);
@@ -140,6 +144,7 @@ int vfs_chown(struct file* file, uid_t uid, gid_t gid);
 int vfs_checkperm(struct file* file, unsigned int mask);
 
 int vfs_readlink(struct file* file, char* buf, size_t n);
+int vfs_symlink(const char* target, const char* link);
 
 typedef struct file* (*mount_t)(const char*, const void* data);
 

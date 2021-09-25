@@ -154,6 +154,20 @@ int vfs_mkdir(const char* path, mode_t mode, uid_t uid, gid_t gid)
     return 0;
 }
 
+int vfs_mknod(const char* path, mode_t mode, dev_t dev, uid_t uid, gid_t gid)
+{
+    struct file dir;
+    char* name;
+    int e;
+    if ((e = get_parent_dir(path, &dir, &name))) return e;
+
+    if (dir.ops.mknod)
+        dir.ops.mknod(&dir, name, mode, dev, uid, gid);
+
+    kfree(name);
+    return 0;
+}
+
 int vfs_unlink(const char* pathname)
 {
     struct file dir;
@@ -467,6 +481,23 @@ int vfs_readlink(struct file* file, char* buf, size_t n)
         return file->ops.readlink(file, buf, n);
 
     return -EINVAL;
+}
+
+int vfs_symlink(const char* target, const char* link)
+{
+    struct file file;
+
+    if (vfs_access(link, F_OK) == 0) return -EEXIST;
+
+    vfs_mknod(link, FL_SYMLINK | 0777, 0, task_curr()->euid, task_curr()->egid);
+
+    int e;
+    if ((e = vfs_resolve(link, &file, 0))) return e;
+
+    if (file.ops.symlink)
+        return file.ops.symlink(&file, target);
+
+    return -ENOENT;
 }
 
 static struct fs_type fs_types[64];

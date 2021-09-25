@@ -16,7 +16,8 @@ SRCS := cat.c 		\
 		chown.c		\
 		readlink.c	\
 		id.c		\
-		whoami.c
+		whoami.c	\
+		ln.c
 
 OBJS := $(patsubst %.c, %.o, $(SRCS))
 TARGS := $(patsubst %.c, %, $(SRCS))

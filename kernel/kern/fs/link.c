@@ -26,3 +26,16 @@ SYSCALL_DEFINE(unlink, const char* pathname)
     kfree(canon);
     return ret;
 }
+
+SYSCALL_DEFINE(symlink, const char* target, const char* linkpath)
+{
+    PTRVALID(target);
+    PTRVALID(linkpath);
+
+    char* canon = vfs_mkcanon(linkpath, task_curr()->workd);
+    
+    int ret = vfs_symlink(target, canon);
+
+    kfree(canon);
+    return ret;
+}

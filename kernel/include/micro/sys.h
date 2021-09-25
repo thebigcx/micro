@@ -70,6 +70,7 @@ SYSCALL_DEFINE(readlink,     const char* pathname, char* buf, size_t n);
 SYSCALL_DEFINE(getgroups,    int size, gid_t list[]);
 SYSCALL_DEFINE(setgroups,    size_t size, const gid_t* list);
 SYSCALL_DEFINE(setregid,     gid_t rgid, gid_t egid);
+SYSCALL_DEFINE(symlink,      const char* target, const char* linkpath);
 SYSCALL_DEFINE(fork);
 
 void sys_init();

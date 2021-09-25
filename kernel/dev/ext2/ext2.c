@@ -91,10 +91,12 @@ static struct file* inode2file(struct ext2_volume* vol, struct file* parent,
     file->ops.getdents = ext2_getdents;
     file->ops.mkfile   = ext2_mkfile;
     file->ops.mkdir    = ext2_mkdir;
+    file->ops.mknod    = ext2_mknod;
     file->ops.unlink   = ext2_unlink;
     file->ops.chmod    = ext2_chmod;
     file->ops.chown    = ext2_chown;
     file->ops.readlink = ext2_readlink;
+    file->ops.symlink  = ext2_symlink;
 
     file->parent       = parent;
     file->inode        = inonum;
@@ -668,9 +670,24 @@ void ext2_mkdir(struct file* dir, const char* name, mode_t mode, uid_t uid, gid_
     write_blocks(vol, buf, ext2_inode_blk(vol, &ino, 0), 1);
 }
 
-void ext2_mknod(struct file* dir, struct file* file)
+void ext2_mknod(struct file* dir, const char* name, mode_t mode, dev_t dev, uid_t uid, gid_t gid)
 {
-    ext2_mkentry(dir, file);
+    struct file file;
+    
+    file.perms = mode & 0x0fff;
+    file.type  = mode & 0xf000;
+    file.uid   = uid;
+    file.gid   = gid;
+    
+    if (dev)
+    {
+        file.major = dev << 32;
+        file.minor = dev & 0xffffffff;
+    }
+
+    strcpy(file.name, name);
+
+    ext2_mkentry(dir, &file);
 }
 
 void ext2_unlink(struct file* dir, const char* name)
@@ -723,6 +740,23 @@ int ext2_readlink(struct file* file, char* buf, size_t n)
     memcpy(buf, link, n);
 
     return n;
+}
+
+int ext2_symlink(struct file* file, const char* link)
+{
+    struct ext2_volume* vol = file->device;
+
+    struct ext2_inode ino;
+    ext2_read_inode(vol, file->inode, &ino);
+    
+    memcpy(ino.blocks, link, strlen(link));
+    ino.size = strlen(link);
+    
+    ext2_write_inode(vol, file->inode, &ino);
+
+    file->size = INOSIZE(ino);
+
+    return 0;
 }
 
 static struct file* ext2_mount(const char* dev, const void* data)
