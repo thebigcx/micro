@@ -21,6 +21,7 @@ SRC += kern/init.c          \
        kern/fs/devfs.c      \
        kern/fs/link.c       \
        kern/mm/mmap.c       \
+       kern/net/socket.c    \
        kern/exit.c          \
        kern/exec.c          \
        kern/fork.c          \

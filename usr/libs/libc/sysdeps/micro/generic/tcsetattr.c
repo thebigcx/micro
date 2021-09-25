@@ -8,11 +8,11 @@ int tcsetattr(int fd, int optional_actions,
     switch (optional_actions)
     {
         case TCSANOW:
-            return ioctl(fd, TCSETS, termios_p);
+            return ioctl(fd, TCSETS, (void*)termios_p);
         case TCSADRAIN:
-            return ioctl(fd, TCSETSW, termios_p);
+            return ioctl(fd, TCSETSW, (void*)termios_p);
         case TCSAFLUSH:
-            return ioctl(fd, TCSETSF, termios_p);
+            return ioctl(fd, TCSETSF, (void*)termios_p);
     }
 
     errno = EINVAL;

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <string.h>
 
 int vfprintf(FILE* file, const char* format, va_list args)
 {

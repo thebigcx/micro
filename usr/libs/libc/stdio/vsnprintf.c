@@ -114,9 +114,9 @@ int vsnprintf(char* str, size_t n, const char* format, va_list list)
 
                 // TODO: precision/width
                 if (len == L_CHAR)
-                    num = va_arg(list, char);
+                    num = va_arg(list, int); // 'char' promoted to 'int'
                 else if (len == L_SHORT)
-                    num = va_arg(list, short);
+                    num = va_arg(list, int); // 'short' promoted to 'int'
                 else if (len == L_LONG)
                     num = va_arg(list, long);
                 else if (len == L_LLONG)

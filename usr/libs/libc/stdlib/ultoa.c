@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 
 char* ultoa(unsigned long n, char* str, int base)
 {

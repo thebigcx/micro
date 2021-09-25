@@ -1,6 +1,6 @@
 #include <time.h>
 
-void gmtime_r(const time_t* timer, struct tm* tm)
+struct tm* gmtime_r(const time_t* timer, struct tm* tm)
 {
     time_t time = *timer;
 
@@ -25,4 +25,6 @@ void gmtime_r(const time_t* timer, struct tm* tm)
     // TODO: this is not right - months aren't always 30 days, and months start on different days of the week
     tm->tm_wday = tm->tm_mday % 7;
     tm->tm_yday = tm->tm_mday + (30 * tm->tm_mon);
+
+    return tm;
 }

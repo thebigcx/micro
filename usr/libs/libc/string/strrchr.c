@@ -3,7 +3,7 @@
 char* strrchr(const char* str, int c)
 {
     if (!strlen(str)) return NULL;
-    char* ptr = str + strlen(str) - 1;
+    const char* ptr = str + strlen(str) - 1;
 
     while (*ptr != c)
     {
@@ -11,5 +11,5 @@ char* strrchr(const char* str, int c)
         ptr--;
     }
 
-    return ptr;
+    return (char*)ptr;
 }

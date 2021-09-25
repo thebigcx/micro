@@ -72,6 +72,7 @@ SYSCALL_DEFINE(setgroups,    size_t size, const gid_t* list);
 SYSCALL_DEFINE(setregid,     gid_t rgid, gid_t egid);
 SYSCALL_DEFINE(symlink,      const char* target, const char* linkpath);
 SYSCALL_DEFINE(link,         const char* old, const char* new);
+SYSCALL_DEFINE(socket,       int domain, int type, int protocol);
 SYSCALL_DEFINE(fork);
 
 void sys_init();

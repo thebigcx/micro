@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 
 extern char** environ;
 
@@ -12,7 +13,7 @@ char* getenv(const char* name)
         char* equ = strchr(*env, '=');
 
         if (!strncmp(*env, name, len)
-          && equ - *env == len)
+          && (size_t)(equ - *env) == len)
         {
             return equ + 1;
         }

@@ -37,7 +37,7 @@ char* strerror(int errnum)
     if (errnum < 0 || errnum >= EMAXERRNO)
         return "unknown error code";
 
-    return errno_strs[errnum];
+    return (char*)errno_strs[errnum];
 }
 
 char* strerror_r(int errnum, char* buf, size_t len)

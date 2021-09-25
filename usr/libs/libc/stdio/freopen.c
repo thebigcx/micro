@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
 #include <libc/libc-internal.h>
 
 FILE* freopen(const char* filename, const char* mode, FILE* stream)
