@@ -55,7 +55,7 @@ SYSCALL_DEFINE(lstat, const char* path, struct stat* buf)
     char* canon = vfs_mkcanon(path, task_curr()->workd);
 
     struct file file;
-    int e = vfs_resolve(canon, &file, 1);
+    int e = vfs_resolve(canon, &file, 0);
 
     kfree(canon);
     if (e) return e;

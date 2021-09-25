@@ -39,5 +39,12 @@
 #define SYS_setreuid        36
 #define SYS_chown           37
 #define SYS_readlink        38
+#define SYS_getuid          39
+#define SYS_geteuid         40
+#define SYS_getgid          41
+#define SYS_getegid         42
+#define SYS_getgroups       43
+#define SYS_setgroups       44
+#define SYS_setregid        45
 
 extern long syscall(long sysno, ...);

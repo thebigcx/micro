@@ -137,6 +137,7 @@ void tty_init()
 
     ptmx->ops.open    = ptmx_open;
     ptmx->type        = FL_CHRDEV;
+    ptmx->perms       = 0666;
 
     strcpy(ptmx->name, "ptmx");
     devfs_register(ptmx);
@@ -144,6 +145,7 @@ void tty_init()
     ptsfs = vfs_create_file();
 
     ptsfs->type         = FL_DIR;
+    ptsfs->perms        = 0755;
     ptsfs->ops.find     = ptsfs_find;
     ptsfs->ops.getdents = ptsfs_getdents;
 

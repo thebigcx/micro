@@ -41,6 +41,9 @@ struct task
 
     uid_t ruid, euid, suid;
     gid_t rgid, egid, sgid;
+
+    gid_t* groups;
+    size_t groupcnt;
 };
 
 struct thread;

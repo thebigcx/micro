@@ -32,9 +32,9 @@ SYSCALL_DEFINE(open, const char* path, uint32_t flags, mode_t mode)
     kfree(canon);
 
     if (e) return e;
-
-    if (flags & O_RDONLY || flags & O_RDWR) CHECK_RPERM(file);
-    if (flags & O_WRONLY || flags & O_RDWR) CHECK_WPERM(file);
+    
+    if ((flags & 3) == O_RDONLY || (flags & 3) == O_RDWR) CHECK_RPERM(file);
+    if ((flags & 3) == O_WRONLY || (flags & 3) == O_RDWR) CHECK_WPERM(file);
 
     for (unsigned int i = 0; i < FD_MAX; i++)
     {

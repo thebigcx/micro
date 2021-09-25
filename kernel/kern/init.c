@@ -49,6 +49,7 @@ void initrd_init(uintptr_t start, uintptr_t end)
     file->ops.write = initrd_write;
     file->type      = FL_BLKDEV;
     file->device    = initrd;
+    file->perms     = 0660;
 
     strcpy(file->name, "initrd");
     devfs_register(file);

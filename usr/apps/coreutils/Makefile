@@ -14,7 +14,9 @@ SRCS := cat.c 		\
 		echo.c		\
 		chmod.c		\
 		chown.c		\
-		readlink.c
+		readlink.c	\
+		id.c		\
+		whoami.c
 
 OBJS := $(patsubst %.c, %.o, $(SRCS))
 TARGS := $(patsubst %.c, %, $(SRCS))

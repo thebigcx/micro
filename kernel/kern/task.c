@@ -40,14 +40,6 @@ static struct task* mktask(struct task* parent, struct vm_map* vm_map)
 static void init_user_task(struct task* task, const char* path,
                           const char* argv[], const char* envp[], uintptr_t entry)
 {
-    /*struct file file;
-
-    int e;
-    if ((e = vfs_resolve(path, &file))) return e;
-
-    void* data = kmalloc(file.size);
-    vfs_read(&file, data, 0, file.size);*/
-
     task->main = thread_creat(task, 0, 1);
 
     // Top of canonical lower-half
@@ -59,9 +51,6 @@ static void init_user_task(struct task* task, const char* path,
 
     task->main->regs.rsp = stack;
     task->main->regs.rbp = stack;
-
-    //if ((e = elf_load(task, data, argv, envp, &task->main->regs.rip)))
-        //return e;
     task->main->regs.rip = entry;
 
     setup_user_stack(task, argv, envp);
@@ -147,6 +136,15 @@ struct task* task_clone(struct task* src, struct thread* calling)
     task->egid = src->egid;
     task->ruid = src->ruid;
     task->rgid = src->rgid;
+
+    if (src->groupcnt)
+    {
+        task->groupcnt = src->groupcnt;
+        task->groups = kmalloc(task->groupcnt * sizeof(gid_t));
+
+        for (size_t i = 0; i < src->groupcnt; i++)
+            task->groups[i] = src->groups[i];
+    }
 
     return task;
 }

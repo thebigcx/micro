@@ -48,4 +48,15 @@ void _exit(int status);
 int seteuid(uid_t euid);
 int setreuid(uid_t ruid, uid_t euid);
 
+int setegid(gid_t egid);
+int setregid(gid_t rgid, gid_t egid);
+
+uid_t getuid();
+uid_t geteuid();
+
+gid_t getgid();
+gid_t getegid();
+
+int getgroups(int size, gid_t list[]);
+
 ssize_t readlink(const char* path, char* buf, size_t n);

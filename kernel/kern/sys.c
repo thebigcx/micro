@@ -5,10 +5,31 @@
 #include <arch/reg.h>
 #include <arch/cpu.h>
 #include <micro/errno.h>
+#include <micro/heap.h>
 
 SYSCALL_DEFINE(getpid)
 {
     return task_curr()->id;
+}
+
+SYSCALL_DEFINE(getuid)
+{
+    return task_curr()->ruid;
+}
+
+SYSCALL_DEFINE(geteuid)
+{
+    return task_curr()->euid;
+}
+
+SYSCALL_DEFINE(getgid)
+{
+    return task_curr()->rgid;
+}
+
+SYSCALL_DEFINE(getegid)
+{
+    return task_curr()->egid;
 }
 
 SYSCALL_DEFINE(setreuid, uid_t ruid, uid_t euid)
@@ -25,6 +46,63 @@ SYSCALL_DEFINE(setreuid, uid_t ruid, uid_t euid)
     {
         if (task->euid != 0) return -EPERM;
         task->euid = euid;
+    }
+
+    return 0;
+}
+
+SYSCALL_DEFINE(setregid, gid_t rgid, gid_t egid)
+{
+    struct task* task = task_curr();
+
+    if (rgid != -1)
+    {
+        if (task->egid != 0) return -EPERM;
+        task->rgid = rgid;
+    }
+
+    if (egid != -1)
+    {
+        if (task->egid != 0) return -EPERM;
+        task->egid = egid;
+    }
+
+    return 0;
+}
+
+SYSCALL_DEFINE(getgroups, int size, gid_t list[])
+{
+    PTRVALID(list);
+    if (size < 0) return -EINVAL;
+
+    struct task* task = task_curr();
+    if (task->groupcnt > (size_t)size) return -EINVAL;
+
+    size = task->groupcnt;
+
+    for (int i = 0; i < size; i++)
+        list[i] = task->groups[i];
+
+    return size;
+}
+
+// TODO: privileges
+SYSCALL_DEFINE(setgroups, size_t size, const gid_t* list)
+{
+    struct task* task = task_curr();
+
+    kfree(task->groups);
+    task->groupcnt = size;
+
+    if (!list) return 0;
+
+    task->groups = kmalloc(size * sizeof(gid_t));
+    PTRVALID(list);
+    
+    for (size_t i = 0; i < size; i++)
+    {
+        PTRVALID(list + i);
+        task->groups[i] = list[i];        
     }
 
     return 0;
@@ -72,7 +150,14 @@ static void* syscalls[] =
     &sys_chmod,
     &sys_setreuid,
     &sys_chown,
-    &sys_readlink
+    &sys_readlink,
+    &sys_getuid,
+    &sys_geteuid,
+    &sys_getgid,
+    &sys_getegid,
+    &sys_getgroups,
+    &sys_setgroups,
+    &sys_setregid
 };
 
 void syscall_handler(struct regs* r)

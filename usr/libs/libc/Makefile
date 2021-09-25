@@ -156,6 +156,14 @@ SOURCES := internal/generic/init.c				\
 		   sysdeps/micro/generic/chmod.c 		\
 		   sysdeps/micro/generic/seteuid.c 		\
 		   sysdeps/micro/generic/setreuid.c 	\
+		   sysdeps/micro/generic/setegid.c 		\
+		   sysdeps/micro/generic/setregid.c 	\
+		   sysdeps/micro/generic/getuid.c 		\
+		   sysdeps/micro/generic/geteuid.c 		\
+		   sysdeps/micro/generic/getgid.c 		\
+		   sysdeps/micro/generic/getegid.c 		\
+		   sysdeps/micro/generic/getgroups.c 	\
+		   sysdeps/micro/generic/setgroups.c 	\
 		   sysdeps/micro/generic/chown.c 		\
 		   sysdeps/micro/generic/readlink.c		\
 

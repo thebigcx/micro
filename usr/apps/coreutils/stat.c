@@ -1,6 +1,7 @@
 #include <sys/stat.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 
 int main(int argc, char** argv)
 {
@@ -11,13 +12,23 @@ int main(int argc, char** argv)
     }
 
     struct stat buf;
-    if (stat(argv[1], &buf))
+    if (lstat(argv[1], &buf))
     {
         perror("stat: ");
         return -1;
     }
 
-    printf("%s\n", realpath(argv[1], NULL));
+    printf("%s", realpath(argv[1], NULL));
+
+    // Cool arrow thing if symlink
+    if (S_ISLNK(buf.st_mode))
+    {
+        char link[60];
+        readlink(argv[1], link, 60);
+        printf(" -> %s\n", link);
+    }
+    else
+        printf("\n");
 
     printf("Inode: %ld\n", buf.st_ino);
     printf("User ID: %ld\n", buf.st_uid);
@@ -31,12 +42,12 @@ int main(int argc, char** argv)
 
     printf("Type: ");
 
-    if      (S_ISREG(buf.st_mode)) printf("file\n");
-    else if (S_ISDIR(buf.st_mode)) printf("directory\n");
-    else if (S_ISBLK(buf.st_mode)) printf("block device\n");
-    else if (S_ISCHR(buf.st_mode)) printf("character device\n");
+    if      (S_ISREG(buf.st_mode))  printf("file\n");
+    else if (S_ISDIR(buf.st_mode))  printf("directory\n");
+    else if (S_ISBLK(buf.st_mode))  printf("block device\n");
+    else if (S_ISCHR(buf.st_mode))  printf("character device\n");
     else if (S_ISFIFO(buf.st_mode)) printf("FIFO\n");
-    else if (S_ISLNK(buf.st_mode)) printf("symbolic link\n");
+    else if (S_ISLNK(buf.st_mode))  printf("symbolic link\n");
     else if (S_ISSOCK(buf.st_mode)) printf("socket\n");
     else printf("unknown\n");
 

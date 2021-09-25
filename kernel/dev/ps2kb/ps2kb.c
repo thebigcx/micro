@@ -50,6 +50,7 @@ void ps2kb_init()
 
     struct file* kb = vfs_create_file();
     
+    kb->perms       = 0660;
     kb->type        = FL_CHRDEV;
     kb->ops.read    = kb_read;
 

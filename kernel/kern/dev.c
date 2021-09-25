@@ -17,6 +17,7 @@ void init_devices()
 {
     struct file* null = vfs_create_file();
 
+    null->perms       = 0666;
     null->ops.read    = null_read;
     null->ops.write   = null_write;
     null->type        = FL_CHRDEV;

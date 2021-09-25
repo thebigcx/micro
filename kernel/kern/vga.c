@@ -63,6 +63,7 @@ void vga_init()
     vga->ops.read    = vga_read;
     vga->ops.write   = vga_write;
     vga->type        = FL_CHRDEV;
+    vga->perms       = 0660;
 
     strcpy(vga->name, "vga0");
     devfs_register(vga);

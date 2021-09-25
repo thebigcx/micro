@@ -81,6 +81,7 @@ void fb_init_dev()
 {
     struct file* file = vfs_create_file();
     file->type        = FL_CHRDEV;
+    file->perms       = 0660;
     file->size        = fb.width * fb.height * (fb.bpp / 8);
     file->ops.read    = fb_read;
     file->ops.write   = fb_write;

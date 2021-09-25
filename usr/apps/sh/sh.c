@@ -13,6 +13,7 @@
 int main(int argc, char** argv)
 {
     seteuid(1000);
+    setegid(1000);
 
     while (1)
     {

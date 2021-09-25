@@ -33,6 +33,19 @@ int vfs_checkperm(struct file* file, unsigned int mask)
             else return 0;
         }
 
+        if (task_curr()->groupcnt)
+        {
+            // Supplementary groups
+            for (size_t i = 0; i < task_curr()->groupcnt; i++)
+            {
+                if (file->gid == task_curr()->groups[i])
+                {
+                    if (!(file->perms & (mask << 3))) return -1;
+                    else return 0;
+                }
+            }
+        }
+
         if (!(file->perms & mask)) return -1;
     }
 

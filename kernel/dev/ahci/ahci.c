@@ -261,6 +261,7 @@ struct file* ahci_create_dev(volatile struct hba_port* hba_port)
     struct file* file = kmalloc(sizeof(struct file));
     memset(file, 0, sizeof(struct file));
 
+    file->perms     = 0660;
     file->type      = FL_BLKDEV;
     file->device    = ahci_create_port(hba_port);
     file->size      = 512;
