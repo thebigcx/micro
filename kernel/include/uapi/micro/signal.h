@@ -1,5 +1,32 @@
 #pragma once
 
+#include <micro/types.h>
+
+#define SIGSET_NWORDS (1024 / (8 * sizeof(unsigned long)))
+typedef struct
+{
+    unsigned long val[SIGSET_NWORDS];
+} sigset_t;
+
+typedef struct
+{
+
+} siginfo_t;
+
+typedef void (*sighandler_t)(int);
+
+struct sigaction
+{
+    void     (*sa_handler)(int);
+    void     (*sa_sigaction)(int, siginfo_t*, void*);
+    sigset_t   sa_mask;
+    int        sa_flags;
+    void     (*sa_restorer)(void);
+};
+
+#define SIG_DFL     ((sighandler_t)0)
+#define SIG_IGN     ((sighandler_t)1)
+
 #define SIGINVAL    0
 #define SIGALRM     1
 #define SIGBUS      2

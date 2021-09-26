@@ -53,6 +53,10 @@ static void init_user_task(struct task* task, const char* path,
     task->main->regs.rbp = stack;
     task->main->regs.rip = entry;
 
+    task->sigstack = stack - 0x1000 * 16 - 0x1000; // TODO: search for a free page
+    mmu_map(task->vm_map, task->sigstack, mmu_alloc_phys(), PAGE_PR | PAGE_RW);
+    task->sigstack += PAGE4K;
+
     setup_user_stack(task, argv, envp);
 
     list_push_back(&task->threads, task->main);
@@ -145,6 +149,8 @@ struct task* task_clone(struct task* src, struct thread* calling)
         for (size_t i = 0; i < src->groupcnt; i++)
             task->groups[i] = src->groups[i];
     }
+
+    memcpy(task->signals, src->signals, sizeof(struct sigaction) * 32);
 
     return task;
 }

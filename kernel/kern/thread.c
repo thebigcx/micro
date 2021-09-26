@@ -95,9 +95,9 @@ void thread_handle_signals(struct thread* thread)
     int sig = *sigptr;
     kfree(sigptr);
 
-    uintptr_t handler = thread->parent->signals[sig];
+    uintptr_t handler = thread->parent->signals[sig].sa_handler;
 
-    if (!handler)
+    if (!handler || handler == SIG_DFL) // SIG_DFL is 0 anyway
     {
         switch (defaults[sig])
         {
@@ -137,9 +137,13 @@ void thread_handle_signals(struct thread* thread)
                 break;
         }
     }
+    else if (handler == SIG_IGN)
+    {
+        /* Do nothing */
+    }
     else
     {
-        // TODO: set up signal handler stuff
+        arch_enter_signal(thread, sig);
     }
 }
 

@@ -29,9 +29,9 @@ struct task
 
     char workd[64]; // Working directory
 
-    struct list sigqueue;  // struct int[]
-    uintptr_t signals[32];
-    uint32_t sigmask;
+    struct list  sigqueue;  // struct int[]
+    struct sigaction signals[32];
+    uintptr_t    sigstack;
 
     int status;
     int state;

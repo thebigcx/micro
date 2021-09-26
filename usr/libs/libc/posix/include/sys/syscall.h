@@ -48,5 +48,7 @@
 #define SYS_setregid        45
 #define SYS_symlink         46
 #define SYS_link            47
+#define SYS_sigaction       48
+#define SYS_sigreturn       49
 
 extern long syscall(long sysno, ...);

@@ -206,11 +206,11 @@ install:
 	mkdir -p $(DESTDIR)/usr
 	mkdir -p $(DESTDIR)/usr/include
 	mkdir -p $(DESTDIR)/usr/lib
+	cp -r include/* $(DESTDIR)/usr/include/
+	cp -r posix/include/* $(DESTDIR)/usr/include/
 	cp $(AR) $(DESTDIR)/usr/lib/
 	cp $(SO) $(DESTDIR)/usr/lib/
 	cp $(CRT0) $(DESTDIR)/usr/lib/
-	cp -r include/* $(DESTDIR)/usr/include/
-	cp -r posix/include/* $(DESTDIR)/usr/include/
 
 .PHONY:
 clean:

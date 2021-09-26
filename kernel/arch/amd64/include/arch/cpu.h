@@ -29,6 +29,7 @@ void cpu_set_kstack(struct cpu_info* cpu, uintptr_t kstack);
 
 void arch_init_thread(struct thread* thread, int usr);
 void arch_switch_ctx(struct thread* thread);
+void arch_enter_signal(struct thread* thread, int sig);
 
 FORCE_INLINE void arch_syscall_ret(struct regs* r, uintptr_t n)
 {

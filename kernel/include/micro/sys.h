@@ -24,6 +24,7 @@ struct dirent;
 struct timeval;
 struct timezone;
 struct stat;
+struct sigaction;
 
 SYSCALL_DEFINE(open,         const char* pathname, uint32_t flags, mode_t mode);
 SYSCALL_DEFINE(close,        int fd);
@@ -73,6 +74,9 @@ SYSCALL_DEFINE(setregid,     gid_t rgid, gid_t egid);
 SYSCALL_DEFINE(symlink,      const char* target, const char* linkpath);
 SYSCALL_DEFINE(link,         const char* old, const char* new);
 SYSCALL_DEFINE(socket,       int domain, int type, int protocol);
+SYSCALL_DEFINE(sigaction,    int signum, const struct sigaction* act,
+                             struct sigaction* oldact);
+SYSCALL_DEFINE(sigreturn);
 SYSCALL_DEFINE(fork);
 
 void sys_init();

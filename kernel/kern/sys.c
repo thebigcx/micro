@@ -159,7 +159,9 @@ static void* syscalls[] =
     &sys_setgroups,
     &sys_setregid,
     &sys_symlink,
-    &sys_link
+    &sys_link,
+    &sys_sigaction,
+    &sys_sigreturn
 };
 
 void syscall_handler(struct regs* r)

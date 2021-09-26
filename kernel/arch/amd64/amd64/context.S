@@ -39,3 +39,5 @@ _switch_ctx:
     popq    %rax
     // Stack contains RSP, CS, RIP, RFLAGS, SS
     iretq
+
+    ret // Return from signal handler (not used on a regular context switch)

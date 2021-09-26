@@ -24,4 +24,4 @@ qemu-system-x86_64                              \
     -device ahci,id=ahci                        \
     -device ide-hd,drive=disk,bus=ahci.0        \
     -rtc base=localtime                         \
-    --enable-kvm
+#    --enable-kvm
