@@ -6,6 +6,7 @@
 #include <micro/task.h>
 #include <arch/panic.h>
 #include <micro/sched.h>
+#include <arch/mmu.h>
 
 static void dump(struct regs* r)
 {
@@ -146,11 +147,13 @@ static void gp(struct regs* regs, uint32_t e)
 
 static void pf(struct regs* regs, uint32_t e)
 {
-    if (regs->cs & 3)
+    if (regs->cs & 3) // TODO: can also fault allocate when doing ABI stuff like stack setup
     {
-        //dump(regs);
-        //backtrace(regs->rip, regs->rbp, 32);
-        task_send(task_curr(), SIGSEGV);
+        if (vm_map_handle_fault(task_curr()->vm_map, rcr2()) == -1)
+        {
+            task_send(task_curr(), SIGSEGV); // Could not handle
+        }
+
         return;
     }
 

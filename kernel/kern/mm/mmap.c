@@ -13,13 +13,8 @@ unsigned long ksys_do_mmap(void* addr, size_t length, int prot, int flags, int f
         // TEMP
         if (flags & MAP_SHARED) return (unsigned long)-EINVAL;
 
-        unsigned int mmu_flags = PAGE_PR;
-        mmu_flags |= prot & PROT_WRITE ? PAGE_RW : 0;
-
-        for (uintptr_t i = (uintptr_t)addr; i < (uintptr_t)addr + length; i += PAGE4K)
-        {
-            mmu_map(task_curr()->vm_map, i, mmu_alloc_phys(), mmu_flags);
-        }
+        struct vm_area* area = vm_map_anon(task_curr()->vm_map, addr, length, flags & MAP_FIXED);
+        vm_map_anon_alloc(task_curr()->vm_map, area, addr, length); // TODO: TEMP (SHOULD NOT ALLOCATE)
     }
     else
     {
@@ -34,7 +29,7 @@ unsigned long ksys_do_mmap(void* addr, size_t length, int prot, int flags, int f
         {
             struct vm_area area =
             {
-                .begin = (uintptr_t)addr,
+                .base  = (uintptr_t)addr,
                 .end   = (uintptr_t)addr + length
             };
             vfs_mmap(fd->filp, &area);

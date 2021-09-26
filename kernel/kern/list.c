@@ -7,7 +7,7 @@ struct list list_create()
     return (struct list) { .head = NULL, .tail = NULL, .size = 0 };
 }
 
-void list_push_back(struct list* list, void* data)
+void* list_push_back(struct list* list, void* data)
 {
     // Initialize new node
     struct lnode* node = kmalloc(sizeof(struct lnode));
@@ -25,6 +25,8 @@ void list_push_back(struct list* list, void* data)
     list->tail = node;
 
     list->size++;
+
+    return data;
 }
 
 void* list_dequeue(struct list* list)
@@ -116,4 +118,35 @@ void* list_remove(struct list* self, size_t i)
     void* ret = lnode->data;
     kfree(lnode);
     return ret;
+}
+
+void* list_back(struct list* self)
+{
+    return self->tail->data;
+}
+
+void* list_insert(struct list* self, unsigned int i, void* data)
+{
+    struct lnode* node = self->head;
+    while (i--) node = node->next;
+
+    struct lnode* new = kmalloc(sizeof(struct lnode));
+    
+    new->next = node->next;
+    new->prev = node;
+    new->data = data;
+
+    // Try to set new next previous
+    if (new->next)
+        new->next->prev = new;
+    else
+        self->tail = new; // Set tail if new->next == NULL
+
+    // Try to set new previous next
+    if (new->prev)
+        new->prev->next = new;
+    else
+        self->head = new; // Set head if new->prev == NULL
+
+    return data;
 }

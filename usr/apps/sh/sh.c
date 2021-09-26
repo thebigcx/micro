@@ -10,12 +10,6 @@
 
 #define PATH "/usr/bin/"
 
-void sigseg_handler(int num)
-{
-    printf("SIGSEG\n");
-    abort();
-}
-
 int main(int argc, char** argv)
 {
     seteuid(1000);

@@ -130,11 +130,8 @@ int elf_load(struct vm_map* vm_map, void* data, const char* argv[],
             uintptr_t page_begin = begin - (begin % PAGE4K);
             uintptr_t page_cnt = memsize - (memsize % PAGE4K) + PAGE4K * 2;
 
-            unsigned int flags = PAGE_PR | PAGE_USR;
-            if (phdr->flags & PF_W) flags |= PAGE_RW;
-
-            for (uintptr_t i = page_begin; i < page_begin + page_cnt; i += PAGE4K)
-                mmu_map(vm_map, i, mmu_alloc_phys(), flags);
+            struct vm_area* area = vm_map_anon(vm_map, page_begin, page_cnt, 1);
+            vm_map_anon_alloc(vm_map, area, page_begin, page_cnt);
 
             uintptr_t cr3 = rcr3();
             

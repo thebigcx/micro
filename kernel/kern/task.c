@@ -44,10 +44,15 @@ static void init_user_task(struct task* task, const char* path,
 
     // Top of canonical lower-half
     uintptr_t stack = 0x8000000000;
-    for (size_t i = 0; i < 16; i++)
+    /*for (size_t i = 0; i < 16; i++)
     {
         mmu_map(task->vm_map, stack - i * PAGE4K, mmu_alloc_phys(), PAGE_PR | PAGE_RW);
-    }
+    }*/
+    struct vm_area* area = vm_map_anon(task->vm_map, stack - 0x4000, 0x4000, 0);
+
+    // Allocate the first page
+    vm_map_anon_alloc(task->vm_map, area, area->base, 4 * PAGE4K);
+    //vm_map_anon_alloc(task->vm_map, area, area->end - PAGE4K, PAGE4K);
 
     task->main->regs.rsp = stack;
     task->main->regs.rbp = stack;
