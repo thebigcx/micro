@@ -14,9 +14,13 @@ ssize_t pts_read(struct file* file, void* buf, off_t off, size_t size)
 {
     struct pt* pt = file->device;
 
-    ssize_t bytes = ringbuf_size(pt->inbuf);
+    //ssize_t bytes = ringbuf_size(pt->inbuf);
 
-    if (bytes <= 0) return 0;
+    //if (bytes <= 0) return 0;
+    // TODO: use a wakeup queue instead (like a semaphore)
+    ssize_t bytes;
+    while (!(bytes = ringbuf_size(pt->inbuf))) sched_yield();
+
     if (size < (size_t)bytes) bytes = size;
 
     ringbuf_read(pt->inbuf, buf, bytes);

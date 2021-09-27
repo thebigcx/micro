@@ -30,6 +30,9 @@ static void*           fbend;
 static unsigned int cx = 0;
 static unsigned int cy = 0;
 
+static char linebuffer[128];
+static int lineidx = 0;
+
 static int ptm, pts;
 
 static void load_font()
@@ -88,7 +91,16 @@ void tab()
 
 void backspace()
 {
+    if (lineidx)
+    {
+        lineidx--;
 
+        drawch(' ', 0x0, 0x0);
+        cx--;
+        drawch(' ', 0x0, 0x0);
+        
+        draw_cursor();
+    }
 }
 
 void draw_cursor()
@@ -107,6 +119,7 @@ void putch(char c, uint32_t fg, uint32_t bg)
     if (c == '\n')
     {
         newline();
+        draw_cursor();
         return;
     }
     if (c == '\t')
@@ -205,13 +218,20 @@ void handle_kb(int sc)
         char ch = ascii[sc];
         putch(ch, 0xffffffff, 0);
 
-        if (ctrl)
+        linebuffer[lineidx++] = ch;
+
+        /*if (ctrl)
         {
             write(ptm, "^[", 2);
             write(ptm, &ch, 1);
         }
         else
-            write(ptm, &ch, 1);
+            write(ptm, &ch, 1);*/
+        if (ch == '\n')
+        {
+            write(ptm, linebuffer, lineidx);
+            lineidx = 0;
+        }
     }
 
 }
@@ -219,6 +239,8 @@ void handle_kb(int sc)
 int main(int argc, char** argv)
 {
     load_font();
+
+    lineidx = 0;
 
     fb = open("/dev/fb0", O_RDWR, 0);
 

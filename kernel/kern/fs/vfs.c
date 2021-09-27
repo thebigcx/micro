@@ -425,7 +425,7 @@ struct fd* vfs_open(struct file* file, uint32_t flags, mode_t mode)
     struct fd* fd = kmalloc(sizeof(struct fd));
 
     fd->filp  = file;
-    fd->off   = 0;
+    fd->off   = flags & O_APPEND ? file->size : 0; // Offset to end (O_APPEND)
     fd->flags = flags;
 
     return fd;

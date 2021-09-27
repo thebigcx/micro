@@ -393,6 +393,13 @@ void ext2_resize(struct file* file, size_t size)
 
 ssize_t ext2_read(struct file* file, void* buf, off_t off, size_t size)
 {
+    if (off > file->size) return 0;
+    if (off + size > file->size)
+    {
+        size = file->size - off;
+        if (!size) return 0;
+    }
+
     struct ext2_volume* vol = file->device;
 
     uint32_t startblk =  off         / vol->blksize; // Start block
@@ -412,19 +419,21 @@ ssize_t ext2_read(struct file* file, void* buf, off_t off, size_t size)
         read_blocks(vol, fullbuf, ext2_inode_blk(vol, &ino, i), 1);
 
         uint32_t start = 0;
-        uint32_t size = vol->blksize;
+        uint32_t bytes = vol->blksize;
 
         if (i == startblk)
         {
             start = modoff;
-            size = vol->blksize - start;
+            bytes = vol->blksize - start;
         }
         if (i == endblk)
-            size = modend;
+        {
+            bytes = modend < size ? modend : size;
+        }
 
-        memcpy((void*)((uintptr_t)buf + ptroff), fullbuf + start, size);
+        memcpy((void*)((uintptr_t)buf + ptroff), fullbuf + start, bytes);
 
-        ptroff += size;
+        ptroff += bytes;
     }
 
     kfree(fullbuf);

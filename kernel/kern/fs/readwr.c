@@ -68,11 +68,17 @@ SYSCALL_DEFINE(lseek, int fdno, off_t offset, int whence)
     switch (whence)
     {
         case SEEK_SET:
-            fd->off = offset;
+            if (fd->flags & O_APPEND)
+                fd->off = offset + fd->filp->size;
+            else
+                fd->off = offset;
+
             return fd->off;
+
         case SEEK_END:
             fd->off = fd->filp->size + offset;
             return fd->off;
+        
         case SEEK_CUR:
             fd->off += offset;
             return fd->off;

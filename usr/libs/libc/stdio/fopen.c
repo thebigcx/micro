@@ -34,7 +34,7 @@ FILE* fopen(const char* path, const char* mode)
     uint32_t flags = __libc_fopen_flags(mode);
 
     int fd;
-    if ((fd = open(path, flags, 0)) < 0) return NULL;
+    if ((fd = open(path, flags, 0777)) < 0) return NULL;
     
     FILE* file = malloc(sizeof(FILE));
     file->fd   = fd;
