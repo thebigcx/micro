@@ -98,7 +98,7 @@ void backspace()
         drawch(' ', 0x0, 0x0);
         cx--;
         drawch(' ', 0x0, 0x0);
-        
+
         draw_cursor();
     }
 }
@@ -198,7 +198,30 @@ static char ascii[] =
     'c', 'c', 'c', 'c', 'c', 'c', 'c'
 };
 
+static char shift_ascii[] =
+{
+    'c', '~', '!', '@', '#', '$', '%',
+    '^', '&', '*', '(', ')', '_', '+',
+    '\b', '\t', 'Q', 'W', 'E', 'R', 'T',
+    'Y', 'U', 'U', 'O', 'P', '{', '}',
+    '\n', '~', 'A', 'S', 'D', 'F', 'G',
+    'H', 'J', 'K', 'L', ':', '"', '~',
+    '~', '|', 'Z', 'X', 'C', 'V', 'B',
+    'N', 'M', '<', '>', '?', '~', '*',
+    '~', ' ', '~', 'c', 'c', 'c', 'c',
+    'c', 'c', 'c', 'c', 'c', 'c', 'c',
+    'c', 'c', 'c', 'c', 'c', 'c', 'c',
+    'c', 'c', 'c', 'c', 'c', 'c', 'c',
+    'c', 'c', 'c', 'c', 'c', 'c', 'c',
+    'c', 'c', 'c', 'c', 'c', 'c', 'c',
+    'c', 'c', 'c', 'c', 'c', 'c', 'c',
+    'c', 'c', 'c', 'c', 'c', 'c', 'c',
+    'c', 'c', 'c', 'c', 'c', 'c', 'c',
+    'c', 'c', 'c', 'c', 'c', 'c', 'c'
+};
+
 static int ctrl = 0;
+static int shift = 0;
 
 void handle_kb(int sc)
 {
@@ -213,9 +236,27 @@ void handle_kb(int sc)
         return;
     }
 
+    if (sc == 0x2a)
+    {
+        shift = 1;
+        return;
+    }
+    else if (sc == 0xaa)
+    {
+        shift = 0;
+        return;
+    }
+
+    if (ascii[sc] == '\b')
+    {
+        backspace();
+        return;
+    }
+
     if (sc < 88)
     {
-        char ch = ascii[sc];
+        char ch = shift ? shift_ascii[sc] : ascii[sc];
+
         putch(ch, 0xffffffff, 0);
 
         linebuffer[lineidx++] = ch;
@@ -241,6 +282,7 @@ int main(int argc, char** argv)
     load_font();
 
     lineidx = 0;
+    shift = 0;
 
     fb = open("/dev/fb0", O_RDWR, 0);
 
