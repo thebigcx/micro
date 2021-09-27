@@ -66,6 +66,8 @@ int feof(FILE* stream);
 int ferror(FILE* stream);
 int fileno(FILE* stream);
 
+void clearerr(FILE* stream);
+
 void rewind(FILE* stream);
 
 int fputs(const char* str, FILE* stream);
@@ -82,3 +84,6 @@ void perror(const char* s);
 int remove(const char* filename);
 
 FILE* tmpfile();
+
+FILE* popen(const char* command, const char* type);
+int pclose(FILE* stream);

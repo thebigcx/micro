@@ -10,8 +10,12 @@
 
 #define PATH "/usr/bin/"
 
+int exitcode = 0;
+
 int main(int argc, char** argv)
 {
+    exitcode = 0;
+
     seteuid(1000);
     setegid(1000);
 
@@ -20,7 +24,7 @@ int main(int argc, char** argv)
         char cwd[128];
         getcwd(cwd, 128);
 
-        printf("root@micro:%s$ ", cwd);
+        printf("%d>root@micro:%s$ ", exitcode, cwd);
 
         char* line = malloc(256);
         size_t lineptr = 0;
@@ -119,6 +123,8 @@ int main(int argc, char** argv)
                         break;
                 }
             }
+
+            exitcode = WEXITSTATUS(status);
         }
     }
    

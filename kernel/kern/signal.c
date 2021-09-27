@@ -27,6 +27,12 @@ SYSCALL_DEFINE(sigaction, int signum, const struct sigaction* act,
     return 0;
 }
 
+SYSCALL_DEFINE(sigprocmask, int how, const sigset_t* set, sigset_t* oldset)
+{
+    printk("warning: sigprocmask() not implemented!\n");
+    return 0;
+}
+
 SYSCALL_DEFINE(sigreturn)
 {
     return -1; // Won't return

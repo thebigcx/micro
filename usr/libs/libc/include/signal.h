@@ -7,11 +7,7 @@ typedef int sig_atomic_t;
 
 typedef void (*sighandler_t)(int);
 
-#define SIGSET_NWORDS (1024 / (8 * sizeof(unsigned long)))
-typedef struct
-{
-    unsigned long val[SIGSET_NWORDS];
-} sigset_t;
+typedef uint32_t sigset_t;
 
 struct sigaction
 {
@@ -24,6 +20,10 @@ struct sigaction
 
 #define SIG_DFL     ((sighandler_t)0)
 #define SIG_IGN     ((sighandler_t)1)
+
+#define SIG_BLOCK   0
+#define SIG_UNBLOCK 1
+#define SIG_SETMASK 2
 
 #define SIGINVAL    0
 #define SIGALRM     1
@@ -58,5 +58,13 @@ struct sigaction
 
 int kill(pid_t pid, int sig);
 int raise(int sig);
-int sigaction(int signum, const struct sigaction* act, struct sigaction* old);
 sighandler_t signal(int signo, sighandler_t handler);
+
+int sigemptyset(sigset_t* set);
+int sigfillset(sigset_t* set);
+int sigaddset(sigset_t* set, int signum);
+int sigdelset(sigset_t* set, int signum);
+int sigismember(const sigset_t* set, int signum);
+
+int sigaction(int signum, const struct sigaction* act, struct sigaction* old);
+int sigprocmask(int how, const sigset_t* set, sigset_t* oldset);

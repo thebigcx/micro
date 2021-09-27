@@ -114,6 +114,8 @@ static void invalid_opcode(struct regs* regs)
 {
     if (regs->cs & 3)
     {
+        dump(regs);
+        backtrace(regs->rip, regs->rbp, 32);
         task_send(task_curr(), SIGILL);
         return;
     }
@@ -135,6 +137,8 @@ static void gp(struct regs* regs, uint32_t e)
 {
     if (regs->cs & 3)
     {
+        dump(regs);
+        backtrace(regs->rip, regs->rbp, 32);
         task_send(task_curr(), SIGSEGV);
         return;
     }
@@ -151,6 +155,8 @@ static void pf(struct regs* regs, uint32_t e)
     {
         if (vm_map_handle_fault(task_curr()->vm_map, rcr2()) == -1)
         {
+            dump(regs);
+            backtrace(regs->rip, regs->rbp, 32);
             task_send(task_curr(), SIGSEGV); // Could not handle
         }
 
@@ -231,7 +237,15 @@ void except(uintptr_t n, struct regs* regs, uint32_t e)
     nested++;
     if (nested > 1)
     {
-        panic("Nested exceptions");
+        //if (regs->cs & 3)
+        {
+            // Something went VERY wrong
+            task_send(task_curr(), SIGILL);
+            nested = 0;
+            sched_yield();
+        }
+        //else
+            //panic("Nested exceptions");
     }
 
     handlers[n](regs);

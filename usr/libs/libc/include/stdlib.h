@@ -41,3 +41,5 @@ const char* getprogname();
 void setprogname(const char* name);
 
 char* realpath(const char* path, char* respath);
+
+int system(const char* command);

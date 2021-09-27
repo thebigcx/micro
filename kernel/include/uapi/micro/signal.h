@@ -2,12 +2,6 @@
 
 #include <micro/types.h>
 
-#define SIGSET_NWORDS (1024 / (8 * sizeof(unsigned long)))
-typedef struct
-{
-    unsigned long val[SIGSET_NWORDS];
-} sigset_t;
-
 typedef struct
 {
 

@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include <ctype.h>
 
-// TODO: implement ATOI
 int atoi(const char* str)
 {
     int ret  = 0;

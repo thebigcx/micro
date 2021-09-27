@@ -4,6 +4,7 @@
 #include <micro/stdlib.h>
 #include <micro/heap.h>
 #include <micro/debug.h>
+#include <micro/vfs.h>
 
 #define ENTCNT 512
 
@@ -445,6 +446,7 @@ struct vm_area* vm_area_create(uintptr_t base, uintptr_t end, struct vm_object* 
     return area;
 }
 
+// TODO: move this stuff to a seperate file
 struct vm_area* vm_map_alloc(struct vm_map* map, size_t size)
 {
     uintptr_t base = PAGE4K;
@@ -537,6 +539,11 @@ struct vm_area* vm_map_anon(struct vm_map* map, uintptr_t base, size_t size, int
     area->obj->type = VMO_ANON;
 
     return area;
+}
+
+struct vm_area* vm_map_file(struct vm_map* map, uintptr_t base, int fixed, struct file* file)
+{
+    return NULL; // TODO: implement
 }
 
 // Allocate part of an anonymous mapping

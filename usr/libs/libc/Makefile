@@ -45,6 +45,8 @@ SOURCES := internal/generic/init.c				\
 		   stdlib/getenv.c						\
 		   stdlib/atexit.c						\
 		   stdlib/realpath.c					\
+		   stdlib/strtol.c						\
+		   stdlib/system.c						\
 		   stdio/fprintf.c						\
 		   stdio/printf.c						\
 		   stdio/snprintf.c						\
@@ -82,6 +84,9 @@ SOURCES := internal/generic/init.c				\
 		   stdio/vprintf.c						\
 		   stdio/getc.c							\
 		   stdio/getchar.c						\
+		   stdio/popen.c						\
+		   stdio/pclose.c						\
+		   stdio/clearerr.c						\
 		   time/gmtime_r.c						\
 		   time/gmtime.c						\
 		   time/localtime_r.c					\
@@ -99,9 +104,17 @@ SOURCES := internal/generic/init.c				\
 		   math/pow.c							\
 		   math/trunc.c							\
 		   malloc/malloc.c						\
-		   setjmp/setjmp.c						\
-		   setjmp/longjmp.c						\
 		   locale/nl_langinfo.c					\
+		   locale/setlocale.c					\
+		   signal/sigemptyset.c					\
+		   signal/sigfillset.c					\
+		   signal/sigaddset.c					\
+		   signal/sigdelset.c					\
+		   signal/sigismember.c					\
+		   regex/regcomp.c						\
+		   regex/regexec.c						\
+		   regex/regerror.c						\
+		   regex/regfree.c						\
 		   misc/errno.c							\
 		   posix/generic/openpty.c				\
 		   posix/generic/opendir.c				\
@@ -109,6 +122,8 @@ SOURCES := internal/generic/init.c				\
 		   posix/generic/isatty.c				\
 		   posix/generic/execv.c				\
 		   posix/generic/execvp.c				\
+		   posix/generic/pathconf.c				\
+		   posix/generic/fpathconf.c			\
 		   sysdeps/micro/generic/open.c			\
 		   sysdeps/micro/generic/close.c		\
 		   sysdeps/micro/generic/read.c			\
@@ -168,8 +183,11 @@ SOURCES := internal/generic/init.c				\
 		   sysdeps/micro/generic/readlink.c		\
 		   sysdeps/micro/generic/symlink.c		\
 		   sysdeps/micro/generic/link.c			\
+		   sysdeps/micro/generic/sigprocmask.c	\
 
-ASM :=     sysdeps/micro/generic/syscall.S
+ASM :=     sysdeps/micro/generic/syscall.S		\
+		   arch/x86_64/setjmp.S					\
+		   arch/x86_64/longjmp.S				\
 
 OBJS := $(patsubst %.c, %.o, $(SOURCES)) $(patsubst %.S, %.o, $(ASM))
 AR := libc.a
