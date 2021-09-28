@@ -245,7 +245,7 @@ void task_send(struct task* task, int signal)
 {
     int* sig = kmalloc(sizeof(int));
     *sig = signal;
-    list_push_back(&task->sigqueue, sig);
+    list_enqueue(&task->sigqueue, sig);
 }
 
 struct task* task_curr()

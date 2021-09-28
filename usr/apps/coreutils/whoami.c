@@ -6,7 +6,7 @@
 int main(int argc, char** argv)
 {
     // TEST
-    int fds[2];
+    /*int fds[2];
     pipe(fds);
 
     if (fork() == 0)
@@ -22,7 +22,8 @@ int main(int argc, char** argv)
         
         const char* argv[] = { "/usr/bin/sh", NULL };
         execv(argv[0], argv);
-    }
+    }*/
+    *((uint32_t*)0x89735097377207) = 1000;
 
 
 

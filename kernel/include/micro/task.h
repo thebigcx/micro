@@ -44,6 +44,8 @@ struct task
 
     gid_t* groups;
     size_t groupcnt;
+
+    struct task* tracer;
 };
 
 struct thread;

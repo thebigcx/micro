@@ -8,6 +8,7 @@ enum __ptrace_request
     PTRACE_TRACEME,
     PTRACE_GETREGS,
     PTRACE_GETFREGS,
+    PTRACE_CONT
 };
 
 long ptrace(enum __ptrace_request req, pid_t pid, void* addr, void* data);

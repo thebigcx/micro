@@ -38,6 +38,7 @@ SOURCES := internal/generic/init.c				\
 		   string/strerror.c					\
 		   string/strndup.c						\
 		   string/strpbrk.c						\
+		   string/strsignal.c					\
 		   stdlib/abs.c							\
 		   stdlib/atoi.c						\
 		   stdlib/atol.c						\
@@ -132,6 +133,7 @@ SOURCES := internal/generic/init.c				\
 		   posix/generic/execvp.c				\
 		   posix/generic/pathconf.c				\
 		   posix/generic/fpathconf.c			\
+		   posix/generic/getopt.c				\
 		   sysdeps/micro/generic/open.c			\
 		   sysdeps/micro/generic/close.c		\
 		   sysdeps/micro/generic/read.c			\

@@ -14,6 +14,7 @@
 #include <micro/tty.h>
 #include <micro/module.h>
 #include <micro/devfs.h>
+#include <micro/procfs.h>
 #include <micro/dev.h>
 
 struct initrd
@@ -143,6 +144,7 @@ void generic_init(struct genbootparams params)
     vfs_init();
 
     devfs_init();
+    procfs_init();
 
     initrd_init(params.initrd_start, params.initrd_end);
 

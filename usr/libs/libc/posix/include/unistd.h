@@ -70,3 +70,8 @@ int getgroups(int size, gid_t list[]);
 ssize_t readlink(const char* path, char* buf, size_t n);
 
 int pipe(int fds[2]);
+
+extern char* optarg;
+extern int optind, opterr, optopt;
+
+int getopt(int argc, char* const argv[], const char* optstr);

@@ -7,6 +7,7 @@
 #include <arch/panic.h>
 #include <micro/sched.h>
 #include <arch/mmu.h>
+#include <micro/thread.h>
 
 static void dump(struct regs* r)
 {
@@ -114,8 +115,8 @@ static void invalid_opcode(struct regs* regs)
 {
     if (regs->cs & 3)
     {
-        dump(regs);
-        backtrace(regs->rip, regs->rbp, 32);
+        //dump(regs);
+        //backtrace(regs->rip, regs->rbp, 32);
         task_send(task_curr(), SIGILL);
         return;
     }
@@ -137,8 +138,9 @@ static void gp(struct regs* regs, uint32_t e)
 {
     if (regs->cs & 3)
     {
-        dump(regs);
-        backtrace(regs->rip, regs->rbp, 32);
+        //dump(regs);
+        //backtrace(regs->rip, regs->rbp, 32);
+        thread_curr()->syscall_regs = *regs;
         task_send(task_curr(), SIGSEGV);
         return;
     }
@@ -153,10 +155,11 @@ static void pf(struct regs* regs, uint32_t e)
 {
     if (regs->cs & 3) // TODO: can also fault allocate when doing ABI stuff like stack setup
     {
-        if (vm_map_handle_fault(task_curr()->vm_map, rcr2()) == -1)
+        //if (vm_map_handle_fault(task_curr()->vm_map, rcr2()) == -1)
         {
-            dump(regs);
-            backtrace(regs->rip, regs->rbp, 32);
+            //dump(regs);
+            //backtrace(regs->rip, regs->rbp, 32);
+            thread_curr()->regs = *regs;
             task_send(task_curr(), SIGSEGV); // Could not handle
         }
 

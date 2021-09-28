@@ -77,6 +77,28 @@ void* list_pop_back(struct list* self)
     return ret;
 }
 
+void* list_enqueue(struct list* self, void* data)
+{
+    // Initialize new node
+    struct lnode* node = kmalloc(sizeof(struct lnode));
+    node->next = self->head;
+    node->prev = NULL;
+    node->data = data;
+
+    // Try to adjust the head, if not than set tail (no head means no tail)
+    if (self->head)
+        self->head->prev = node;
+    else
+        self->tail = node;
+
+    // Set the new head
+    self->head = node;
+
+    self->size++;
+
+    return data;
+}
+
 void list_clear(struct list* self)
 {
     while (self->size) list_dequeue(self);

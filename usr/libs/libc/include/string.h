@@ -27,6 +27,7 @@ char*  strrchr(const char* str, int c);
 char*  strcat(char* dst, const char* src);
 char*  strndup(const char* str, size_t size);
 char*  strpbrk(const char* str1, const char* str2);
+char*  strsignal(int sig);
 
 // POSIX compatibility (see strings.h)
 int    strcasecmp(const char* str1, const char* str2);
