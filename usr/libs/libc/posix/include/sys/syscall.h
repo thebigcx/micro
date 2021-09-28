@@ -52,5 +52,8 @@
 #define SYS_sigreturn       49
 #define SYS_sigprocmask     50
 #define SYS_umask           51
+#define SYS_pipe            52
+#define SYS_rename          53
+#define SYS_rmdir           54
 
 extern long syscall(long sysno, ...);

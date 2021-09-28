@@ -12,6 +12,44 @@
 
 int exitcode = 0;
 
+int get_command(char* str, char** bin, char*** argv)
+{
+    char* saveptr;
+    char* token = strtok_r(str, " \0\n", &saveptr);
+
+    if (!token)
+        return -1;
+
+    if (token[0] == '/')
+    {
+        *bin = malloc(strlen(token) + 1);
+        (*bin)[0] = 0;
+    }
+    else
+    {
+        *bin = malloc(strlen(token) + strlen(PATH) + 1);
+        strcpy(*bin, PATH);
+    }
+    
+    strcpy(*bin + strlen(*bin), token);
+
+    token = strtok_r(NULL, " \0", &saveptr);
+
+    (*argv)[0] = strdup(*bin);
+    unsigned int argc = 1;
+
+    while (token)
+    {
+        (*argv)[argc] = strdup(token);
+        argc++;
+
+        token = strtok_r(NULL, " \0", &saveptr);
+    }
+
+    (*argv)[argc] = NULL;
+    return 0;
+}
+
 int main(int argc, char** argv)
 {
     exitcode = 0;
@@ -40,40 +78,13 @@ int main(int argc, char** argv)
         if (ptr) *ptr = 0;
 
         char* saveptr;
-        char* token = strtok_r(line, " \0\n", &saveptr);
-
-        if (!token)
-            continue;
+        char* token = strtok_r(line, "|", &saveptr);
 
         char* bin;
-        if (token[0] == '/')
-        {
-            bin = malloc(strlen(token) + 1);
-            bin[0] = 0;
-        }
-        else
-        {
-            bin = malloc(strlen(token) + strlen(PATH) + 1);
-            strcpy(bin, PATH);
-        }
-        
-        strcpy(bin + strlen(bin), token);
-
-        token = strtok_r(NULL, " \0", &saveptr);
-
         char* argv[32];
-        argv[0] = strdup(bin);
-        unsigned int argc = 1;
-
-        while (token)
-        {
-            argv[argc] = strdup(token);
-            argc++;
-
-            token = strtok_r(NULL, " \0", &saveptr);
-        }
-
-        argv[argc] = NULL;
+        char** argv_ptr = argv;
+        if (get_command(token, &bin, &argv_ptr))
+            continue;
 
         if (!strncmp(line, "cd", 2))
         {

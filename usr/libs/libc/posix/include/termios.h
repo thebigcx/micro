@@ -99,3 +99,10 @@ struct termios
 int tcsetattr(int fd, int optional_actions,
               const struct termios* termios_p);
 int tcgetattr(int fd, struct termios* termios_p);
+
+#define TCOOFF 0
+#define TCOON  1
+#define TCIOFF 2
+#define TCION  3
+
+int tcflow(int fildes, int action);

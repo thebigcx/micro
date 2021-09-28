@@ -341,7 +341,7 @@ ssize_t ext2_getdents(struct file* dir, off_t off, size_t n, struct dirent* dirp
         struct ext2_dirent* dirent = (struct ext2_dirent*)((uintptr_t)buf + offset);
         offset += dirent->size;
 
-        if (idx++ < (size_t)off) continue;
+        if (dirent->inode == 0 || idx++ < (size_t)off) continue;
 
         strncpy(dirp[dentidx].d_name, dirent->name, dirent->name_len);
         dentidx++;
@@ -619,50 +619,6 @@ void ext2_mkentry(struct file* dir, struct file* file)
     // Copy the name into the flexible array
     memcpy(dirent->name, file->name, strlen(file->name));
 
-    /*struct ext2_inode pino; // Parent inode
-    ext2_read_inode(vol, dir->inode, &pino);
-
-    // Find the end of the directory
-    uintptr_t offset = 0;
-    uintptr_t blk    = 0;
-
-    void* buf = kmalloc(vol->blksize);
-    read_blocks(vol, buf, ext2_inode_blk(vol, &pino, blk), 1);
-
-    while (offset + blk * vol->blksize < INOSIZE(pino))
-    {
-        struct ext2_dirent* entry = (struct ext2_dirent*)((uintptr_t)buf + offset);
-        offset += entry->size;
-
-        size_t expect = sizeof(struct ext2_dirent) + entry->name_len;
-        expect = (expect & 0xfffffffc) + 4; // 4-byte alignment
-
-        if (expect < entry->size)
-        {
-            if (entry->size - expect >= dirent->size)
-            {
-                size_t orig = dirent->size;
-                dirent->size = entry->size - expect; // Padded to fit the rest of empty space
-
-                // Copy the data and write the block
-                memcpy((void*)entry + expect, dirent, orig);
-                entry->size = expect;
-                write_blocks(vol, buf, ext2_inode_blk(vol, &pino, blk), 1);
-
-                kfree(buf);
-                return;
-            }
-        }
-
-        if (offset >= vol->blksize)
-        {
-            blk++; offset = 0;
-            read_blocks(vol, buf, ext2_inode_blk(vol, &pino, blk), 1);
-        }
-    }
-
-    // TODO: allocate next block and write the dent there
-    kfree(buf);*/
     ext2_append_dirent(dir, dirent);
 }
 
@@ -751,9 +707,44 @@ void ext2_mknod(struct file* dir, const char* name, mode_t mode, dev_t dev, uid_
     ext2_mkentry(dir, &file);
 }
 
+// TODO: error code
 void ext2_unlink(struct file* dir, const char* name)
 {
-    (void)dir; (void)name;
+    struct ext2_volume* vol = dir->device;
+
+    struct ext2_inode ino;
+    ext2_read_inode(vol, dir->inode, &ino);
+
+    uintptr_t offset = 0;
+    uintptr_t blk    = 0;
+
+    void* buf = kmalloc(vol->blksize);
+    read_blocks(vol, buf, ext2_inode_blk(vol, &ino, blk), 1);
+
+    while (offset + blk * vol->blksize < INOSIZE(ino))
+    {
+        struct ext2_dirent* entry = (struct ext2_dirent*)((uintptr_t)buf + offset);
+        offset += entry->size;
+
+        if (strlen(name) == entry->name_len && !strncmp(name, entry->name, entry->name_len))
+        {
+            // Zero the dirent, leaving 'size' untouched
+            size_t size = entry->size;
+            memset(entry, 0, size);
+            entry->size = size;
+
+            write_blocks(vol, buf, ext2_inode_blk(vol, &ino, blk), 1);
+            return;
+        }
+
+        if (offset >= vol->blksize)
+        {
+            blk++; offset = 0;
+            read_blocks(vol, buf, ext2_inode_blk(vol, &ino, blk), 1);
+        }
+    }
+
+    kfree(buf);
 }
 
 int ext2_chmod(struct file* file, mode_t mode)

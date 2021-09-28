@@ -168,7 +168,11 @@ static void* syscalls[] =
     &sys_link,
     &sys_sigaction,
     &sys_sigreturn,
-    &sys_umask
+    &sys_sigprocmask,
+    &sys_umask,
+    &sys_pipe,
+    &sys_rename,
+    &sys_rmdir
 };
 
 void syscall_handler(struct regs* r)

@@ -37,6 +37,7 @@ SOURCES := internal/generic/init.c				\
 		   string/strtok.c						\
 		   string/strerror.c					\
 		   string/strndup.c						\
+		   string/strpbrk.c						\
 		   stdlib/abs.c							\
 		   stdlib/atoi.c						\
 		   stdlib/atol.c						\
@@ -93,6 +94,7 @@ SOURCES := internal/generic/init.c				\
 		   stdio/popen.c						\
 		   stdio/pclose.c						\
 		   stdio/clearerr.c						\
+		   stdio/fscanf.c						\
 		   time/gmtime_r.c						\
 		   time/gmtime.c						\
 		   time/localtime_r.c					\
@@ -191,6 +193,14 @@ SOURCES := internal/generic/init.c				\
 		   sysdeps/micro/generic/link.c			\
 		   sysdeps/micro/generic/sigprocmask.c	\
 		   sysdeps/micro/generic/umask.c		\
+		   sysdeps/micro/generic/pipe.c			\
+		   sysdeps/micro/generic/fcntl.c		\
+		   sysdeps/micro/generic/setuid.c		\
+		   sysdeps/micro/generic/setgid.c		\
+		   sysdeps/micro/generic/alarm.c		\
+		   sysdeps/micro/generic/times.c		\
+		   sysdeps/micro/generic/rename.c		\
+		   sysdeps/micro/generic/rmdir.c		\
 
 ASM :=     sysdeps/micro/generic/syscall.S		\
 		   arch/x86_64/setjmp.S					\

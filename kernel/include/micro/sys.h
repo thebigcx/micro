@@ -78,6 +78,9 @@ SYSCALL_DEFINE(sigaction,    int signum, const struct sigaction* act,
                              struct sigaction* oldact);
 SYSCALL_DEFINE(sigprocmask,  int how, const sigset_t* set, sigset_t* oldset);
 SYSCALL_DEFINE(umask,        mode_t umask);
+SYSCALL_DEFINE(pipe,         int fds[2]);
+SYSCALL_DEFINE(rename,       const char* old, const char* new);
+SYSCALL_DEFINE(rmdir,        const char* path);
 SYSCALL_DEFINE(sigreturn);
 SYSCALL_DEFINE(fork);
 

@@ -29,3 +29,4 @@
 #define EAGAIN          27
 #define EDOM            28
 #define EFBIG           29
+#define ENOSPC          30

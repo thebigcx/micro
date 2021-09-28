@@ -7,4 +7,7 @@
 #define WSTOPSIG(stat) WEXITSTATUS(stat)
 #define WIFEXITED(stat) (WTERMSIG(stat) == 0)
 
+#define WNOHANG   1
+#define WUNTRACED 2
+
 pid_t waitpid(pid_t pid, int* wstatus, int options);

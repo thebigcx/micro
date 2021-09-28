@@ -5,6 +5,27 @@
 
 int main(int argc, char** argv)
 {
+    // TEST
+    int fds[2];
+    pipe(fds);
+
+    if (fork() == 0)
+    {
+        dup2(fds[1], STDOUT_FILENO);
+        
+        const char* argv[] = { "/usr/bin/tee", NULL };
+        execv(argv[0], argv);
+    }
+    else
+    {
+        dup2(fds[0], STDIN_FILENO);
+        
+        const char* argv[] = { "/usr/bin/sh", NULL };
+        execv(argv[0], argv);
+    }
+
+
+
     uid_t uid = geteuid();
 
     FILE* passwd = fopen("/etc/passwd", "r");

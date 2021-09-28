@@ -24,7 +24,7 @@ typedef int          (*chmod_t   )(struct file* file, mode_t mode);
 typedef int          (*chown_t   )(struct file* file, uid_t uid, gid_t gid);
 typedef int          (*readlink_t)(struct file* file, char* buf, size_t n);
 typedef int          (*symlink_t )(struct file* file, const char* link);
-typedef int          (*link_t    )(struct file* old, const char* new, struct file* dir); 
+typedef int          (*link_t    )(struct file* old, const char* new, struct file* dir);
 
 struct file_ops
 {
@@ -148,6 +148,9 @@ int vfs_checkperm(struct file* file, unsigned int mask);
 int vfs_readlink(struct file* file, char* buf, size_t n);
 int vfs_symlink(const char* target, const char* link);
 int vfs_link(const char* old, const char* new);
+int vfs_rename(const char* old, const char* new);
+
+int vfs_rmdir(const char* path);
 
 typedef int (*mount_t)(const char*, const void* data, struct file* fsroot);
 

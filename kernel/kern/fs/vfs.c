@@ -168,6 +168,12 @@ int vfs_mknod(const char* path, mode_t mode, dev_t dev, uid_t uid, gid_t gid)
     return 0;
 }
 
+static void vfs_do_unlink(struct file* dir, const char* name)
+{
+    if (dir->ops.unlink)
+        dir->ops.unlink(dir, name);
+}
+
 int vfs_unlink(const char* pathname)
 {
     struct file dir;
@@ -179,8 +185,7 @@ int vfs_unlink(const char* pathname)
     if ((e = vfs_resolve(pathname, &file, 1))) return e;
     if (file.type == FL_DIR) return -EISDIR;
 
-    if (dir.ops.unlink)
-        dir.ops.unlink(&dir, name);
+    vfs_do_unlink(&dir, name);
 
     kfree(name);
     return 0;
@@ -514,6 +519,33 @@ int vfs_link(const char* old, const char* new)
         return file.ops.link(&file, name, &dir);
 
     return -ENOENT;
+}
+
+int vfs_rename(const char* old, const char* new)
+{
+    int e;
+    if ((e = vfs_link(old, new))) return e;
+
+    struct file dir;
+    char* name;
+    if ((e = get_parent_dir(old, &dir, &name))) return e;
+
+    vfs_do_unlink(&dir, name);
+
+    return 0;
+}
+
+int vfs_rmdir(const char* path)
+{
+    // TODO: check empty
+    struct file dir;
+    char* name;
+    int e;
+    if ((e = get_parent_dir(path, &dir, &name))) return e;
+
+    vfs_do_unlink(&dir, name);
+
+    return 0;
 }
 
 static struct fs_type fs_types[64];

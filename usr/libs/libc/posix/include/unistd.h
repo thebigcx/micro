@@ -46,6 +46,8 @@ int link(const char* old, const char* new);
 int unlink(const char* pathname);
 int symlink(const char* target, const char* link);
 
+int rmdir(const char* path);
+
 void _exit(int status);
 
 int setuid(uid_t uid);
@@ -66,3 +68,5 @@ gid_t getegid();
 int getgroups(int size, gid_t list[]);
 
 ssize_t readlink(const char* path, char* buf, size_t n);
+
+int pipe(int fds[2]);

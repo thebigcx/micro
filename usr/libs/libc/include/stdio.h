@@ -78,6 +78,7 @@ void puts(const char* str);
 #define putc(c, stream) fputc((c), (stream))
 
 int sscanf(const char* str, const char* format, ...);
+int fscanf(FILE* stream, const char* format, ...);
 
 void perror(const char* s);
 
@@ -87,3 +88,5 @@ FILE* tmpfile();
 
 FILE* popen(const char* command, const char* type);
 int pclose(FILE* stream);
+
+int rename(const char* old, const char* new);

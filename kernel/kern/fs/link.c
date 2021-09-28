@@ -54,3 +54,30 @@ SYSCALL_DEFINE(link, const char* old, const char* new)
     kfree(newcanon);
     return ret;
 }
+
+SYSCALL_DEFINE(rename, const char* old, const char* new)
+{
+    PTRVALID(old);
+    PTRVALID(new);
+
+    char* oldcanon = vfs_mkcanon(old, task_curr()->workd);
+    char* newcanon = vfs_mkcanon(new, task_curr()->workd);
+
+    int ret = vfs_rename(oldcanon, newcanon);
+
+    kfree(oldcanon);
+    kfree(newcanon);
+    return ret;
+}
+
+SYSCALL_DEFINE(rmdir, const char* path)
+{
+    PTRVALID(path);
+
+    char* canon = vfs_mkcanon(path, task_curr()->workd);
+
+    int ret = vfs_rmdir(canon);
+
+    kfree(canon);
+    return ret;
+}
