@@ -297,6 +297,16 @@ int main(int argc, char** argv)
     char pts_name[128];
     openpty(&ptm, &pts, pts_name, NULL, NULL);
 
+    struct winsize winsize =
+    {
+        .ws_col = info.xres / 8,
+        .ws_row = info.yres / 16,
+        .ws_xpixel = info.xres,
+        .ws_ypixel = info.yres
+    };
+
+    ioctl(pts, TIOCSWINSZ, &winsize);
+
     dup2(pts, 0);
     dup2(pts, 1);
     dup2(pts, 2);

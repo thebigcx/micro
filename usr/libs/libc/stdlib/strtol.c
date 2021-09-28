@@ -24,7 +24,9 @@ long int strtol(const char* str, char** endptr, int base)
     {
         if (!isdigit(*str))
         {
-            *endptr = (char*)str;
+            if (endptr)
+                *endptr = (char*)str;
+            
             return ret;
         }
 

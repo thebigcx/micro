@@ -1,5 +1,7 @@
 #pragma once
 
+#include <micro/termios.h>
+
 struct pt
 {
     struct ringbuf* inbuf;
@@ -7,6 +9,8 @@ struct pt
 
     struct file*    ptm;
     struct file*    pts;
+
+    struct winsize  size;
 };
 
 void tty_init();

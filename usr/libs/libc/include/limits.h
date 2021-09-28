@@ -10,6 +10,7 @@
 #define UCHAR_MAX 0xFF
 
 #define MB_LEN_MAX 16
+#define MB_CUR_MAX 16
 
 #define SHRT_MAX 0x7FFF
 #define SHRT_MIN -SHRT_MAX - 1

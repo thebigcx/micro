@@ -48,11 +48,14 @@ int symlink(const char* target, const char* link);
 
 void _exit(int status);
 
-int seteuid(uid_t euid);
-int setreuid(uid_t ruid, uid_t euid);
+int setuid(uid_t uid);
+int setgid(gid_t gid);
 
+int seteuid(uid_t euid);
 int setegid(gid_t egid);
+
 int setregid(gid_t rgid, gid_t egid);
+int setreuid(uid_t ruid, uid_t euid);
 
 uid_t getuid();
 uid_t geteuid();

@@ -37,6 +37,27 @@ ssize_t pts_write(struct file* file, const void* buf, off_t off, size_t size)
     return size;
 }
 
+int pts_ioctl(struct file* file, unsigned long req, void* argp)
+{
+    struct pt* pt = file->device;
+
+    switch (req)
+    {
+        case TIOCGWINSZ:
+        {
+            memcpy(argp, &pt->size, sizeof(struct winsize));
+            return 0;
+        }
+        case TIOCSWINSZ:
+        {
+            memcpy(&pt->size, argp, sizeof(struct winsize)); // TODO: generate SIGWINCH
+            return 0;
+        }
+    }
+
+    return -EINVAL;
+}
+
 ssize_t ptm_read(struct file* file, void* buf, off_t off, size_t size)
 {
     struct pt* pt = file->device;
@@ -124,6 +145,7 @@ struct file* pts_open(struct pt* pt)
 struct fd* ptmx_open(struct file* file, uint32_t flags, mode_t mode)
 {
     struct pt* pt = kmalloc(sizeof(struct pt));
+    memset(pt, 0, sizeof(struct pt));
 
     pt->inbuf  = ringbuf_create(1024);
     pt->outbuf = ringbuf_create(1024);

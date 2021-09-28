@@ -51,5 +51,6 @@
 #define SYS_sigaction       48
 #define SYS_sigreturn       49
 #define SYS_sigprocmask     50
+#define SYS_umask           51
 
 extern long syscall(long sysno, ...);

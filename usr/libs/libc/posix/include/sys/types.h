@@ -1,5 +1,7 @@
 #pragma once
 
+#define _POSIX_VERSION 200809L
+
 typedef long int            ssize_t;
 typedef unsigned long int   size_t;
 typedef long int            off_t;
@@ -17,3 +19,11 @@ typedef long int            suseconds_t;
 typedef long                clock_t;
 typedef int                 socklen_t;
 typedef long int            regoff_t;
+
+typedef unsigned int        u_int;
+typedef unsigned long       u_long;
+typedef short               bits16_t;
+typedef unsigned short      u_bits16_t;
+typedef int                 bits32_t;
+typedef unsigned int        u_bits32_t;
+typedef char*               bits64_t;

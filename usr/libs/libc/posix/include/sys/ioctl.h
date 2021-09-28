@@ -1,9 +1,10 @@
 #pragma once
 
 #define TIOCGWINSZ 0
-#define TCSETS     1
-#define TCSETSW    2
-#define TCSETSF    3
-#define TCGETS     4
+#define TIOCSWINSZ 1
+#define TCSETS     2
+#define TCSETSW    3
+#define TCSETSF    4
+#define TCGETS     5
 
 int ioctl(int fd, unsigned long request, void* argp);

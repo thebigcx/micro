@@ -10,6 +10,9 @@ SOURCES := internal/generic/init.c				\
 		   ctype/tolower.c						\
 		   ctype/toupper.c						\
 		   ctype/isgraph.c						\
+		   ctype/iscntrl.c						\
+		   ctype/isupper.c						\
+		   ctype/islower.c						\
 		   assert/assert.c						\
 		   string/memchr.c						\
 		   string/memcmp.c						\
@@ -36,6 +39,7 @@ SOURCES := internal/generic/init.c				\
 		   string/strndup.c						\
 		   stdlib/abs.c							\
 		   stdlib/atoi.c						\
+		   stdlib/atol.c						\
 		   stdlib/itoa.c						\
 		   stdlib/qsort.c						\
 		   stdlib/rand.c						\
@@ -47,6 +51,8 @@ SOURCES := internal/generic/init.c				\
 		   stdlib/realpath.c					\
 		   stdlib/strtol.c						\
 		   stdlib/system.c						\
+		   stdlib/bsearch.c						\
+		   stdlib/mbstowcs.c					\
 		   stdio/fprintf.c						\
 		   stdio/printf.c						\
 		   stdio/snprintf.c						\
@@ -184,6 +190,7 @@ SOURCES := internal/generic/init.c				\
 		   sysdeps/micro/generic/symlink.c		\
 		   sysdeps/micro/generic/link.c			\
 		   sysdeps/micro/generic/sigprocmask.c	\
+		   sysdeps/micro/generic/umask.c		\
 
 ASM :=     sysdeps/micro/generic/syscall.S		\
 		   arch/x86_64/setjmp.S					\

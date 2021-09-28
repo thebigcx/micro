@@ -26,5 +26,11 @@ extern int errno;
 #define EINTR           21
 #define EPERM           22
 #define ENOEXEC         23
+#define ELIBBAD         24
+#define E2BIG           25
+#define ESPIPE          26
+#define EAGAIN          27
+#define EDOM            28
+#define EFBIG           29
 
-#define EMAXERRNO       24
+#define EMAXERRNO       30

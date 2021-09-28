@@ -16,6 +16,7 @@ char* itoa(int value, char* str, int base);
 char* ultoa(unsigned long n, char* str, int base);
 
 int atoi(const char* str);
+long int atol(const char* str);
 int abs(int n);
 
 unsigned long strtoul(const char* str, char** endptr, int base);
@@ -32,7 +33,10 @@ int atexit(void (*function)(void));
 
 char* getenv(const char* name);
 
-void qsort(void* base, size_t nitems, size_t size, int (*compar)(const void*, const void*));
+void qsort(void* base, size_t nitems, size_t size,
+           int (*compar)(const void*, const void*));
+void* bsearch(const void* key, const void* base, size_t nmemb, size_t size,
+              int (*compar)(const void*, const void*));
 
 char* ptsname(int fd);
 int   ptsname_r(int fd, char* buf, size_t buflen);
@@ -43,3 +47,5 @@ void setprogname(const char* name);
 char* realpath(const char* path, char* respath);
 
 int system(const char* command);
+
+size_t mbstowcs(wchar_t* restrict dst, const char* restrict src, size_t n);

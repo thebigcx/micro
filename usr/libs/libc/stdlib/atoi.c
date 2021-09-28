@@ -3,7 +3,8 @@
 
 int atoi(const char* str)
 {
-    int ret  = 0;
+    return (int)strtol(str, NULL, 10);
+    /*int ret  = 0;
     int sign = 1;
 
     if (*str == '-')
@@ -19,5 +20,5 @@ int atoi(const char* str)
         ret = ret * 10 + (*str - '0');
     }
 
-    return ret * sign;
+    return ret * sign;*/
 }

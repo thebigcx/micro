@@ -108,6 +108,12 @@ SYSCALL_DEFINE(setgroups, size_t size, const gid_t* list)
     return 0;
 }
 
+SYSCALL_DEFINE(umask, mode_t umask)
+{
+    printk("warning: umask() not implemented!\n");
+    return 0;
+}
+
 typedef uintptr_t (*syscall_t)();
 
 static void* syscalls[] =
@@ -161,7 +167,8 @@ static void* syscalls[] =
     &sys_symlink,
     &sys_link,
     &sys_sigaction,
-    &sys_sigreturn
+    &sys_sigreturn,
+    &sys_umask
 };
 
 void syscall_handler(struct regs* r)
