@@ -13,7 +13,7 @@ SYSCALL_DEFINE(exit, int stat)
 
 SYSCALL_DEFINE(waitpid, int pid, int* wstatus, int options)
 {
-    PTRVALID(wstatus);
+    PTRVALIDNULL(wstatus);
 
     if (options > (WNOHANG | WUNTRACED) || options < 0) return -EINVAL;
     if (pid == INT_MIN) return -ESRCH;
@@ -25,6 +25,10 @@ SYSCALL_DEFINE(waitpid, int pid, int* wstatus, int options)
     {
         task->waiter = thread_curr();
         thread_block(); // Block until child finished
+    }
+    else if (options & WNOHANG && !task->changed)
+    {
+        return 0;
     }
 
     if (wstatus)

@@ -81,6 +81,7 @@ SYSCALL_DEFINE(umask,        mode_t umask);
 SYSCALL_DEFINE(pipe,         int fds[2]);
 SYSCALL_DEFINE(rename,       const char* old, const char* new);
 SYSCALL_DEFINE(rmdir,        const char* path);
+SYSCALL_DEFINE(reboot);
 SYSCALL_DEFINE(sigreturn);
 SYSCALL_DEFINE(fork);
 

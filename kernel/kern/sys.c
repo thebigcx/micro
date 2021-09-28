@@ -172,7 +172,8 @@ static void* syscalls[] =
     &sys_umask,
     &sys_pipe,
     &sys_rename,
-    &sys_rmdir
+    &sys_rmdir,
+    &sys_reboot
 };
 
 void syscall_handler(struct regs* r)

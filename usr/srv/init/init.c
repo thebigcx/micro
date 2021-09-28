@@ -2,6 +2,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <sys/wait.h>
+#include <sys/syscall.h>
 
 int main(int argc, char** argv)
 {
@@ -15,9 +16,10 @@ int main(int argc, char** argv)
     }
     else
     {
-        // Wait forever (term won't finish)
         waitpid(pid, NULL, 0);
     }
+
+    syscall(SYS_reboot);
 
     return 0;
 }

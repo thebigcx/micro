@@ -5,6 +5,7 @@
 #include <pty.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
+#include <sys/wait.h>
 
 #include <micro/fb.h>
 
@@ -311,7 +312,8 @@ int main(int argc, char** argv)
     dup2(pts, 1);
     dup2(pts, 2);
 
-    if (fork() == 0)
+    pid_t child = fork();
+    if (child == 0)
     {
         const char* argv[] = { "/usr/bin/sh", NULL };
         execv(argv[0], argv);
@@ -332,6 +334,10 @@ int main(int argc, char** argv)
         {
             handle_kb(sc);
         }
+
+        int status;
+        if (waitpid(child, &status, WNOHANG) > 0)
+            break;
     }
 
     return 0;
