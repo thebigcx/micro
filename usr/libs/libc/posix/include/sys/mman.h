@@ -14,5 +14,7 @@
 #define MAP_ANONYMOUS       0x0004
 #define MAP_FIXED           0x0008
 
+#define MAP_FAILED          ((void*)-1)
+
 void* mmap(void* addr, size_t length, int prot, int flags, int fd, off_t offset);
 int munmap(void* addr, size_t length);

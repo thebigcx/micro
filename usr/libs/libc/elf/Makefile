@@ -4,7 +4,7 @@ OBJ = $(patsubst %.c, %.o, $(SRC))
 TARG = ld.so
 
 CFLAGS = -ffreestanding -fno-stack-protector -O2 -Wall -Wextra -Wno-unused-parameter -Wno-unused-variable
-LDFLAGS = -static
+LDFLAGS = -Wl,-Tlinker.ld -static
 CC = x86_64-micro-gcc
 
 .PHONY: all install clean

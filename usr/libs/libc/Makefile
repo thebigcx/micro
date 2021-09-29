@@ -235,9 +235,9 @@ $(SO): $(OBJS)
 	@echo "    AS    $@"
 	@x86_64-micro-gcc -c $< -o $@
 
-#SUBDIRS = elf
+SUBDIRS = elf
 
-#include subdir.mk
+include subdir.mk
 
 install:
 	mkdir -p $(DESTDIR)/usr

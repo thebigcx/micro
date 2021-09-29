@@ -45,23 +45,17 @@ static void init_user_task(struct task* task, const char* path,
 
     // Top of canonical lower-half
     uintptr_t stack = 0x8000000000;
-    /*for (size_t i = 0; i < 16; i++)
-    {
-        mmu_map(task->vm_map, stack - i * PAGE4K, mmu_alloc_phys(), PAGE_PR | PAGE_RW);
-    }*/
     struct vm_area* area = vm_map_anon(task->vm_map, stack - 0x4000, 0x4000, 0);
 
     // Allocate the first page
     vm_map_anon_alloc(task->vm_map, area, area->base, 4 * PAGE4K);
-    //vm_map_anon_alloc(task->vm_map, area, area->end - PAGE4K, PAGE4K);
 
     task->main->regs.rsp = stack;
     task->main->regs.rbp = stack;
     task->main->regs.rip = entry;
 
-    task->sigstack = stack - 0x1000 * 16 - 0x1000; // TODO: search for a free page
-    mmu_map(task->vm_map, task->sigstack, mmu_alloc_phys(), PAGE_PR | PAGE_RW);
-    task->sigstack += PAGE4K;
+    struct vm_area* sigstack = vm_map_anon(task->vm_map, 0, PAGE4K, 0);
+    task->sigstack = sigstack + PAGE4K;
 
     setup_user_stack(task, argv, envp);
 
@@ -161,16 +155,40 @@ struct task* task_clone(struct task* src, struct thread* calling)
     return task;
 }
 
+// TODO: move into exec.c
 int task_execve(struct task* task, const char* path, const char* argv[], const char* envp[])
 {
-    struct vm_map* vm_map = mmu_create_vmmap();
-
     struct file file;
     int e;
     if ((e = vfs_resolve(path, &file, 1))) return e;
 
     void* data = kmalloc(file.size);
     vfs_read(&file, data, 0, file.size);
+
+    const char* interp = elf_getinterp(data);
+    if (interp)
+    {
+        size_t argc = 1;
+        while (argv[argc - 1]) argc++;
+
+        char* nargv[argc + 1];
+        nargv[0] = interp;
+        memcpy(&nargv[1], &argv[0], argc * sizeof(const char*));
+
+        // TODO: this leaks memory
+        struct file interp;
+
+        int e;
+        if ((e = vfs_resolve(nargv[0], &interp, 1))) return e;
+
+        // Don't know why POSIX defines these as different error codes
+        if (interp.type == FL_DIR) return -EISDIR;
+        if (interp.type != FL_FILE) return -EACCES;
+
+        return task_execve(task, nargv[0], nargv, envp);
+    }
+
+    struct vm_map* vm_map = mmu_create_vmmap();
 
     uintptr_t entry;
     if ((e = elf_load(vm_map, data, argv, envp, &entry)))

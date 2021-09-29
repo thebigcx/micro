@@ -83,40 +83,6 @@ int elf_load(struct vm_map* vm_map, void* data, const char* argv[],
     if (!valid_elf(header))
         return -ENOEXEC;
 
-    // Check if need to load a dynamic linker
-    for (unsigned int i = 0; i < header->ph_num; i++)
-    {
-        struct elf_phdr* phdr = (struct elf_phdr*)((uintptr_t)data + header->ph_off + header->ph_ent_size * i);
-
-        if (phdr->type == PT_INTERP)
-        {
-            size_t argc = 1;
-            while (argv[argc - 1]) argc++;
-
-            char* nargv[argc + 1];
-            nargv[0] = "/lib/ld.so";
-            memcpy(&nargv[1], &argv[0], argc * sizeof(const char*));
-
-            // TODO: this leaks memory
-            struct file interp;
-
-            int e;
-            if ((e = vfs_resolve(nargv[0], &interp, 1))) return e;
-
-            // Don't know why POSIX defines these as different error codes
-            if (interp.type == FL_DIR) return -EISDIR;
-            if (interp.type != FL_FILE) return -EACCES;
-
-            void* data = kmalloc(interp.size);
-            vfs_read(&interp, data, 0, interp.size);
-
-            if (!valid_elf(header))
-                return -ELIBBAD;
-
-            return elf_load(vm_map, data, (const char**)nargv, envp, rip);
-        }
-    }
-
     for (unsigned int i = 0; i < header->ph_num; i++)
     {
         struct elf_phdr* phdr = (struct elf_phdr*)((uintptr_t)data + header->ph_off + header->ph_ent_size * i);
@@ -144,4 +110,23 @@ int elf_load(struct vm_map* vm_map, void* data, const char* argv[],
 
     *rip = header->entry;
     return 0;
+}
+
+// Check for a program interpreter - returns NULL if none found
+const char* elf_getinterp(void* data)
+{
+    struct elf_hdr* header = (struct elf_hdr*)data;
+
+    for (unsigned int i = 0; i < header->ph_num; i++)
+    {
+        struct elf_phdr* phdr = (struct elf_phdr*)((uintptr_t)data + header->ph_off + header->ph_ent_size * i);
+
+        if (phdr->type == PT_INTERP)
+        {
+            // TODO: get actual interpreter path
+            return "/lib/ld.so";
+        }
+    }
+
+    return NULL;
 }
