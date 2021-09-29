@@ -6,6 +6,8 @@
 #include <arch/cpu.h>
 #include <micro/errno.h>
 #include <micro/heap.h>
+#include <micro/utsname.h>
+#include <micro/stdlib.h>
 
 SYSCALL_DEFINE(getpid)
 {
@@ -110,8 +112,19 @@ SYSCALL_DEFINE(setgroups, size_t size, const gid_t* list)
 
 SYSCALL_DEFINE(umask, mode_t umask)
 {
-    printk("warning: umask() not implemented!\n");
-    return 0;
+    struct task* task = task_curr();
+
+    mode_t old = task->umask;
+    task->umask = umask;
+    return old;
+}
+
+SYSCALL_DEFINE(uname, struct utsname* buf)
+{
+    strcpy(buf->sysname, "Micro");
+    strcpy(buf->release, "0.0.1");
+    strcpy(buf->version, "INITIAL VERSION");
+    strcpy(buf->machine, "x86_64");
 }
 
 typedef uintptr_t (*syscall_t)();
@@ -173,7 +186,8 @@ static void* syscalls[] =
     &sys_pipe,
     &sys_rename,
     &sys_rmdir,
-    &sys_reboot
+    &sys_reboot,
+    &sys_uname
 };
 
 void syscall_handler(struct regs* r)

@@ -56,5 +56,6 @@
 #define SYS_rename          53
 #define SYS_rmdir           54
 #define SYS_reboot          55
+#define SYS_uname           56
 
 extern long syscall(long sysno, ...);

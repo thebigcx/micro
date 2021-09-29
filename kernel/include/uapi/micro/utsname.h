@@ -11,5 +11,3 @@ struct utsname
     char machine[_UTSNAME_LENGTH];
     char domainname[_UTSNAME_LENGTH];
 };
-
-int uname(struct utsname* buf);

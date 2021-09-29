@@ -203,6 +203,7 @@ SOURCES := internal/generic/init.c				\
 		   sysdeps/micro/generic/times.c		\
 		   sysdeps/micro/generic/rename.c		\
 		   sysdeps/micro/generic/rmdir.c		\
+		   sysdeps/micro/generic/uname.c		\
 
 ASM :=     sysdeps/micro/generic/syscall.S		\
 		   arch/x86_64/setjmp.S					\

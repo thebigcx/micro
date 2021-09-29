@@ -25,6 +25,7 @@ struct timeval;
 struct timezone;
 struct stat;
 struct sigaction;
+struct utsname;
 
 SYSCALL_DEFINE(open,         const char* pathname, uint32_t flags, mode_t mode);
 SYSCALL_DEFINE(close,        int fd);
@@ -81,6 +82,7 @@ SYSCALL_DEFINE(umask,        mode_t umask);
 SYSCALL_DEFINE(pipe,         int fds[2]);
 SYSCALL_DEFINE(rename,       const char* old, const char* new);
 SYSCALL_DEFINE(rmdir,        const char* path);
+SYSCALL_DEFINE(uname,        struct utsname* buf);
 SYSCALL_DEFINE(reboot);
 SYSCALL_DEFINE(sigreturn);
 SYSCALL_DEFINE(fork);

@@ -21,7 +21,8 @@ SRCS := cat.c 		\
 		hexdump.c	\
 		tee.c		\
 		mv.c		\
-		rmdir.c
+		rmdir.c		\
+		uname.c
 
 OBJS := $(patsubst %.c, %.o, $(SRCS))
 TARGS := $(patsubst %.c, %, $(SRCS))
