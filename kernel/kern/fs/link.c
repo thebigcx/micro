@@ -12,7 +12,7 @@ SYSCALL_DEFINE(mkdir, const char* path, mode_t mode)
     if (canon[0] == 0) return -ENOENT;
     if (sys_access(canon, F_OK) == 0) return -EEXIST;
 
-    return vfs_mkdir(canon, mode, task->euid, task->egid);
+    return vfs_mkdir(canon, mode & ~task->umask, task->euid, task->egid);
 }
 
 SYSCALL_DEFINE(unlink, const char* pathname)

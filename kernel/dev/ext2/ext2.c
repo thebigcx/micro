@@ -5,6 +5,7 @@
 #include <micro/module.h>
 #include <micro/debug.h>
 #include <micro/errno.h>
+#include <arch/cmos.h>
 
 #define SUPER_BLK 1
 #define BGDS_BLK  2
@@ -538,6 +539,9 @@ void ext2_init_inode(struct ext2_volume* vol, struct ext2_inode* ino, struct fil
     ino->size    = 0;
     ino->sectors = vol->blksize / 512;
     ino->nlink   = 1;
+    ino->ctime   = time_getepoch();
+    ino->atime   = ino->ctime;
+    ino->mtime   = ino->ctime;
     
     ext2_set_inode_blk(vol, ino, 0, ext2_alloc_blk(vol)); // One block to start off with
 }

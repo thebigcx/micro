@@ -11,7 +11,7 @@ int main(int argc, char** argv)
     }
 
     int fd;
-    if (!(fd = open(argv[1], O_CREAT | O_RDONLY, 0)))
+    if (!(fd = open(argv[1], O_CREAT | O_RDONLY, 0777)))
     {
         perror("touch: ");
         return -1;

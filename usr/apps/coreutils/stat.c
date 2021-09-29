@@ -53,6 +53,15 @@ int main(int argc, char** argv)
 
     printf("Access: ");
 
+    if      (S_ISREG(buf.st_mode))  printf("-");
+    else if (S_ISDIR(buf.st_mode))  printf("d");
+    else if (S_ISBLK(buf.st_mode))  printf("b");
+    else if (S_ISCHR(buf.st_mode))  printf("c");
+    else if (S_ISFIFO(buf.st_mode)) printf("f");
+    else if (S_ISLNK(buf.st_mode))  printf("l");
+    else if (S_ISSOCK(buf.st_mode)) printf("s");
+    else printf("u\n");
+
     if (buf.st_mode & S_IRUSR) printf("r");
     else printf("-");
     if (buf.st_mode & S_IWUSR) printf("w");

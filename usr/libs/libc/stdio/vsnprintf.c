@@ -5,8 +5,9 @@
 
 #define STATE_NORM  0
 #define STATE_FLAG  1
-#define STATE_LEN   2
-#define STATE_CONV  3
+#define STATE_WIDTH 2
+#define STATE_LEN   3
+#define STATE_CONV  4
 
 #define IF_HEX    1
 #define IF_SIGNED 2
@@ -18,8 +19,9 @@
 #define L_LONG  3
 #define L_LLONG 4
 
-static size_t __fmtint(char* str, size_t n, long long int num, unsigned int int_flags)
+static size_t __fmtint(char* str, size_t n, long long int num, unsigned int int_flags, int padding)
 {
+    size_t stridx = 0;
     char buf[32]; // large enough for now
 
     int base = int_flags & IF_HEX
@@ -37,27 +39,45 @@ static size_t __fmtint(char* str, size_t n, long long int num, unsigned int int_
     }
 
     size_t len = strlen(buf);
+
+    if (padding > 0 && padding - len > 0)
+    {
+        for (int i = 0; i < padding - len; i++)
+            str[stridx++] = ' ';
+    }
+
     for (size_t i = 0; i < len && i < n; i++)
     {
         if (isdigit(buf[i]) && (int_flags & IF_UPPER))
-            str[i] = toupper(buf[i]);
+            str[stridx++] = toupper(buf[i]);
         else
-            str[i] = buf[i];
+            str[stridx++] = buf[i];
     }
 
-    return len < n ? len : n;
+    int bytes = padding - (int)len > 0 ? padding : (int)len;
+
+    return bytes < n ? bytes : n;
 }
 
-static size_t __fmtstr(char* buf, size_t n, const char* str)
+static size_t __fmtstr(char* buf, size_t n, const char* str, int padding)
 {
+    size_t stridx = 0;
+
     size_t len = strlen(str);
+
+    if (padding > 0 && padding - len > 0)
+    {
+        for (int i = 0; i < padding - len; i++)
+            buf[stridx++] = ' ';
+    }
+
     for (size_t i = 0; i < len && i < n; i++)
-        buf[i] = str[i];
+        buf[stridx++] = str[i];
 
     return len < n ? len : n;
 }
 
-static size_t __fmtchr(char* str, size_t n, char c)
+static size_t __fmtchr(char* str, size_t n, char c, int padding)
 {
     if (n) str[0] = c;
     return !!n;
@@ -71,6 +91,7 @@ int vsnprintf(char* str, size_t n, const char* format, va_list list)
     int state = STATE_NORM;
 
     int len = 0;
+    int padding = 0;
 
     for (;;)
     {
@@ -92,7 +113,15 @@ int vsnprintf(char* str, size_t n, const char* format, va_list list)
         {
             switch (c)
             {
-                default: state = STATE_LEN; break;
+                default: state = STATE_WIDTH; break;
+            }
+        }
+        else if (state == STATE_WIDTH)
+        {
+            switch (c)
+            {
+                case '*': padding = va_arg(list, int); format++; break;
+                default: state = STATE_LEN;
             }
         }
         else if (state == STATE_LEN)
@@ -136,15 +165,15 @@ int vsnprintf(char* str, size_t n, const char* format, va_list list)
                 if (c == 'X')
                     int_flags |= IF_UPPER;
 
-                i += __fmtint(str + i, n - i, num, int_flags);
+                i += __fmtint(str + i, n - i, num, int_flags, padding);
             }
             else if (c == 's')
             {
-                i += __fmtstr(str + i, n - i, va_arg(list, const char*));
+                i += __fmtstr(str + i, n - i, va_arg(list, const char*), padding);
             }
             else if (c == 'c')
             {
-                i += __fmtchr(str + i, n - i, va_arg(list, int));
+                i += __fmtchr(str + i, n - i, va_arg(list, int), padding);
             }
             else if (c == '%')
             {
@@ -157,11 +186,12 @@ int vsnprintf(char* str, size_t n, const char* format, va_list list)
                     strcpy(str + i, "0x");
                     i += 2;
                 }
-                i += __fmtint(str + i, n - i, va_arg(list, unsigned long), IF_HEX);
+                i += __fmtint(str + i, n - i - padding, va_arg(list, unsigned long), IF_HEX, padding);
             }
             
             format++;
             state = STATE_NORM;
+            padding = 0;
         }
 
         if (c == 0 || i >= n) break;

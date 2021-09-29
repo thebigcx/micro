@@ -23,7 +23,7 @@ SYSCALL_DEFINE(open, const char* path, uint32_t flags, mode_t mode)
     {
         if (!(flags & O_CREAT)) return -ENOENT;
         
-        if ((e = vfs_mkfile(canon, mode, task->euid, task->egid)))
+        if ((e = vfs_mkfile(canon, mode & ~task->umask, task->euid, task->egid)))
             return e;
 
         vfs_resolve(canon, file, 1);

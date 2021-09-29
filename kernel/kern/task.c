@@ -25,6 +25,7 @@ static struct task* mktask(struct task* parent, struct vm_map* vm_map)
     task->children = list_create();
     task->parent   = parent;
     task->sigqueue = list_create();
+    task->umask    = 0022;
     
     strcpy(task->workd, "/");
     memset(task->fds, 0, sizeof(struct fd*) * FD_MAX);

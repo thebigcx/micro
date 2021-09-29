@@ -114,6 +114,14 @@ time_t date_to_epoch(struct rtc_time* time)
     return sec;
 }
 
+unsigned long time_getepoch()
+{
+    struct rtc_time time;
+    rtc_gettime(&time);
+
+    return date_to_epoch(&time);
+}
+
 SYSCALL_DEFINE(gettimeofday, struct timeval* tv, struct timezone* tz)
 {
     PTRVALID(tv);

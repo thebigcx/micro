@@ -46,6 +46,8 @@ struct task
     size_t groupcnt;
 
     struct task* tracer;
+
+    mode_t umask; // File creation mask
 };
 
 struct thread;
