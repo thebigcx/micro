@@ -55,6 +55,8 @@ SOURCES := internal/generic/init.c				\
 		   stdlib/system.c						\
 		   stdlib/bsearch.c						\
 		   stdlib/mbstowcs.c					\
+		   stdlib/mktemp.c						\
+		   stdlib/mkdtemp.c						\
 		   stdio/fprintf.c						\
 		   stdio/printf.c						\
 		   stdio/snprintf.c						\
@@ -96,6 +98,7 @@ SOURCES := internal/generic/init.c				\
 		   stdio/pclose.c						\
 		   stdio/clearerr.c						\
 		   stdio/fscanf.c						\
+		   stdio/fdopen.c						\
 		   time/gmtime_r.c						\
 		   time/gmtime.c						\
 		   time/localtime_r.c					\
@@ -134,6 +137,11 @@ SOURCES := internal/generic/init.c				\
 		   posix/generic/pathconf.c				\
 		   posix/generic/fpathconf.c			\
 		   posix/generic/getopt.c				\
+		   posix/generic/tcflow.c				\
+		   posix/generic/getpwuid.c				\
+		   posix/generic/getgrent.c				\
+		   posix/generic/setgrent.c				\
+		   posix/generic/endgrent.c				\
 		   sysdeps/micro/generic/open.c			\
 		   sysdeps/micro/generic/close.c		\
 		   sysdeps/micro/generic/read.c			\
@@ -204,6 +212,10 @@ SOURCES := internal/generic/init.c				\
 		   sysdeps/micro/generic/rename.c		\
 		   sysdeps/micro/generic/rmdir.c		\
 		   sysdeps/micro/generic/uname.c		\
+		   sysdeps/micro/generic/ttyname.c		\
+		   sysdeps/micro/generic/getppid.c		\
+		   sysdeps/micro/generic/fchmod.c		\
+		   sysdeps/micro/generic/mknod.c		\
 
 ASM :=     sysdeps/micro/generic/syscall.S		\
 		   arch/x86_64/setjmp.S					\

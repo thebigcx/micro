@@ -32,6 +32,7 @@ struct task
     struct list  sigqueue;  // struct int[]
     struct sigaction signals[32];
     uintptr_t    sigstack;
+    sigset_t     sigmask; // TODO: sigmask should be per-thread
 
     int status;
     int state;

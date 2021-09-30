@@ -64,5 +64,7 @@ int    stat(const char* path, struct stat* buf);
 int    fstat(int fd, struct stat* buf);
 int    lstat(const char* path, struct stat* buf);
 int    chmod(const char* pathname, mode_t mode);
+int    fchmod(int fd, mode_t mode);
 int    chown(const char* pathname, uid_t uid, gid_t gid);
 mode_t umask(mode_t mask);
+int    mknod(const char* path, mode_t mode, dev_t dev);

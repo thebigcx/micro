@@ -118,6 +118,9 @@ void thread_handle_contsig(struct thread* thread)
     }
 }
 
+// TODO: scan threads for a thread which can handle the signal (not in the sigmask)
+// (don't necessarily use the main thread for signal handling)
+
 void thread_handle_signals(struct thread* thread)
 {
     int* sigptr = list_dequeue(&thread->parent->sigqueue);
@@ -126,6 +129,10 @@ void thread_handle_signals(struct thread* thread)
 
     if (thread->parent->tracer)
         handle_stopsig(thread, sig);
+
+    // Ignore signal if in the signal mask
+    if (sig != SIGKILL && sig != SIGSTOP && (thread->parent->sigmask & (1 << sig)))
+        return;
 
     uintptr_t handler = thread->parent->signals[sig].sa_handler;
 

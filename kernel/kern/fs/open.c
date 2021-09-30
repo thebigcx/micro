@@ -123,6 +123,17 @@ SYSCALL_DEFINE(chmod, const char* pathname, mode_t mode)
     return vfs_chmod(&file, mode);
 }
 
+SYSCALL_DEFINE(fchmod, int fd, mode_t mode)
+{
+    FDVALID(fd);
+
+    struct file* file = task_curr()->fds[fd]->filp;
+
+    if (file->uid != task_curr()->euid) return -EPERM;
+
+    return vfs_chmod(file, mode);
+}
+
 SYSCALL_DEFINE(chown, const char* pathname, uid_t uid, uid_t gid)
 {
     PTRVALID(pathname);

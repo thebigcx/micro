@@ -1,8 +1,7 @@
 #include <unistd.h>
-#include <assert.h>
+#include <libc/syscall.h>
 
 int setgid(gid_t gid)
 {
-    assert(!"setgid() not implemented!\n");
-    return 0;
+    return SYSCALL_ERR(setgid, gid);
 }

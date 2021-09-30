@@ -138,8 +138,8 @@ static void gp(struct regs* regs, uint32_t e)
 {
     if (regs->cs & 3)
     {
-        //dump(regs);
-        //backtrace(regs->rip, regs->rbp, 32);
+        dump(regs);
+        backtrace(regs->rip, regs->rbp, 32);
         thread_curr()->syscall_regs = *regs;
         task_send(task_curr(), SIGSEGV);
         return;
@@ -157,8 +157,8 @@ static void pf(struct regs* regs, uint32_t e)
     {
         //if (vm_map_handle_fault(task_curr()->vm_map, rcr2()) == -1)
         {
-            //dump(regs);
-            //backtrace(regs->rip, regs->rbp, 32);
+            dump(regs);
+            backtrace(regs->rip, regs->rbp, 32);
             thread_curr()->regs = *regs;
             task_send(task_curr(), SIGSEGV); // Could not handle
         }

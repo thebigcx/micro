@@ -28,7 +28,6 @@ off_t lseek(int fd, off_t offset, int whence);
 int execve(const char* pathname, const char* argv[], const char* envp[]);
 int execv(const char* path, const char* argv[]);
 int execvp(const char* file, const char* argv[]);
-pid_t getpid();
 pid_t fork();
 int chdir(const char* path);
 char* getcwd(char* buf, size_t size);
@@ -50,6 +49,10 @@ int rmdir(const char* path);
 
 void _exit(int status);
 
+pid_t getpid();
+
+pid_t getppid();
+
 int setuid(uid_t uid);
 int setgid(gid_t gid);
 
@@ -70,6 +73,8 @@ int getgroups(int size, gid_t list[]);
 ssize_t readlink(const char* path, char* buf, size_t n);
 
 int pipe(int fds[2]);
+
+char* ttyname(int fd);
 
 extern char* optarg;
 extern int optind, opterr, optopt;

@@ -3,6 +3,12 @@
 #include <string.h>
 #include <stdlib.h>
 
+int compar(const void* a, const void* b)
+{
+    printf("%p, %p\n", a, b);
+    return *((char**)a)[0] - *((char**)b)[0];
+}
+
 int main(int argc, char** argv)
 {
     // TEST
@@ -23,8 +29,13 @@ int main(int argc, char** argv)
         const char* argv[] = { "/usr/bin/sh", NULL };
         execv(argv[0], argv);
     }*/
-    *((uint32_t*)0x89735097377207) = 1000;
+    //*((uint32_t*)0x89735097377207) = 1000;
 
+    const char* names[] = { "Chris", "John", "Alex", "Connor", "Ethan", "Lucas", "George", "Noah" };
+    qsort(names, 8, sizeof(const char*), compar);
+
+    for (size_t i = 0; i < 8; i++)
+        printf("%s, ", names[i]);
 
 
     uid_t uid = geteuid();

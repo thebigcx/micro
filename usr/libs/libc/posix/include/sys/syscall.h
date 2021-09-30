@@ -57,5 +57,10 @@
 #define SYS_rmdir           54
 #define SYS_reboot          55
 #define SYS_uname           56
+#define SYS_getppid         57
+#define SYS_fchmod          58
+#define SYS_mknod           59
+#define SYS_setuid          60
+#define SYS_setgid          61
 
 extern long syscall(long sysno, ...);

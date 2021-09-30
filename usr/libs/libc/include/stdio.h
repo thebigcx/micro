@@ -44,6 +44,8 @@ int vfprintf(FILE* file, const char* format, va_list args);
 
 FILE* fopen(const char* path, const char* mode);
 FILE* freopen(const char* path, const char* mode, FILE* stream);
+FILE* fdopen(int fd, const char* mode);
+
 int fclose(FILE* stream);
 size_t fread(void* ptr, size_t size, size_t nmemb, FILE* stream);
 size_t fwrite(const void* ptr, size_t size, size_t nmemb, FILE* stream);

@@ -1,8 +1,7 @@
 #include <unistd.h>
-#include <assert.h>
+#include <libc/syscall.h>
 
 int setuid(uid_t uid)
 {
-    assert(!"setuid() not implemented!\n");
-    return 0;
+    return SYSCALL_ERR(setuid, uid);
 }

@@ -51,3 +51,8 @@ struct sigaction
 #define SIGXFSZ     27
 #define SIGWINCH    28
 #define SIGABRT     29
+
+// sigprocmask() values
+#define SIG_BLOCK   0
+#define SIG_UNBLOCK 1
+#define SIG_SETMASK 2

@@ -29,7 +29,32 @@ SYSCALL_DEFINE(sigaction, int signum, const struct sigaction* act,
 
 SYSCALL_DEFINE(sigprocmask, int how, const sigset_t* set, sigset_t* oldset)
 {
-    printk("warning: sigprocmask() not implemented!\n");
+    PTRVALIDNULL(set);
+    PTRVALIDNULL(oldset);
+
+    struct task* task = task_curr();
+
+    if (oldset)
+        *oldset = task->sigmask;
+
+    if (set)
+    {
+        switch (how)
+        {
+            case SIG_BLOCK:
+                task->sigmask |= *set;
+                break;
+            case SIG_UNBLOCK:
+                task->sigmask &= ~(*set);
+                break;
+            case SIG_SETMASK:
+                task->sigmask = *set;
+                break;
+            default:
+                return -EINVAL;
+        }
+    }
+
     return 0;
 }
 

@@ -34,6 +34,11 @@ SYSCALL_DEFINE(getegid)
     return task_curr()->egid;
 }
 
+SYSCALL_DEFINE(getppid)
+{
+    return task_curr()->parent->id;
+}
+
 SYSCALL_DEFINE(setreuid, uid_t ruid, uid_t euid)
 {
     struct task* task = task_curr();
@@ -69,6 +74,20 @@ SYSCALL_DEFINE(setregid, gid_t rgid, gid_t egid)
         task->egid = egid;
     }
 
+    return 0;
+}
+
+SYSCALL_DEFINE(setuid, uid_t uid)
+{
+    // TODO: proper implementation
+    sys_setreuid(-1, uid);
+    return 0;
+}
+
+SYSCALL_DEFINE(setgid, gid_t gid)
+{
+    // TODO: proper implementation
+    sys_setregid(-1, gid);
     return 0;
 }
 
@@ -125,6 +144,7 @@ SYSCALL_DEFINE(uname, struct utsname* buf)
     strcpy(buf->release, "0.0.1");
     strcpy(buf->version, "INITIAL VERSION");
     strcpy(buf->machine, "x86_64");
+    return 0;
 }
 
 typedef uintptr_t (*syscall_t)();
@@ -187,7 +207,12 @@ static void* syscalls[] =
     &sys_rename,
     &sys_rmdir,
     &sys_reboot,
-    &sys_uname
+    &sys_uname,
+    &sys_getppid,
+    &sys_fchmod,
+    &sys_mknod,
+    &sys_setuid,
+    &sys_setgid
 };
 
 void syscall_handler(struct regs* r)

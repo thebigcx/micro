@@ -81,3 +81,10 @@ SYSCALL_DEFINE(rmdir, const char* path)
     kfree(canon);
     return ret;
 }
+
+SYSCALL_DEFINE(mknod, const char* path, mode_t mode, dev_t dev)
+{
+    PTRVALID(path);
+
+    return vfs_mknod(path, mode, dev, task_curr()->euid, task_curr()->egid);
+}

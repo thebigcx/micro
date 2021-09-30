@@ -27,3 +27,6 @@ typedef unsigned short      u_bits16_t;
 typedef int                 bits32_t;
 typedef unsigned int        u_bits32_t;
 typedef char*               bits64_t;
+
+// Technically not part of POSIX, but bash requires it
+typedef void*               caddr_t;

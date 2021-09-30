@@ -11,3 +11,7 @@ struct group
 };
 
 int setgroups(size_t size, const gid_t* list);
+
+struct group* getgrent(void);
+void setgrent(void);
+void endgrent(void);

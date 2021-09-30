@@ -49,3 +49,6 @@ char* realpath(const char* path, char* respath);
 int system(const char* command);
 
 size_t mbstowcs(wchar_t* restrict dst, const char* restrict src, size_t n);
+
+char* mktemp(char* template);
+char* mkdtemp(char* template);
