@@ -52,5 +52,5 @@ void devfs_init()
 
 void devfs_register(struct file* file)
 {
-    list_push_back(&devices, file);
+    list_enqueue(&devices, file);
 }

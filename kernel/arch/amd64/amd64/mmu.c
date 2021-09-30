@@ -476,7 +476,7 @@ struct vm_area* vm_map_alloc(struct vm_map* map, size_t size)
 
     if (end < KBASE)
     {
-        return list_push_back(&map->vm_areas, vm_area_create(base, end, NULL));
+        return list_enqueue(&map->vm_areas, vm_area_create(base, end, NULL));
     }
 
     return NULL;
@@ -507,7 +507,7 @@ struct vm_area* vm_map_allocat(struct vm_map* map, uintptr_t base, size_t size)
     if (!map->vm_areas.size
      ||((struct vm_area*)list_back(&map->vm_areas))->end <= base)
     {
-        return list_push_back(&map->vm_areas, vm_area_create(base, end, NULL));
+        return list_enqueue(&map->vm_areas, vm_area_create(base, end, NULL));
     }
 
     return NULL;

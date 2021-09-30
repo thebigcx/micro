@@ -34,7 +34,7 @@ void sem_wait(struct sem* sem)
     else
     {
         // Wait for a thread to signal the semaphore
-        list_push_back(&sem->threads, thread_curr());
+        list_enqueue(&sem->threads, thread_curr());
         thread_block();
     }
 }

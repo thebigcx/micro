@@ -19,9 +19,8 @@ struct list
 #define LIST_FOREACH(list) for (struct lnode* node = (list)->head; node != NULL; node = node->next)
 
 struct list list_create();
-void* list_push_back(struct list* self, void* data);
-void* list_dequeue(struct list* self);
 void* list_enqueue(struct list* self, void* data);
+void* list_dequeue(struct list* self);
 void* list_pop_back(struct list* self);
 void list_clear(struct list* self);
 void* list_get(struct list* self, size_t i);

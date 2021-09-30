@@ -1,4 +1,4 @@
-dd if=/dev/zero of=dist/disk.img bs=1k count=14400
+dd if=/dev/zero of=dist/disk.img bs=1k count=144000
 #mkfs.fat -F32 dist/disk.img
 #mkfs.vfat -F32 dist/disk.img
 mkfs.ext2 dist/disk.img

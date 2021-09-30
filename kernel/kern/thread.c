@@ -7,21 +7,25 @@
 #include <micro/debug.h>
 #include <micro/heap.h>
 
-struct thread* thread_creat(struct task* parent, uintptr_t entry, int usr)
+static void init_thread_meta(struct thread* thread, struct task* parent)
 {
-    struct thread* thread = kmalloc(sizeof(struct thread));
-    memset(&thread->regs, 0, sizeof(struct regs));
-    
-    arch_init_thread(thread, usr);
-
     thread->parent = parent;
-    thread->regs.rip = entry;
     thread->state = THREAD_READY;
 
     uintptr_t kstack = mmu_kalloc(1);
     mmu_kmap(kstack, mmu_alloc_phys(), PAGE_PR | PAGE_RW);
 
     thread->kstack = kstack + PAGE4K;
+}
+
+struct thread* thread_creat(struct task* parent, uintptr_t entry, int usr)
+{
+    struct thread* thread = kcalloc(sizeof(struct thread));
+    
+    arch_init_thread(thread, usr);
+
+    init_thread_meta(thread, parent);
+    thread->regs.rip = entry;
 
     return thread;
 }
@@ -29,18 +33,9 @@ struct thread* thread_creat(struct task* parent, uintptr_t entry, int usr)
 // TODO: impl
 struct thread* thread_clone(struct task* parent, struct thread* src)
 {
-    struct thread* thread = kmalloc(sizeof(struct thread));
-    memcpy(thread, src, sizeof(struct thread));
-    
-    thread->parent = parent;
-    thread->state = THREAD_READY;
-
-    uintptr_t kstack = mmu_kalloc(1);
-    mmu_kmap(kstack, mmu_alloc_phys(), PAGE_PR | PAGE_RW);
-
-    thread->kstack = kstack + PAGE4K;
-
-    return thread;
+    struct thread* t = memdup(src, sizeof(struct thread));
+    init_thread_meta(t, parent);
+    return t;
 }
 
 struct thread* thread_curr()
@@ -91,35 +86,17 @@ static int defaults[] =
 
 static void handle_stopsig(struct thread* thread, int sig)
 {
-    thread->parent->state = TASK_STOPPED; // TODO: make this better
-    thread->parent->status = (sig << 8) | 0x7f; // TODO: not actually an exit code, just a status
-    
-    //if (thread->parent->waiter)
-    if (thread->parent->waiting == thread->parent->id || thread->parent->waiting == -1)
-    {
-        sched_spawnthread(thread->parent->main);
-        //thread->parent->waiter = NULL;
-    }
+    task_change(thread->parent, TASK_STOPPED);
+    thread->parent->status = (sig << 8) | 0x7f;
 
     switch_next();
 }
 
 void thread_handle_contsig(struct thread* thread)
 {
-    thread->parent->state = TASK_RUNNING;
     thread->parent->status = 0xffff;
+    task_change(thread->parent, TASK_RUNNING);
     sched_spawnthread(thread);
-    
-    /*if (thread->parent->waiter)
-    {
-        sched_spawnthread(thread->parent->waiter);
-        thread->parent->waiter = NULL;
-    }*/
-    if (thread->parent->waiting == thread->parent->id || thread->parent->waiting == -1)
-    {
-        sched_spawnthread(thread->parent->main);
-        //thread->parent->waiter = NULL;
-    }
 }
 
 // TODO: scan threads for a thread which can handle the signal (not in the sigmask)
@@ -175,4 +152,9 @@ void thread_block()
 {
     thread_curr()->state = THREAD_BLOCKED;
     sched_yield();
+}
+
+void thread_unblock(struct thread* thread)
+{
+    sched_spawnthread(thread);
 }

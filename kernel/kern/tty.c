@@ -137,7 +137,7 @@ struct file* pts_open(struct pt* pt)
 
     // TODO: generate a unique name
     strcpy(pts->name, "0");
-    list_push_back(&slaves, pts);
+    list_enqueue(&slaves, pts);
 
     return pts;
 }

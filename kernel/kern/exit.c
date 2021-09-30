@@ -43,12 +43,6 @@ SYSCALL_DEFINE(waitpid, int pid, int* wstatus, int options)
     if (options > (WNOHANG | WUNTRACED) || options < 0) return -EINVAL;
     if (pid == INT_MIN) return -ESRCH;
 
-    //struct task* task = sched_task_fromid(pid);
-    //if (!task || task->parent != task_curr()) return -ECHILD;
-
-    if (pid > 0 && !sched_task_fromid(pid))
-        return -ECHILD;
-
     if (pid == -1)
     {
         if (!task_curr()->children.size)
@@ -72,6 +66,8 @@ SYSCALL_DEFINE(waitpid, int pid, int* wstatus, int options)
     else
     {
         struct task* task = sched_task_fromid(pid);
+        if (!task) return -ECHILD;
+
         if (has_child_changed(task))
         {
             if (wstatus) *wstatus = task->status;

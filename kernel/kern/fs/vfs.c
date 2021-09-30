@@ -348,7 +348,7 @@ char* vfs_mkcanon(const char* path, const char* work)
         }
         else
         {
-            list_push_back(&tokens, token);
+            list_enqueue(&tokens, token);
             fsize += strlen(token) + 1;
         }
 

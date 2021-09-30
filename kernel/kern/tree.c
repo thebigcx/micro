@@ -13,5 +13,5 @@ void tree_push_back(struct tree* self, void* data)
     node->children = list_create();
     node->data = data;
 
-    list_push_back(&self->children, node);
+    list_enqueue(&self->children, node);
 }

@@ -25,7 +25,7 @@ static struct thread* next_ready(struct cpu_info* cpu)
     struct thread* thread = list_dequeue(&ready_queue);
     if (thread->state == THREAD_RUNNING)
     {
-        list_push_back(&ready_queue, thread);
+        list_enqueue(&ready_queue, thread);
         UNLOCK(ready_lock);
         return cpu->idle;
     }
@@ -95,7 +95,7 @@ void switch_task(struct regs* r)
             cpu->current->state = THREAD_READY;
 
             LOCK(ready_lock);
-            list_push_back(&ready_queue, cpu->current);
+            list_enqueue(&ready_queue, cpu->current);
             UNLOCK(ready_lock);
         }
     }
@@ -115,12 +115,12 @@ void sched_tick(struct regs* r)
 void sched_spawnthread(struct thread* thread)
 {
     thread->state = THREAD_READY;
-    list_push_back(&ready_queue, thread);
+    list_enqueue(&ready_queue, thread);
 }
 
 void sched_start(struct task* task)
 {
-    list_push_back(&tasks, task);
+    list_enqueue(&tasks, task);
     LIST_FOREACH(&task->threads)
     {
         struct thread* thread = node->data;

@@ -7,7 +7,7 @@ struct list list_create()
     return (struct list) { .head = NULL, .tail = NULL, .size = 0 };
 }
 
-void* list_push_back(struct list* list, void* data)
+void* list_enqueue(struct list* list, void* data)
 {
     // Initialize new node
     struct lnode* node = kmalloc(sizeof(struct lnode));
@@ -75,28 +75,6 @@ void* list_pop_back(struct list* self)
     void* ret = old->data;
     kfree(old);
     return ret;
-}
-
-void* list_enqueue(struct list* self, void* data)
-{
-    // Initialize new node
-    struct lnode* node = kmalloc(sizeof(struct lnode));
-    node->next = self->head;
-    node->prev = NULL;
-    node->data = data;
-
-    // Try to adjust the head, if not than set tail (no head means no tail)
-    if (self->head)
-        self->head->prev = node;
-    else
-        self->tail = node;
-
-    // Set the new head
-    self->head = node;
-
-    self->size++;
-
-    return data;
 }
 
 void list_clear(struct list* self)

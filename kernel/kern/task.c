@@ -15,8 +15,7 @@ static unsigned int s_id = 1;
 
 static struct task* mktask(struct task* parent, struct vm_map* vm_map)
 {
-    struct task* task = kmalloc(sizeof(struct task));
-    memset(task, 0, sizeof(struct task));
+    struct task* task = kcalloc(sizeof(struct task));
 
     task->threads  = list_create();
     task->fds      = kmalloc(sizeof(struct fd*) * FD_MAX);
@@ -31,7 +30,7 @@ static struct task* mktask(struct task* parent, struct vm_map* vm_map)
     memset(task->fds, 0, sizeof(struct fd*) * FD_MAX);
 
     if (parent)
-        list_push_back(&parent->children, task);
+        list_enqueue(&parent->children, task);
 
     return task;
 }
@@ -59,7 +58,7 @@ static void init_user_task(struct task* task, const char* path,
 
     setup_user_stack(task, argv, envp);
 
-    list_push_back(&task->threads, task->main);
+    list_enqueue(&task->threads, task->main);
 }
 
 static void idle()
@@ -114,7 +113,7 @@ struct task* task_kcreat(struct task* parent, uintptr_t entry)
     task->main->regs.rsp = stack;
     task->main->regs.rbp = stack;
 
-    list_push_back(&task->threads, task->main);
+    list_enqueue(&task->threads, task->main);
 
     return task;
 }
@@ -124,7 +123,7 @@ struct task* task_clone(struct task* src, struct thread* calling)
     struct task* task = mktask(src, mmu_clone_vmmap(src->vm_map));
     task->main = thread_clone(task, calling);
 
-    list_push_back(&task->threads, task->main);
+    list_enqueue(&task->threads, task->main);
 
     for (unsigned int i = 0; i < FD_MAX; i++)
     {
@@ -241,16 +240,8 @@ void task_exit(int status)
 
     if (task->parent) task_send(task->parent, SIGCHLD);
 
+    task_change(task, TASK_DEAD);
     task->status = status;
-    task->state = TASK_DEAD;
-
-    //if (task->waiter)
-    if (task->parent->waiting == task->id || task->parent->waiting == -1)
-    {
-        sched_spawnthread(task->parent->main);
-        //sched_spawnthread(task->waiter);
-        //task->waiter = NULL;
-    }
 
     switch_next();
 }
@@ -272,4 +263,17 @@ struct task* task_curr()
 {
     if (!thread_curr()) return NULL;
     return thread_curr()->parent;
+}
+
+void task_change(struct task* task, int state)
+{
+    struct task* parent = task->parent;
+    task->state = state;
+    
+    if (parent->waiting == task->id
+     || parent->waiting == -1)
+    {
+        thread_unblock(parent->main);
+        parent->waiting = 0;
+    }
 }

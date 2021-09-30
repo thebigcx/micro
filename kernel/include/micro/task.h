@@ -68,3 +68,5 @@ int task_execve(struct task* task, const char* path, const char* argv[], const c
 
 void task_exit(int val);
 void task_delete(struct task* task);
+
+void task_change(struct task* task, int state);

@@ -151,16 +151,9 @@ void heap_check()
 #endif
 }
 
-void* kcalloc(size_t n, ...)
+void* kcalloc(size_t n)
 {
-    va_list args;
-    va_start(args, n);
-    size_t nitems = va_arg(args, size_t);
-    va_end(args);
-
-    if (!nitems) nitems = 1;
-
-    void* ptr = kmalloc(n * nitems);
-    memset(ptr, 0, n * nitems);
+    void* ptr = kmalloc(n);
+    memset(ptr, 0, n);
     return ptr;
 }
