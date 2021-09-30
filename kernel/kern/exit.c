@@ -13,6 +13,8 @@ SYSCALL_DEFINE(exit, int stat)
 
 SYSCALL_DEFINE(waitpid, int pid, int* wstatus, int options)
 {
+    if (pid !=4)
+        printk("waitpid: %d, %x, %d\n", pid, wstatus, options);
     PTRVALIDNULL(wstatus);
 
     if (options > (WNOHANG | WUNTRACED) || options < 0) return -EINVAL;

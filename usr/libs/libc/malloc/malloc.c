@@ -78,11 +78,10 @@ void __malloc_init()
 
 void* malloc(size_t n)
 {
+    // We return NULL on a 0-size malloc (free(NULL) is safe)
     if (n == 0)
-    {
-        printf("malloc(): size 0\n");
         return NULL;
-    }
+
     if (n % 32 != 0) n += 32 - (n % 32);
 
     struct block* curr = first;
@@ -115,10 +114,7 @@ void* malloc(size_t n)
 void free(void* ptr)
 {
     if (!ptr)
-    {
-        printf("free(): unable to free null pointer\n");
         return;
-    }
 
     struct block* block = (struct block*)ptr - 1;
     block->used = 0;

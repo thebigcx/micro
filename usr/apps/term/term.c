@@ -315,8 +315,14 @@ int main(int argc, char** argv)
     pid_t child = fork();
     if (child == 0)
     {
-        const char* argv[] = { "/usr/bin/sh", NULL };
-        execv(argv[0], argv);
+        const char* argv[] = { "/usr/bin/bash", NULL };
+        const char* envp[] =
+        {
+            //"HOME=/root",
+            NULL
+        };
+
+        execve(argv[0], argv, envp);
     }
 
     int kb = open("/dev/keyboard", O_RDONLY, 0);

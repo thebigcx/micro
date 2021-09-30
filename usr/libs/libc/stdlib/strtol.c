@@ -22,16 +22,13 @@ long int strtol(const char* str, char** endptr, int base)
 
     for (; *str != 0; str++)
     {
-        if (!isdigit(*str))
-        {
-            if (endptr)
-                *endptr = (char*)str;
-            
-            return ret;
-        }
+        if (!isdigit(*str)) break;
 
         ret = ret * 10 + (*str - '0');
     }
+
+    if (endptr)
+        *endptr = (char*)str;
 
     return ret * sign;
 }

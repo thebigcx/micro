@@ -2,14 +2,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <pwd.h>
 
-static char* passwd;
-static size_t passwd_size;
+//static char* passwd;
+//static size_t passwd_size;
 
 static char* group;
 static size_t group_size;
 
-void get_username(uid_t uid, char* out)
+/*void get_username(uid_t uid, char* out)
 {
     char* line = passwd;
     while (1)
@@ -36,7 +37,7 @@ void get_username(uid_t uid, char* out)
 
         if (line >= passwd + passwd_size) break;
     }
-}
+}*/
 
 char* get_groupname(gid_t gid, char* out)
 {
@@ -83,7 +84,7 @@ void readfile(const char* path, char** data, size_t* size)
 
 int main(int argc, char** argv)
 {
-    readfile("/etc/passwd", &passwd, &passwd_size);
+    //readfile("/etc/passwd", &passwd, &passwd_size);
     readfile("/etc/group", &group, &group_size);
 
     uid_t uid = geteuid();
@@ -92,13 +93,15 @@ int main(int argc, char** argv)
     gid_t gids[64];
     int gidcnt = getgroups(64, gids);
 
-    char username[64];
-    get_username(uid, username);
+    struct passwd* p = getpwuid(uid);
+
+    //char username[64];
+    //get_username(uid, username);
 
     char groupname[64];
     get_groupname(gid, groupname);
 
-    printf("uid=%d(%s) gid=%d(%s) groups=%d(%s)", uid, username, gid, groupname, gid, groupname);
+    printf("uid=%d(%s) gid=%d(%s) groups=%d(%s)", uid, p->pw_name, gid, groupname, gid, groupname);
     
     for (int i = 0; i < gidcnt; i++)
     {

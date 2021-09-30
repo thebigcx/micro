@@ -144,6 +144,7 @@ SYSCALL_DEFINE(uname, struct utsname* buf)
     strcpy(buf->release, "0.0.1");
     strcpy(buf->version, "INITIAL VERSION");
     strcpy(buf->machine, "x86_64");
+    strcpy(buf->nodename, "micro");
     return 0;
 }
 
@@ -212,7 +213,8 @@ static void* syscalls[] =
     &sys_fchmod,
     &sys_mknod,
     &sys_setuid,
-    &sys_setgid
+    &sys_setgid,
+    &sys_fcntl
 };
 
 void syscall_handler(struct regs* r)

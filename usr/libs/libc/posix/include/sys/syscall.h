@@ -62,5 +62,6 @@
 #define SYS_mknod           59
 #define SYS_setuid          60
 #define SYS_setgid          61
+#define SYS_fcntl           62
 
 extern long syscall(long sysno, ...);

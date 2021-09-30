@@ -10,10 +10,12 @@ char* fgets(char* str, int n, FILE* stream)
         if (ptr - str >= n - 1) return str;
 
         *ptr++ = c;
-        if (c == '\n') break;
+        if (c == '\n')
+        {
+            *ptr = 0;
+            return str;
+        }
     }
 
-    *ptr = 0;
-
-    return str;
+    return NULL;
 }
