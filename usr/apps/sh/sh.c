@@ -110,7 +110,7 @@ int main(int argc, char** argv)
         else
         {
             int status;
-            waitpid(child, &status, 0);
+            waitpid(-1, &status, 0);
 
             //if (WIFSIGNALED(status))
             if (!WIFEXITED(status))

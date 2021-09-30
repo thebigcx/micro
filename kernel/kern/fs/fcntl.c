@@ -2,7 +2,7 @@
 #include <micro/vfs.h>
 #include <micro/fcntl.h>
 
-SYSCALL_DEFINE(fcntl, int fdno, int cmd, void* arg)
+SYSCALL_DEFINE(fcntl, int fdno, int cmd, unsigned long arg)
 {
     FDVALID(fdno);
 
@@ -12,10 +12,12 @@ SYSCALL_DEFINE(fcntl, int fdno, int cmd, void* arg)
     {
         case F_GETFL:
             return fd->flags;
+        case F_SETFD:
+            //fd->flags = arg;
+            return 0;
     }
 
-
-    printk("warning: call to fcntl(fd=%d, cmd=%d, arg=%x) not implemented!\n", fd, cmd, arg);
+    printk("warning: call to fcntl(fd=%d, cmd=%d, arg=%x) not implemented!\n", fdno, cmd, arg);
     return -EINVAL;
 }
 

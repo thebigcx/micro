@@ -87,7 +87,7 @@ SYSCALL_DEFINE(fchmod,       int fd, mode_t mode);
 SYSCALL_DEFINE(mknod,        const char* path, mode_t mode, dev_t dev);
 SYSCALL_DEFINE(setuid,       uid_t uid);
 SYSCALL_DEFINE(setgid,       gid_t gid);
-SYSCALL_DEFINE(fcntl,        int fd, int cmd, void* arg);
+SYSCALL_DEFINE(fcntl,        int fd, int cmd, unsigned long arg);
 SYSCALL_DEFINE(getppid);
 SYSCALL_DEFINE(reboot);
 SYSCALL_DEFINE(sigreturn);

@@ -51,7 +51,6 @@ SYSCALL_DEFINE(ptrace, unsigned long req, pid_t pid, void* addr, void* data)
         if (!task) return -ESRCH;
 
         thread_handle_contsig(task->main);
-        task->changed = 0;
         return 0;
     }
 

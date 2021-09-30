@@ -315,7 +315,7 @@ int main(int argc, char** argv)
     pid_t child = fork();
     if (child == 0)
     {
-        const char* argv[] = { "/usr/bin/bash", NULL };
+        const char* argv[] = { "/usr/bin/sh", NULL };
         const char* envp[] =
         {
             //"HOME=/root",

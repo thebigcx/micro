@@ -93,12 +93,12 @@ static void handle_stopsig(struct thread* thread, int sig)
 {
     thread->parent->state = TASK_STOPPED; // TODO: make this better
     thread->parent->status = (sig << 8) | 0x7f; // TODO: not actually an exit code, just a status
-    thread->parent->changed = 1;
     
-    if (thread->parent->waiter)
+    //if (thread->parent->waiter)
+    if (thread->parent->waiting == thread->parent->id || thread->parent->waiting == -1)
     {
-        sched_spawnthread(thread->parent->waiter);
-        thread->parent->waiter = NULL;
+        sched_spawnthread(thread->parent->main);
+        //thread->parent->waiter = NULL;
     }
 
     switch_next();
@@ -108,13 +108,17 @@ void thread_handle_contsig(struct thread* thread)
 {
     thread->parent->state = TASK_RUNNING;
     thread->parent->status = 0xffff;
-    thread->parent->changed = 1;
     sched_spawnthread(thread);
     
-    if (thread->parent->waiter)
+    /*if (thread->parent->waiter)
     {
         sched_spawnthread(thread->parent->waiter);
         thread->parent->waiter = NULL;
+    }*/
+    if (thread->parent->waiting == thread->parent->id || thread->parent->waiting == -1)
+    {
+        sched_spawnthread(thread->parent->main);
+        //thread->parent->waiter = NULL;
     }
 }
 

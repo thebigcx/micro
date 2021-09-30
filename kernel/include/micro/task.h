@@ -4,7 +4,7 @@
 #include <micro/list.h>
 #include <micro/signal.h>
 
-#define FD_MAX 64
+#define FD_MAX 256
 
 #define TASK_RUNNING 0
 #define TASK_STOPPED 1
@@ -36,9 +36,12 @@ struct task
 
     int status;
     int state;
-    volatile int changed;
 
-    struct thread* waiter;
+    int was_stop; // Was stopped previously
+
+    //struct thread* waiter;
+
+    pid_t waiting;
 
     uid_t ruid, euid, suid;
     gid_t rgid, egid, sgid;
