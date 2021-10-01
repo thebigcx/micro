@@ -8,7 +8,9 @@
 #include <micro/fcntl.h>
 #include <micro/task.h>
 
-struct tree root;
+//struct tree root;
+
+static struct list mounts;
 
 struct file* vfs_create_file()
 {
@@ -54,7 +56,8 @@ int vfs_checkperm(struct file* file, unsigned int mask)
 
 void vfs_init()
 {
-    root = tree_create();
+    mounts = list_create();
+    //root = tree_create();
 }
 
 ssize_t vfs_read(struct file* file, void* buf, off_t off, size_t size)
@@ -200,7 +203,7 @@ int vfs_ioctl(struct file* file, unsigned long req, void* argp)
 }
 
 // Add a node (or 'struct file') to the VFS
-int vfs_addnode(struct file* file, const char* path)
+/*int vfs_addnode(struct file* file, const char* path)
 {
     struct tree* curr = &root;
 
@@ -258,7 +261,7 @@ int vfs_addnode(struct file* file, const char* path)
     kfree(path_cpy);
 
     return 0;
-}
+}*/
 
 void* vfs_rmnode(const char* path)
 {
@@ -270,7 +273,7 @@ void* vfs_rmnode(const char* path)
 // *relat: the relative path in the mounted filesystem
 struct file* vfs_getmnt(const char* path, char** relat)
 {
-    struct tree* curr = &root;
+    /*struct tree* curr = &root;
 
     size_t pos = 0;
 
@@ -312,7 +315,43 @@ struct file* vfs_getmnt(const char* path, char** relat)
 
     struct file* mnt = kmalloc(sizeof(struct file));
     memcpy(mnt, curr->data, sizeof(struct file));
-    return mnt;
+    return mnt;*/
+
+    struct mount* candidate = NULL;
+    size_t match = 0;
+
+    LIST_FOREACH(&mounts)
+    {
+        struct mount* mount = node->data;
+
+        size_t i;
+        for (i = 0; i < strlen(mount->path); i++)
+        {
+            if (path[i] != mount->path[i])
+                break;
+        }
+
+        char* pathcpy = strdup(path);
+        pathcpy[i] = 0;
+
+        if (i > match && !strcmp(pathcpy, mount->path))
+        {
+            candidate = mount;
+            match = i;
+        }
+
+        kfree(pathcpy);
+    }
+
+    if (!candidate) return NULL;
+
+    // Root dir is special - "/test" matches "/", but "/dev/test" matches "/dev"
+    if (strcmp(candidate->path, "/")) match++;
+
+    *relat = kmalloc(strlen(path) - match + 1);
+    strcpy(*relat, path + match);
+
+    return memdup(candidate->file, sizeof(struct file));
 }
 
 char* vfs_mkcanon(const char* path, const char* work)
@@ -562,7 +601,13 @@ int vfs_mount_fs(const char* dev, const char* mnt,
             int e;
             if ((e = fs_types[i].mount(dev, data, fsroot))) return e;
             
-            vfs_addnode(fsroot, mnt);
+            //vfs_addnode(fsroot, mnt);
+            struct mount* mount = kmalloc(sizeof(struct mount));
+
+            mount->file = fsroot;
+            mount->path = strdup(mnt);
+
+            list_enqueue(&mounts, mount);
             return 0;
         }
     }
@@ -572,8 +617,24 @@ int vfs_mount_fs(const char* dev, const char* mnt,
 
 int vfs_umount_fs(const char* mnt)
 {
-    // TODO: implement
-    return 0;
+    size_t i = 0;
+    LIST_FOREACH(&mounts)
+    {
+        struct mount* mount = node->data;
+
+        if (!strcmp(mount->path, mnt))
+        {
+            // TODO: prepare for umount and clean up stuff
+
+            // Can remove directly - about to break from loop
+            list_remove(&mounts, i);
+            return 0;
+        }
+
+        i++;
+    }
+
+    return -ENOENT;
 }
 
 // mount: mount callback

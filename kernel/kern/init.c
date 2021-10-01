@@ -155,6 +155,7 @@ void generic_init(struct genbootparams params)
     printk("mounting initramfs\n");
     vfs_mount_fs("/dev/initrd", "/", "initramfs", NULL);
 
+    printk("loading init modules\n");
     kmod_load("/ahci.ko");
     /*kmod_load("/fat.ko");
 
@@ -164,6 +165,8 @@ void generic_init(struct genbootparams params)
     kmod_load("/ext2.ko");
 
     printk("mounting root filesystem\n");
+
+    vfs_umount_fs("/"); // Unmount old initramfs
     vfs_mount_fs("/dev/sda", "/", "ext2", NULL);
 
     kmod_load("/lib/modules/ps2kb.ko");

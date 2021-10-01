@@ -31,7 +31,7 @@ static struct ksym ksyms[] =
     { "mmu_kmap",              &mmu_kmap              },
     { "kmalloc",               &kmalloc               },
     { "kfree",                 &kfree                 },
-    { "vfs_addnode",           &vfs_addnode           },
+    //{ "vfs_addnode",           &vfs_addnode           },
     { "vfs_read",              &vfs_read              },
     { "vfs_write",             &vfs_write             },
     { "vfs_create_file",       &vfs_create_file       },

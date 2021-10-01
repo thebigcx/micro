@@ -4,7 +4,6 @@
 #include <micro/stdlib.h>
 
 static struct list  devices;
-static struct file* devfs;
 
 struct file* devfs_find(struct file* dir, const char* name)
 {
@@ -36,18 +35,27 @@ ssize_t devfs_getdents(struct file* dir, off_t off, size_t size, struct dirent* 
     return i;
 }
 
+int devfs_mount(const char* dev, const void* data, struct file* fsroot)
+{
+    (void)dev; (void)data;
+
+    memset(fsroot, 0, sizeof(struct file));
+    
+    fsroot->perms        = 0755;
+    fsroot->type         = FL_DIR;
+    fsroot->ops.find     = devfs_find;
+    fsroot->ops.getdents = devfs_getdents;
+
+    return 0;
+}
+
 void devfs_init()
 {
     devices = list_create();
 
-    devfs = vfs_create_file();
-
-    devfs->perms        = 0755;
-    devfs->type         = FL_DIR;
-    devfs->ops.find     = devfs_find;
-    devfs->ops.getdents = devfs_getdents;
-
-    vfs_addnode(devfs, "/dev");
+    //vfs_addnode(devfs, "/dev");
+    vfs_register_fs("devfs", devfs_mount);
+    vfs_mount_fs("", "/dev", "devfs", NULL);
 }
 
 void devfs_register(struct file* file)

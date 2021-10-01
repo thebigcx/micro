@@ -101,6 +101,12 @@ struct file
     gid_t           gid;
 };
 
+struct mount
+{
+    const char* path;
+    struct file* file;
+};
+
 struct dirent;
 
 struct file* vfs_create_file();
@@ -121,8 +127,8 @@ int vfs_unlink(const char* pathname);
 
 int vfs_ioctl(struct file* file, unsigned long req, void* argp);
 
-int vfs_addnode(struct file* file, const char* path);
-void* vfs_rmnode(const char* path);
+//int vfs_addnode(struct file* file, const char* path);
+//void* vfs_rmnode(const char* path);
 struct file* vfs_getmnt(const char* path, char** relat);
 
 int vfs_mount_fs(const char* dev, const char* mnt,
