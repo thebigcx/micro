@@ -86,7 +86,7 @@ static void inode2file(struct ext2_volume* vol, unsigned int inonum,
     file->ops.read     = ext2_read;
     file->ops.write    = ext2_write;
     file->ops.getdents = ext2_getdents;
-    file->ops.mkfile   = ext2_mkfile;
+    //file->ops.mkfile   = ext2_mkfile;
     file->ops.mkdir    = ext2_mkdir;
     file->ops.mknod    = ext2_mknod;
     file->ops.unlink   = ext2_unlink;
@@ -325,7 +325,7 @@ ssize_t ext2_getdents(struct file* dir, off_t off, size_t n, struct dirent* dirp
     void* buf = kmalloc(vol->blksize);
     read_blocks(vol, buf, ext2_inode_blk(vol, &ino, blk), 1);
 
-    while (offset + blk * vol->blksize < INOSIZE(ino))
+    while (offset + blk * vol->blksize < ino.sectors * 512)
     {
         struct ext2_dirent* dirent = (struct ext2_dirent*)((uintptr_t)buf + offset);
         offset += dirent->size;
@@ -489,7 +489,7 @@ int ext2_lookup(struct file* dir, const char* name, struct dentry* dentry)
     void* buf = kmalloc(vol->blksize);
     read_blocks(vol, buf, ext2_inode_blk(vol, &ino, blk), 1);
 
-    while (offset + blk * vol->blksize < INOSIZE(ino))
+    while (offset + blk * vol->blksize < ino.sectors * 512)
     {
         struct ext2_dirent* dirent = (struct ext2_dirent*)((uintptr_t)buf + offset);
         offset += dirent->size;
@@ -526,7 +526,7 @@ void ext2_init_inode(struct ext2_volume* vol, struct ext2_inode* ino, struct fil
     ino->uid    = file->uid;
     ino->gid    = file->gid;
 
-    ino->size    = 0;
+    ino->size    = file->size;
     ino->sectors = vol->blksize / 512;
     ino->nlink   = 1;
     ino->ctime   = time_getepoch();
@@ -550,7 +550,7 @@ static void ext2_append_dirent(struct file* dir, struct ext2_dirent* dirent)
     void* buf = kmalloc(vol->blksize);
     read_blocks(vol, buf, ext2_inode_blk(vol, &pino, blk), 1);
 
-    while (offset + blk * vol->blksize < INOSIZE(pino))
+    while (offset + blk * vol->blksize < pino.sectors * 512)
     {
         struct ext2_dirent* entry = (struct ext2_dirent*)((uintptr_t)buf + offset);
         offset += entry->size;
@@ -617,18 +617,6 @@ void ext2_mkentry(struct file* dir, struct file* file, const char* name)
     ext2_append_dirent(dir, dirent);
 }
 
-void ext2_mkfile(struct file* dir, const char* name, mode_t mode, uid_t uid, gid_t gid)
-{
-    struct file file;
-    memset(&file, 0, sizeof(struct file));
-
-    file.uid   = uid;
-    file.gid   = gid;
-    file.mode  = (mode & S_PERMS) | S_IFREG;
-
-    ext2_mkentry(dir, &file, name);
-}
-
 void ext2_mkdir(struct file* dir, const char* name, mode_t mode, uid_t uid, gid_t gid)
 {
     struct file file;
@@ -637,6 +625,7 @@ void ext2_mkdir(struct file* dir, const char* name, mode_t mode, uid_t uid, gid_
     file.uid   = uid;
     file.gid   = gid;
     file.mode  = (mode & S_PERMS) | S_IFDIR;
+    file.size  = 1024;
 
     ext2_mkentry(dir, &file, name);
 
@@ -706,7 +695,7 @@ void ext2_unlink(struct file* dir, const char* name)
     void* buf = kmalloc(vol->blksize);
     read_blocks(vol, buf, ext2_inode_blk(vol, &ino, blk), 1);
 
-    while (offset + blk * vol->blksize < INOSIZE(ino))
+    while (offset + blk * vol->blksize < ino.sectors * 512)
     {
         struct ext2_dirent* entry = (struct ext2_dirent*)((uintptr_t)buf + offset);
         offset += entry->size;

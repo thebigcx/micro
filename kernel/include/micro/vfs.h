@@ -34,9 +34,6 @@ struct file_ops
     write_t    write;
     ioctl_t    ioctl;
     getdents_t getdents;
-    mkfile_t   mkfile;
-    mkdir_t    mkdir;
-    mknod_t    mknod;
     unlink_t   unlink;
     mmap_t     mmap;
     chmod_t    chmod;
@@ -47,6 +44,8 @@ struct file_ops
 
     // TODO: inode_operations
     int (*lookup)(struct file*, const char*, struct dentry*);
+    int (*mknod)(struct file*, const char*, mode_t, dev_t, uid_t, gid_t);
+    int (*mkdir)(struct file*, const char*, mode_t, uid_t, gid_t);
 };
 
 #define S_IFMT   (0xf000)
@@ -140,7 +139,6 @@ ssize_t vfs_read(struct file* file, void* buf, off_t off, size_t size);
 ssize_t vfs_write(struct file* file, const void* buf, off_t off, size_t size);
 ssize_t vfs_getdents(struct file* dir, off_t off, size_t n, struct dirent* dirp);
 
-int vfs_mkfile(const char* path, mode_t mode, uid_t uid, gid_t gid);
 int vfs_mkdir(const char* name, mode_t mode, uid_t uid, gid_t gid);
 int vfs_mknod(const char* path, mode_t mode, dev_t dev, uid_t uid, gid_t gid);
 

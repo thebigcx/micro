@@ -118,22 +118,6 @@ static int get_parent_dir(const char* path, struct file* out, char** name)
     return 0;
 }
 
-int vfs_mkfile(const char* path, mode_t mode, uid_t uid, gid_t gid)
-{
-    struct file dir;
-    char* name;
-    int e;
-    if ((e = get_parent_dir(path, &dir, &name))) return e;
-
-    CHECK_WPERM(&dir);
-
-    if (dir.ops.mkfile)
-        dir.ops.mkfile(&dir, name, mode, uid, gid);
-
-    kfree(name);
-    return 0;
-}
-
 int vfs_mkdir(const char* path, mode_t mode, uid_t uid, gid_t gid)
 {
     struct file dir;
