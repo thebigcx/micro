@@ -5,6 +5,7 @@
 
 struct file;
 struct vm_area;
+struct dentry;
 
 // TODO: should all return int's (errors), and store result in pointer
 // TODO: function called sync(), which will sync the file to the inode on disk, reducing extra unneeded functions like chmod(), and symlink()
@@ -13,7 +14,6 @@ typedef void         (*close_t   )(struct fd* fd);
 typedef ssize_t      (*read_t    )(struct file* file, void* buf, off_t off, size_t size);
 typedef ssize_t      (*write_t   )(struct file* file, const void* buf, off_t off, size_t size);
 typedef int          (*ioctl_t   )(struct file* file, unsigned long req, void* argp);
-typedef struct file* (*find_t    )(struct file* dir, const char* name);
 typedef ssize_t      (*getdents_t)(struct file* dir, off_t off, size_t n, struct dirent* dirp);
 typedef void         (*mkfile_t  )(struct file* dir, const char* name, mode_t mode, uid_t uid, gid_t gid);
 typedef void         (*mkdir_t   )(struct file* dir, const char* name, mode_t mode, uid_t uid, gid_t gid);
@@ -33,7 +33,6 @@ struct file_ops
     read_t     read;
     write_t    write;
     ioctl_t    ioctl;
-    find_t     find;
     getdents_t getdents;
     mkfile_t   mkfile;
     mkdir_t    mkdir;
@@ -45,6 +44,9 @@ struct file_ops
     readlink_t readlink;
     symlink_t  symlink;
     link_t     link;
+
+    // TODO: inode_operations
+    int (*lookup)(struct file*, const char*, struct dentry*);
 };
 
 #define S_IFMT   (0xf000)
@@ -136,7 +138,6 @@ void vfs_init();
 
 ssize_t vfs_read(struct file* file, void* buf, off_t off, size_t size);
 ssize_t vfs_write(struct file* file, const void* buf, off_t off, size_t size);
-struct file* vfs_find(struct file* dir, const char* name);
 ssize_t vfs_getdents(struct file* dir, off_t off, size_t n, struct dirent* dirp);
 
 int vfs_mkfile(const char* path, mode_t mode, uid_t uid, gid_t gid);

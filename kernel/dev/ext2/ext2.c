@@ -80,15 +80,11 @@ static void ext2_write_inode(struct ext2_volume* ext2, unsigned int num,
     kfree(buf);
 }
 
-static struct file* inode2file(struct ext2_volume* vol, struct file* parent,
-                               unsigned int inonum, struct ext2_inode* ino,
-                               const char* name)
+static void inode2file(struct ext2_volume* vol, unsigned int inonum,
+                       struct ext2_inode* ino, struct file* file)
 {
-    struct file* file  = vfs_create_file();
-
     file->ops.read     = ext2_read;
     file->ops.write    = ext2_write;
-    file->ops.find     = ext2_find;
     file->ops.getdents = ext2_getdents;
     file->ops.mkfile   = ext2_mkfile;
     file->ops.mkdir    = ext2_mkdir;
@@ -99,8 +95,9 @@ static struct file* inode2file(struct ext2_volume* vol, struct file* parent,
     file->ops.readlink = ext2_readlink;
     file->ops.symlink  = ext2_symlink;
     file->ops.link     = ext2_link;
+    file->ops.lookup   = ext2_lookup;
 
-    file->parent       = parent;
+    //file->parent       = parent;
     file->inode        = inonum;
     file->size         = INOSIZE(*ino);
     file->priv       = vol;
@@ -114,14 +111,10 @@ static struct file* inode2file(struct ext2_volume* vol, struct file* parent,
 
     file->uid          = ino->uid;
     file->gid          = ino->gid;
-
-    //strcpy(file->name, name);
-
-    return file;
 }
 
-static struct file* dirent2file(struct ext2_volume* vol, struct file* parent,
-                                struct ext2_dirent* dirent)
+static void dirent2file(struct ext2_volume* vol, struct ext2_dirent* dirent,
+                        struct file* file)
 {
     struct ext2_inode ino;
     ext2_read_inode(vol, dirent->inode, &ino);
@@ -129,11 +122,7 @@ static struct file* dirent2file(struct ext2_volume* vol, struct file* parent,
     char* name = kmalloc(dirent->name_len + 1);
     strncpy(name, dirent->name, dirent->name_len);
 
-    struct file* file = inode2file(vol, parent, dirent->inode, &ino, name);
-
-    kfree(name);
-
-    return file;
+    inode2file(vol, dirent->inode, &ino, file);
 }
 
 #define INO_SIND 12 // Singly indirect
@@ -487,9 +476,7 @@ ssize_t ext2_write(struct file* file, const void* buf, off_t off, size_t size)
     return size;
 }
 
-// TODO: move dirent parsing into one function
-// TODO: return error codes somehow
-struct file* ext2_find(struct file* dir, const char* name)
+int ext2_lookup(struct file* dir, const char* name, struct dentry* dentry)
 {
     struct ext2_volume* vol = dir->priv;
 
@@ -509,9 +496,14 @@ struct file* ext2_find(struct file* dir, const char* name)
 
         if (strlen(name) == dirent->name_len && !strncmp(name, dirent->name, dirent->name_len))
         {
-            struct file* file = dirent2file(vol, dir, dirent);
-            kfree(buf);
-            return file;
+            strcpy(dentry->name, name);
+            
+            struct ext2_inode cino;
+            ext2_read_inode(vol, dirent->inode, &cino);
+
+            dentry->file = kcalloc(sizeof(struct file));
+            inode2file(vol, dirent->inode, &cino, dentry->file);
+            return 0;
         }
 
         if (offset >= vol->blksize)
@@ -523,7 +515,7 @@ struct file* ext2_find(struct file* dir, const char* name)
 
     kfree(buf);
 
-    return NULL;
+    return -ENOENT;
 }
 
 void ext2_init_inode(struct ext2_volume* vol, struct ext2_inode* ino, struct file* file)
@@ -865,7 +857,7 @@ static int ext2_mount(const char* dev, const void* data, struct file* fsroot)
     struct ext2_inode ino;
     ext2_read_inode(vol, 2, &ino);
 
-    memcpy(fsroot, inode2file(vol, NULL, 2, &ino, "/"), sizeof(struct file));
+    inode2file(vol, 2, &ino, fsroot);
     return 0;
 }
 

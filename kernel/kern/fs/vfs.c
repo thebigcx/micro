@@ -72,16 +72,6 @@ ssize_t vfs_write(struct file* file, const void* buf, off_t off, size_t size)
     return 0;
 }
 
-struct file* vfs_find(struct file* dir, const char* name)
-{
-    if (dir && S_ISDIR(dir->mode) && dir->ops.find)
-    {
-        return dir->ops.find(dir, name);
-    }
-
-    return NULL;
-}
-
 ssize_t vfs_getdents(struct file* dir, off_t off, size_t n, struct dirent* dirp)
 {
     if (dir && S_ISDIR(dir->mode) && dir->ops.getdents)
@@ -109,10 +99,11 @@ static int get_parent_dir(const char* path, struct file* out, char** name)
 
         CHECK_RPERM(file);
 
-        struct file* child = vfs_find(file, token);
+        struct dentry dentry;
+        int e;
+        if ((e = file->ops.lookup(file, token, &dentry))) return e;
         kfree(file);
-        file = child;
-        if (!file) return -ENOENT;
+        file = dentry.file;
 
         token = next;
         next = strtok_r(NULL, "/", &saveptr);
@@ -329,9 +320,11 @@ static int do_vfs_resolve(const char* path, struct file* out, int symlinks, int 
 
         CHECK_RPERM(file);
 
-        struct file* child = vfs_find(file, token);
+        struct dentry dentry;
+        int e;
+        if ((e = file->ops.lookup(file, token, &dentry))) return e;
         kfree(file);
-        file = child;
+        file = dentry.file;
 
         if (!file) return -ENOENT;
 

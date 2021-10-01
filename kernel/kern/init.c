@@ -39,7 +39,7 @@ ssize_t initrd_write(struct file* file, const void* buf, off_t off, size_t size)
 void initrd_init(uintptr_t start, uintptr_t end)
 {
     printk("mounting initial ramdisk\n");
-    
+
     struct initrd* initrd = kmalloc(sizeof(struct initrd));
 
     initrd->start = start;
@@ -100,6 +100,36 @@ struct file* initramfs_find(struct file* dir, const char* name)
     return NULL;
 }
 
+int initramfs_lookup(struct file* dir, const char* name, struct dentry* dentry)
+{
+    struct initrd* initrd = ((struct initramfs*)dir->priv)->device;
+    struct fheader* curr = (struct fheader*)initrd->start;
+
+    while ((uintptr_t)curr < initrd->end)
+    {
+        if (!strcmp(curr->name, name))
+        {
+            dentry->file = kmalloc(sizeof(struct file));
+            dentry->file->ops.read = initramfs_read;
+            dentry->file->mode = S_IFREG | 0555;
+
+            struct initramfs_file* ramfile = kmalloc(sizeof(struct initramfs_file));
+            ramfile->start = (uintptr_t)curr + sizeof(struct fheader);
+
+            dentry->file->size = curr->size;
+            dentry->file->priv = ramfile;
+
+            strcpy(dentry->name, name);
+
+            return 0;
+        }
+
+        curr = (struct fheader*)((uintptr_t)curr + sizeof(struct fheader) + curr->size);
+    }
+
+    return -ENOENT;
+}
+
 int initramfs_mount(const char* dev, const void* data, struct file* fsroot)
 {
     struct file* device = kmalloc(sizeof(struct file));
@@ -107,7 +137,7 @@ int initramfs_mount(const char* dev, const void* data, struct file* fsroot)
     struct initramfs* ramfs = kmalloc(sizeof(struct initramfs));
     ramfs->device = device->priv;
 
-    fsroot->ops.find = initramfs_find;
+    fsroot->ops.lookup = initramfs_lookup;
     fsroot->mode     = S_IFDIR | 0755;
     fsroot->priv     = ramfs;
 

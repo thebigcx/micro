@@ -2,23 +2,25 @@
 #include <micro/vfs.h>
 #include <micro/list.h>
 #include <micro/stdlib.h>
+#include <micro/errno.h>
 
 static struct list  devices;
 
-struct file* devfs_find(struct file* dir, const char* name)
+int devfs_lookup(struct file* dir, const char* name, struct dentry* dentry)
 {
     LIST_FOREACH(&devices)
     {
         struct dentry* dev = node->data;
         if (!strcmp(name, dev->name))
         {
-            struct file* copy = kmalloc(sizeof(struct file));
-            memcpy(copy, dev->file, sizeof(struct file));
-            return copy;
+            strcpy(dentry->name, name);
+            dentry->file = memdup(dev->file, sizeof(struct file));
+
+            return 0;
         }
     }
 
-    return NULL;
+    return -ENOENT;
 }
 
 ssize_t devfs_getdents(struct file* dir, off_t off, size_t size, struct dirent* dirp)
@@ -42,7 +44,7 @@ int devfs_mount(const char* dev, const void* data, struct file* fsroot)
     memset(fsroot, 0, sizeof(struct file));
 
     fsroot->mode         = S_IFDIR | 0755;
-    fsroot->ops.find     = devfs_find;
+    fsroot->ops.lookup   = devfs_lookup;
     fsroot->ops.getdents = devfs_getdents;
 
     return 0;

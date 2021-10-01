@@ -83,20 +83,21 @@ ssize_t ptm_write(struct file* file, const void* buf, off_t off, size_t size)
 
 static struct list slaves;
 
-struct file* ptsfs_find(struct file* dir, const char* name)
+int ptsfs_lookup(struct file* dir, const char* name, struct dentry* dentry)
 {
     LIST_FOREACH(&slaves)
     {
         struct dentry* dev = node->data;
         if (!strcmp(name, dev->name))
         {
-            struct file* copy = kmalloc(sizeof(struct file));
-            memcpy(copy, dev->file, sizeof(struct file));
-            return copy;
+            strcpy(dentry->name, name);
+            dentry->file = memdup(dev->file, sizeof(struct file));
+
+            return 0;
         }
     }
 
-    return NULL;
+    return -ENOENT;
 }
 
 ssize_t ptsfs_getdents(struct file* dir, off_t off, size_t size, struct dirent* dirp)
@@ -163,7 +164,7 @@ int ptsfs_mount(const char* dev, const void* data, struct file* fsroot)
 {
     (void)dev; (void)data;
 
-    fsroot->ops.find     = ptsfs_find;
+    fsroot->ops.lookup   = ptsfs_lookup;
     fsroot->ops.getdents = ptsfs_getdents;
     fsroot->mode         = S_IFDIR | 0755;
 
