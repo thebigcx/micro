@@ -256,21 +256,6 @@ struct ahci_port* ahci_create_port(volatile struct hba_port* hba_port)
     return port;
 }
 
-struct file* ahci_create_dev(volatile struct hba_port* hba_port)
-{
-    struct file* file = kmalloc(sizeof(struct file));
-    memset(file, 0, sizeof(struct file));
-
-    file->mode      = S_IFBLK | 0660;
-    file->priv    = ahci_create_port(hba_port);
-    file->size      = 512;
-
-    file->ops.read  = port_read;
-    file->ops.write = port_write;
-
-    return file;
-}
-
 // Initalize an AHCI controller
 void ahci_init_ctrl()
 {
@@ -291,11 +276,8 @@ void ahci_init_ctrl()
 
             if (type == AHCI_PORT_SATA || type == AHCI_PORT_SATAPI)
             {
-                struct file* dev = ahci_create_dev(&vabar->ports[i]);
-
-                // TODO: alphabetize the disks when multiple are present
-                //strcpy(dev->name, "sda");
-                devfs_register(dev, "sda");
+                struct file_ops ops = { .read = port_read, .write = port_write };
+                devfs_register_blkdev(&ops, "sda", 0660, ahci_create_port(&vabar->ports[i]));
             }
         }
     }

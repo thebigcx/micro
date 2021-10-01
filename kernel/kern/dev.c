@@ -15,12 +15,6 @@ ssize_t null_write(struct file* file, const void* buf, off_t off, size_t size)
 
 void init_devices()
 {
-    struct file* null = vfs_create_file();
-    
-    null->ops.read    = null_read;
-    null->ops.write   = null_write;
-    null->mode        = S_IFCHR | 0666;
-
-    //strcpy(null->name, "null");
-    devfs_register(null, "null");
+    struct file_ops ops = { .read = null_read, .write = null_write };
+    devfs_register_chrdev(&ops, "null", 0666, NULL);
 }

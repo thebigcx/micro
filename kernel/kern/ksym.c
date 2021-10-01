@@ -38,7 +38,8 @@ static struct ksym ksyms[] =
     { "vfs_resolve",           &vfs_resolve           },
     { "vfs_register_fs",       &vfs_register_fs       },
     { "vfs_access",            &vfs_access            },
-    { "devfs_register",        &devfs_register        },
+    { "devfs_register_chrdev", &devfs_register_chrdev },
+    { "devfs_register_blkdev", &devfs_register_blkdev },
     { "register_irq_handler",  &register_irq_handler  },
     { "time_getepoch",         &time_getepoch         }
 };

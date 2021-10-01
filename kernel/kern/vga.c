@@ -57,13 +57,7 @@ ssize_t vga_write(struct file* file, const void* ptr, off_t off, size_t size)
 void vga_init()
 {
     buf = (struct vga_char*)0xb8000;
-    
-    struct file* vga = vfs_create_file();
-    
-    vga->ops.read    = vga_read;
-    vga->ops.write   = vga_write;
-    vga->mode        = S_IFCHR | 0660;
 
-    //strcpy(vga->name, "vga0");
-    devfs_register(vga, "vga0");
+    struct file_ops ops = { .read = vga_read, .write = vga_write };
+    devfs_register_chrdev(&ops, "vga0", 0660, NULL);
 }

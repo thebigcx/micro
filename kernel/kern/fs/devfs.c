@@ -56,12 +56,29 @@ void devfs_init()
     vfs_mount_fs("", "/dev", "devfs", NULL);
 }
 
-void devfs_register(struct file* file, const char* name)
+// TODO: remove 'new'
+static void devfs_register(struct file_ops* ops, const char* name, mode_t mode, void* priv)
 {
+    struct file* file = kcalloc(sizeof(struct file));
+
+    file->ops = *ops;
+    file->mode = S_IFBLK | mode;
+    file->priv = priv;
+
     struct dentry* dentry = kmalloc(sizeof(struct dentry));
 
     strcpy(dentry->name, name);
     dentry->file = file;
 
     list_enqueue(&devices, dentry);
+}
+
+void devfs_register_chrdev(struct file_ops* ops, const char* name, mode_t mode, void* priv)
+{
+    devfs_register(ops, name, mode | S_IFCHR, priv);
+}
+
+void devfs_register_blkdev(struct file_ops* ops, const char* name, mode_t mode, void* priv)
+{
+    devfs_register(ops, name, mode | S_IFBLK, priv);
 }

@@ -48,13 +48,8 @@ void ps2kb_init()
 
     register_irq_handler(1, ps2kb_handler);
 
-    struct file* kb = vfs_create_file();
-    
-    kb->mode        = S_IFCHR | 0660;
-    kb->ops.read    = kb_read;
-
-    //strcpy(kb->name, "keyboard");
-    devfs_register(kb, "keyboard");
+    struct file_ops ops = { .read = kb_read };
+    devfs_register_chrdev(&ops, "keyboard", 0660, NULL);
 
     count = 0;
 }

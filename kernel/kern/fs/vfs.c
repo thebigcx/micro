@@ -217,16 +217,14 @@ struct file* vfs_getmnt(const char* path, char** relat)
         if (strlen(mount->path) > strlen(path))
             continue;
 
+        // Match as much of 'path' as possible
         size_t i;
-        for (i = 0; i < strlen(mount->path); i++)
-        {
-            if (path[i] != mount->path[i])
-                break;
-        }
+        for (i = 0; i < strlen(mount->path) && path[i] == mount->path[i]; i++);
 
         char* pathcpy = strdup(path);
         pathcpy[i] = 0;
-
+        
+        // Does this mount point better match the previous?
         if (i > match && !strcmp(pathcpy, mount->path))
         {
             candidate = mount;
@@ -238,10 +236,9 @@ struct file* vfs_getmnt(const char* path, char** relat)
 
     if (!candidate) return NULL;
 
+    // getmnt() called with the mount point itself (no children)
     if (path[match] == 0)
-    {
         *relat = strdup("");
-    }
     else
     {    
         *relat = kmalloc(strlen(path) - match + 1);

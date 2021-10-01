@@ -79,13 +79,13 @@ void fb_mmap(struct file* file, struct vm_area* area)
 
 void fb_init_dev()
 {
-    struct file* file = vfs_create_file();
-    file->mode        = S_IFCHR | 0660;
-    file->size        = fb.width * fb.height * (fb.bpp / 8);
-    file->ops.read    = fb_read;
-    file->ops.write   = fb_write;
-    file->ops.ioctl   = fb_ioctl;
-    file->ops.mmap    = fb_mmap;
+    struct file_ops ops =
+    {
+        .read = fb_read,
+        .write = fb_write,
+        .ioctl = fb_ioctl,
+        .mmap = fb_mmap,
+    };
 
-    devfs_register(file, "fb0");
+    devfs_register_chrdev(&ops, "fb0", 0660, NULL);
 }

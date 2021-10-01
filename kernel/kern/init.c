@@ -39,19 +39,14 @@ ssize_t initrd_write(struct file* file, const void* buf, off_t off, size_t size)
 void initrd_init(uintptr_t start, uintptr_t end)
 {
     printk("mounting initial ramdisk\n");
-
-    struct file* file = vfs_create_file();
+    
     struct initrd* initrd = kmalloc(sizeof(struct initrd));
 
     initrd->start = start;
     initrd->end   = end;
 
-    file->ops.read  = initrd_read;
-    file->ops.write = initrd_write;
-    file->priv      = initrd;
-    file->mode      = S_IFBLK | 0660;
-
-    devfs_register(file, "initrd");
+    struct file_ops ops = { .read = initrd_read, .write = initrd_write };
+    devfs_register_blkdev(&ops, "initrd", 0660, initrd);
 }
 
 struct fheader

@@ -174,12 +174,8 @@ void tty_init()
 {
     slaves = list_create();
 
-    struct file* ptmx = vfs_create_file();
-
-    ptmx->ops.open    = ptmx_open;
-    ptmx->mode        = S_IFCHR | S_IFCHR;
-
-    devfs_register(ptmx, "ptmx");
+    struct file_ops ops = { .open = ptmx_open };
+    devfs_register_blkdev(&ops, "ptmx", 0666, NULL);
 
     // Pseudoterminal slave filesystem
     vfs_register_fs("ptsfs", ptsfs_mount);
