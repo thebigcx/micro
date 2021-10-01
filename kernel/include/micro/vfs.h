@@ -106,23 +106,20 @@ struct dentry
 
 struct file // TODO: rename to 'inode'
 {
-    uint64_t        inode;
-    void*           device;
-    //uint32_t        type;
-    //uint32_t        perms;
     mode_t          mode;
     size_t          size;
-    struct file_ops ops;    // TODO: remove
-    struct file*    parent; // TODO: remove
-    dev_t           major;
-    dev_t           minor;
-    unsigned int    links;
+    dev_t           rdev;
+    nlink_t         nlink;
     time_t          atime;
 	time_t          mtime;
 	time_t          ctime;
-
     uid_t           uid;
     gid_t           gid;
+
+    ino_t           inode;
+    void*           priv;
+    struct file_ops ops;    // TODO: remove
+    struct file*    parent; // TODO: remove
 };
 
 struct mount

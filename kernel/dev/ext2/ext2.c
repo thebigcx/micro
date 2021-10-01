@@ -103,8 +103,8 @@ static struct file* inode2file(struct ext2_volume* vol, struct file* parent,
     file->parent       = parent;
     file->inode        = inonum;
     file->size         = INOSIZE(*ino);
-    file->device       = vol;
-    file->links        = ino->nlink;
+    file->priv       = vol;
+    file->nlink        = ino->nlink;
 
     file->atime        = ino->atime;
     file->ctime        = ino->ctime;
@@ -320,7 +320,7 @@ uint32_t ext2_alloc_inode(struct ext2_volume* vol)
 
 ssize_t ext2_getdents(struct file* dir, off_t off, size_t n, struct dirent* dirp)
 {
-    struct ext2_volume* vol = dir->device;
+    struct ext2_volume* vol = dir->priv;
 
     struct ext2_inode ino;
     ext2_read_inode(vol, dir->inode, &ino);
@@ -365,7 +365,7 @@ ssize_t ext2_getdents(struct file* dir, off_t off, size_t n, struct dirent* dirp
 
 void ext2_resize(struct file* file, size_t size)
 {
-    struct ext2_volume* vol = file->device;
+    struct ext2_volume* vol = file->priv;
 
     struct ext2_inode ino;
     ext2_read_inode(vol, file->inode, &ino);
@@ -400,7 +400,7 @@ ssize_t ext2_read(struct file* file, void* buf, off_t off, size_t size)
         if (!size) return 0;
     }
 
-    struct ext2_volume* vol = file->device;
+    struct ext2_volume* vol = file->priv;
 
     uint32_t startblk =  off         / vol->blksize; // Start block
     uint32_t modoff   =  off         % vol->blksize; // Byte offset of start block
@@ -442,7 +442,7 @@ ssize_t ext2_read(struct file* file, void* buf, off_t off, size_t size)
 
 ssize_t ext2_write(struct file* file, const void* buf, off_t off, size_t size)
 {
-    struct ext2_volume* vol = file->device;
+    struct ext2_volume* vol = file->priv;
 
     if (file->size < off + size)
     {
@@ -491,7 +491,7 @@ ssize_t ext2_write(struct file* file, const void* buf, off_t off, size_t size)
 // TODO: return error codes somehow
 struct file* ext2_find(struct file* dir, const char* name)
 {
-    struct ext2_volume* vol = dir->device;
+    struct ext2_volume* vol = dir->priv;
 
     struct ext2_inode ino;
     ext2_read_inode(vol, dir->inode, &ino);
@@ -546,7 +546,7 @@ void ext2_init_inode(struct ext2_volume* vol, struct ext2_inode* ino, struct fil
 
 static void ext2_append_dirent(struct file* dir, struct ext2_dirent* dirent)
 {
-    struct ext2_volume* vol = dir->device;
+    struct ext2_volume* vol = dir->priv;
 
     struct ext2_inode pino; // Parent inode
     ext2_read_inode(vol, dir->inode, &pino);
@@ -597,7 +597,7 @@ static void ext2_append_dirent(struct file* dir, struct ext2_dirent* dirent)
 // TODO: struct dentry* instead of this garbage
 void ext2_mkentry(struct file* dir, struct file* file, const char* name)
 {
-    struct ext2_volume* vol = dir->device;
+    struct ext2_volume* vol = dir->priv;
 
     uint32_t inonum = ext2_alloc_inode(vol);
 
@@ -648,7 +648,7 @@ void ext2_mkdir(struct file* dir, const char* name, mode_t mode, uid_t uid, gid_
 
     ext2_mkentry(dir, &file, name);
 
-    struct ext2_volume* vol = dir->device;
+    struct ext2_volume* vol = dir->priv;
 
     struct ext2_inode ino;
     ext2_read_inode(vol, file.inode, &ino);
@@ -695,12 +695,7 @@ void ext2_mknod(struct file* dir, const char* name, mode_t mode, dev_t dev, uid_
     file.gid   = gid;
     
     if (dev)
-    {
-        file.major = dev << 32;
-        file.minor = dev & 0xffffffff;
-    }
-
-    //strcpy(file.name, name);
+        file.rdev = dev;
 
     ext2_mkentry(dir, &file, name);
 }
@@ -708,7 +703,7 @@ void ext2_mknod(struct file* dir, const char* name, mode_t mode, dev_t dev, uid_
 // TODO: error code
 void ext2_unlink(struct file* dir, const char* name)
 {
-    struct ext2_volume* vol = dir->device;
+    struct ext2_volume* vol = dir->priv;
 
     struct ext2_inode ino;
     ext2_read_inode(vol, dir->inode, &ino);
@@ -747,7 +742,7 @@ void ext2_unlink(struct file* dir, const char* name)
 
 int ext2_chmod(struct file* file, mode_t mode)
 {
-    struct ext2_volume* vol = file->device;
+    struct ext2_volume* vol = file->priv;
 
     struct ext2_inode ino;
     ext2_read_inode(vol, file->inode, &ino);
@@ -761,7 +756,7 @@ int ext2_chmod(struct file* file, mode_t mode)
 
 int ext2_chown(struct file* file, uid_t uid, gid_t gid)
 {
-    struct ext2_volume* vol = file->device;
+    struct ext2_volume* vol = file->priv;
 
     struct ext2_inode ino;
     ext2_read_inode(vol, file->inode, &ino);
@@ -782,7 +777,7 @@ int ext2_readlink(struct file* file, char* buf, size_t n)
     if (!S_ISLNK(file->mode)) return -EINVAL;
 
     struct ext2_inode ino;
-    ext2_read_inode(file->device, file->inode, &ino);
+    ext2_read_inode(file->priv, file->inode, &ino);
 
     n = INOSIZE(ino) < n ? INOSIZE(ino) : n;
 
@@ -794,7 +789,7 @@ int ext2_readlink(struct file* file, char* buf, size_t n)
 
 int ext2_symlink(struct file* file, const char* link)
 {
-    struct ext2_volume* vol = file->device;
+    struct ext2_volume* vol = file->priv;
 
     struct ext2_inode ino;
     ext2_read_inode(vol, file->inode, &ino);
@@ -811,7 +806,7 @@ int ext2_symlink(struct file* file, const char* link)
 
 int ext2_link(struct file* old, const char* name, struct file* dir)
 {
-    struct ext2_volume* vol = old->device;
+    struct ext2_volume* vol = old->priv;
 
     size_t size = sizeof(struct ext2_dirent) + strlen(name);
 

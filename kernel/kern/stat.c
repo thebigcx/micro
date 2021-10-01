@@ -8,10 +8,10 @@ static void do_kstat(struct file* file, struct stat* buf)
     buf->st_dev     = 0;
     buf->st_ino     = file->inode;
     buf->st_mode    = file->mode;
-    buf->st_nlink   = file->links;
+    buf->st_nlink   = file->nlink;
     buf->st_uid     = file->uid;
     buf->st_gid     = file->gid;
-    buf->st_rdev    = (file->major << 32) | file->minor;
+    buf->st_rdev    = file->rdev;
     buf->st_size    = file->size;
     buf->st_blksize = 1024;
     buf->st_blocks  = 0;

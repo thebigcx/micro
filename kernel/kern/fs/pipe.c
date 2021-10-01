@@ -15,7 +15,7 @@ struct pipe
 
 ssize_t pipe_read(struct file* file, void* buf, off_t off, size_t size)
 {
-    struct pipe* pipe = file->device;
+    struct pipe* pipe = file->priv;
 
     ssize_t bytes;
     while (!(bytes = ringbuf_size(pipe->buffer))) sched_yield();
@@ -29,7 +29,7 @@ ssize_t pipe_read(struct file* file, void* buf, off_t off, size_t size)
 
 ssize_t pipe_write(struct file* file, const void* buf, off_t off, size_t size)
 {
-    struct pipe* pipe = file->device;
+    struct pipe* pipe = file->priv;
 
     ssize_t bytes = size;
     //ssize_t bytes;
@@ -53,7 +53,7 @@ int pipe_create(struct file* files[2])
     memset(files[1], 0, sizeof(struct file));
 
     files[0]->mode = files[1]->mode = S_IFIFO | 0777;
-    files[0]->device = files[1]->device = pipe;
+    files[0]->priv = files[1]->priv = pipe;
 
     files[0]->ops.read = pipe_read;
     files[1]->ops.write = pipe_write;

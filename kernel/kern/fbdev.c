@@ -87,6 +87,5 @@ void fb_init_dev()
     file->ops.ioctl   = fb_ioctl;
     file->ops.mmap    = fb_mmap;
 
-    //strcpy(file->name, "fb0");
     devfs_register(file, "fb0");
 }

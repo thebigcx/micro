@@ -132,7 +132,7 @@ int port_access(struct ahci_port* port, uintptr_t lba, uint32_t cnt, int write)
 
 ssize_t port_read(struct file* file, void* buf, off_t off, size_t size)
 {
-    struct ahci_port* port = file->device;
+    struct ahci_port* port = file->priv;
 
     uintptr_t lba   = off / 512;
     size_t    count = size / 512;
@@ -155,7 +155,7 @@ ssize_t port_read(struct file* file, void* buf, off_t off, size_t size)
 
 ssize_t port_write(struct file* file, const void* buf, off_t off, size_t size)
 {
-    struct ahci_port* port = file->device;
+    struct ahci_port* port = file->priv;
 
     uintptr_t lba   = off / 512;
     size_t    count = size / 512;
@@ -262,7 +262,7 @@ struct file* ahci_create_dev(volatile struct hba_port* hba_port)
     memset(file, 0, sizeof(struct file));
 
     file->mode      = S_IFBLK | 0660;
-    file->device    = ahci_create_port(hba_port);
+    file->priv    = ahci_create_port(hba_port);
     file->size      = 512;
 
     file->ops.read  = port_read;

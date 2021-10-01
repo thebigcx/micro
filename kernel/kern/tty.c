@@ -12,7 +12,7 @@
 
 ssize_t pts_read(struct file* file, void* buf, off_t off, size_t size)
 {
-    struct pt* pt = file->device;
+    struct pt* pt = file->priv;
 
     //ssize_t bytes = ringbuf_size(pt->inbuf);
 
@@ -30,7 +30,7 @@ ssize_t pts_read(struct file* file, void* buf, off_t off, size_t size)
 
 ssize_t pts_write(struct file* file, const void* buf, off_t off, size_t size)
 {
-    struct pt* pt = file->device;
+    struct pt* pt = file->priv;
 
     ringbuf_write(pt->outbuf, buf, size);
 
@@ -39,7 +39,7 @@ ssize_t pts_write(struct file* file, const void* buf, off_t off, size_t size)
 
 int pts_ioctl(struct file* file, unsigned long req, void* argp)
 {
-    struct pt* pt = file->device;
+    struct pt* pt = file->priv;
 
     switch (req)
     {
@@ -60,7 +60,7 @@ int pts_ioctl(struct file* file, unsigned long req, void* argp)
 
 ssize_t ptm_read(struct file* file, void* buf, off_t off, size_t size)
 {
-    struct pt* pt = file->device;
+    struct pt* pt = file->priv;
 
     ssize_t bytes = ringbuf_size(pt->outbuf);
 
@@ -74,7 +74,7 @@ ssize_t ptm_read(struct file* file, void* buf, off_t off, size_t size)
 
 ssize_t ptm_write(struct file* file, const void* buf, off_t off, size_t size)
 {
-    struct pt* pt = file->device;
+    struct pt* pt = file->priv;
 
     ringbuf_write(pt->inbuf, buf, size);
 
@@ -121,7 +121,7 @@ struct file* ptm_open(struct pt* pt)
     ptm->ops.read    = ptm_read;
     ptm->ops.write   = ptm_write;
     ptm->mode        = S_IFCHR | 0620;
-    ptm->device      = pt;
+    ptm->priv      = pt;
     
     return ptm;
 }
@@ -133,7 +133,7 @@ struct file* pts_open(struct pt* pt)
     pts->ops.read    = pts_read;
     pts->ops.write   = pts_write;
     pts->mode        = S_IFCHR | 0620;
-    pts->device      = pt;
+    pts->priv      = pt;
 
     // TODO: generate a unique name
     //strcpy(pts->name, "0");
@@ -196,7 +196,7 @@ SYSCALL_DEFINE(ptsname, int fdno, char* buf, size_t n)
 
     // TODO: struct file should hold flags like MASTER_PTY, DEVICE, etc (for fcntl() calls)
     // THIS IS DANGEROUS - IT MIGHT NOT BE A MASTER PTY
-    struct pt* pt = fd->filp->device;
+    struct pt* pt = fd->filp->priv;
 
     //if (strlen("/dev/pts/") + strlen(pt->pts->name) >= n) return -ERANGE;
 

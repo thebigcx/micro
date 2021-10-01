@@ -24,14 +24,14 @@ struct initrd
 
 ssize_t initrd_read(struct file* file, void* buf, off_t off, size_t size)
 {
-    struct initrd* initrd = file->device;
+    struct initrd* initrd = file->priv;
     memcpy(buf, (void*)(initrd->start + off), size);
     return size;
 }
 
 ssize_t initrd_write(struct file* file, const void* buf, off_t off, size_t size)
 {
-    struct initrd* initrd = file->device;
+    struct initrd* initrd = file->priv;
     memcpy((void*)(initrd->start + off), buf, size);
     return size;
 }
@@ -48,9 +48,7 @@ void initrd_init(uintptr_t start, uintptr_t end)
 
     file->ops.read  = initrd_read;
     file->ops.write = initrd_write;
-    //file->type      = S_IFBLK;
-    file->device    = initrd;
-    //file->perms     = 0660;
+    file->priv      = initrd;
     file->mode      = S_IFBLK | 0660;
 
     devfs_register(file, "initrd");
@@ -74,14 +72,14 @@ struct initramfs
 
 ssize_t initramfs_read(struct file* file, void* buf, off_t off, size_t size)
 {
-    struct initramfs_file* fs_file = file->device;
+    struct initramfs_file* fs_file = file->priv;
     memcpy(buf, (void*)(fs_file->start + off), size);
     return size;
 }
 
 struct file* initramfs_find(struct file* dir, const char* name)
 {   
-    struct initrd* initrd = ((struct initramfs*)dir->device)->device;
+    struct initrd* initrd = ((struct initramfs*)dir->priv)->device;
     struct fheader* curr = (struct fheader*)initrd->start;
 
     while ((uintptr_t)curr < initrd->end)
@@ -90,14 +88,13 @@ struct file* initramfs_find(struct file* dir, const char* name)
         {
             struct file* file = kmalloc(sizeof(struct file));
             file->ops.read = initramfs_read;
-            //file->type = S_IFREG;
             file->mode = S_IFREG | 0555;
 
             struct initramfs_file* ramfile = kmalloc(sizeof(struct initramfs_file));
             ramfile->start = (uintptr_t)curr + sizeof(struct fheader);
 
             file->size = curr->size;
-            file->device = ramfile;
+            file->priv = ramfile;
 
             return file;
         }
@@ -113,12 +110,11 @@ int initramfs_mount(const char* dev, const void* data, struct file* fsroot)
     struct file* device = kmalloc(sizeof(struct file));
     vfs_resolve(dev, device, 1);
     struct initramfs* ramfs = kmalloc(sizeof(struct initramfs));
-    ramfs->device = device->device;
+    ramfs->device = device->priv;
 
     fsroot->ops.find = initramfs_find;
-    //fsroot->type = S_IFDIR;
     fsroot->mode   = S_IFDIR | 0755;
-    fsroot->device = ramfs;
+    fsroot->priv = ramfs;
 
     return 0;
 }
@@ -159,13 +155,7 @@ void generic_init(struct genbootparams params)
 
     printk("loading init modules\n");
     kmod_load("/ahci.ko");
-    /*kmod_load("/fat.ko");
-
-    printk("mounting root filesystem\n");
-    vfs_mount_fs("/dev/sda", "/", "fat", NULL);*/
-
     kmod_load("/ext2.ko");
-
     printk("mounting root filesystem\n");
 
     vfs_umount_fs("/"); // Unmount old initramfs
@@ -177,7 +167,6 @@ void generic_init(struct genbootparams params)
 
     tty_init();
 
-    //vga_init();
     fb_init_dev();
 
     printk("starting scheduler\n");

@@ -90,7 +90,7 @@ unsigned int fat_table_read(struct fat32_volume* vol, unsigned int i)
 
     uint32_t* buf = kmalloc(512);
 
-    vfs_read(vol->device, buf, fat_sector * 512, 512);
+    vfs_read(vol->priv, buf, fat_sector * 512, 512);
 
     uint32_t val = buf[fat_off / 4];
 
@@ -106,9 +106,9 @@ void fat_table_write(struct fat32_volume* vol, unsigned int i, unsigned int val)
 
     uint32_t* buf = kmalloc(512);
 
-    vfs_read(vol->device, buf, fat_sector * 512, 512);
+    vfs_read(vol->priv, buf, fat_sector * 512, 512);
     buf[fat_off / 4] = val;
-    vfs_write(vol->device, buf, fat_sector * 512, 512);
+    vfs_write(vol->priv, buf, fat_sector * 512, 512);
 
     kfree(buf);
 }
@@ -142,7 +142,7 @@ unsigned int fat_alloc_clus(struct fat32_volume* vol)
 
 ssize_t fat_read(struct file* file, void* buf, off_t off, size_t size)
 {
-    struct fat32_volume* vol = file->device;
+    struct fat32_volume* vol = file->priv;
 
     unsigned int clus = file->inode;
     
@@ -163,7 +163,7 @@ ssize_t fat_read(struct file* file, void* buf, off_t off, size_t size)
         if (pos > end) break;
         if (pos >= start)
         {
-            vfs_read(vol->device, fullbuf_ptr, lba * 512, 512);
+            vfs_read(vol->priv, fullbuf_ptr, lba * 512, 512);
             fullbuf_ptr += 512;
         }
 
@@ -185,7 +185,7 @@ void fat_resize_dirent(struct fat32_volume* vol, unsigned int clus, const char* 
     struct fat_dirent* dirents = kmalloc(512);
     for (unsigned int i = 0; i < clusters; i++)
     {
-        vfs_read(vol->device, dirents, clus2lba(vol, clus) * 512, 512);
+        vfs_read(vol->priv, dirents, clus2lba(vol, clus) * 512, 512);
         for (unsigned int j = 0; j < 512 / sizeof(struct fat_dirent); j++)
         {
             if (dirents[j].name[0] == 0 || dirents[j].name[0] == 0xe5) continue;
@@ -194,7 +194,7 @@ void fat_resize_dirent(struct fat32_volume* vol, unsigned int clus, const char* 
                 if (fat_name_cmp(&dirents[j], name))
                 {
                     dirents[j].file_sz = size;
-                    vfs_write(vol->device, dirents, clus2lba(vol, clus) * 512, 512);
+                    vfs_write(vol->priv, dirents, clus2lba(vol, clus) * 512, 512);
                     return;
                 }
             }
@@ -208,7 +208,7 @@ void fat_resize_file(struct file* file, size_t size)
 {
     if (file->size == size) return; // No need
 
-    struct fat32_volume* vol = file->device;
+    struct fat32_volume* vol = file->priv;
 
     if (file->parent) // Set parent's dirent structure size
         fat_resize_dirent(vol, file->parent->inode, file->name, size);
@@ -240,7 +240,7 @@ void fat_resize_file(struct file* file, size_t size)
 
 struct file* fat_find(struct file* dir, const char* name)
 {
-    struct fat32_volume* vol = dir->device;
+    struct fat32_volume* vol = dir->priv;
     unsigned int clus = dir->inode;
 
     struct fat_dirent* buf = kmalloc(512); // Hold the data we care about
@@ -253,7 +253,7 @@ struct file* fat_find(struct file* dir, const char* name)
     {
         uint64_t lba = clus2lba(vol, clus);
 
-        vfs_read(vol->device, buf, lba * 512, 512);
+        vfs_read(vol->priv, buf, lba * 512, 512);
 
         // clus
         for (unsigned int i = 0; i < 512 / sizeof(struct fat_dirent); i++)
@@ -302,7 +302,7 @@ struct file* fat_find(struct file* dir, const char* name)
                     struct file* file  = vfs_create_file();
 
                     file->parent       = dir;
-                    file->device       = vol;
+                    file->priv       = vol;
                     file->type         = (buf[i].attr & FAT_ATTR_DIR) ? S_IFDIR : S_IFREG;
                     file->inode        = (buf[i].cluster_u << 16) | buf[i].cluster;
                     file->size         = buf[i].file_sz;
@@ -334,7 +334,7 @@ struct file* fat_find(struct file* dir, const char* name)
 
 ssize_t fat_write(struct file* file, const void* buf, off_t off, size_t size)
 {
-    struct fat32_volume* vol = file->device;
+    struct fat32_volume* vol = file->priv;
     
     // TEMP
     if (off + size > file->size)
@@ -357,7 +357,7 @@ ssize_t fat_write(struct file* file, const void* buf, off_t off, size_t size)
 
         if (pos >= start)
         {
-            vfs_read(vol->device, fullbuf, lba * 512, 512);
+            vfs_read(vol->priv, fullbuf, lba * 512, 512);
 
             unsigned int byte_offset = 0;
             size_t bytes = 512;
@@ -373,7 +373,7 @@ ssize_t fat_write(struct file* file, const void* buf, off_t off, size_t size)
             }
             
             memcpy(fullbuf + byte_offset, buf, bytes);
-            vfs_write(vol->device, fullbuf, lba * 512, 512);
+            vfs_write(vol->priv, fullbuf, lba * 512, 512);
 
             buf = (void*)((uintptr_t)buf + bytes);
         }
@@ -390,7 +390,7 @@ ssize_t fat_write(struct file* file, const void* buf, off_t off, size_t size)
 
 void fat_dirent_append(struct file* dir, struct fat_dirent* dirent)
 {
-    struct fat32_volume* vol = dir->device;
+    struct fat32_volume* vol = dir->priv;
     unsigned int clus = dir->inode;
 
     unsigned int dirents_per_clus = 512 / sizeof(struct fat_dirent);
@@ -399,7 +399,7 @@ void fat_dirent_append(struct file* dir, struct fat_dirent* dirent)
 
     for (;;)
     {
-        vfs_read(vol->device, buf, clus2lba(vol, clus) * 512, 512);
+        vfs_read(vol->priv, buf, clus2lba(vol, clus) * 512, 512);
 
         for (unsigned int j = 0; j < dirents_per_clus; j++)
         {
@@ -408,7 +408,7 @@ void fat_dirent_append(struct file* dir, struct fat_dirent* dirent)
                 // Read the sector, write the dirent, and flush the sector
                 memcpy(&buf[j], dirent, sizeof(struct fat_dirent));
 
-                vfs_write(vol->device, buf, clus2lba(vol, clus) * 512, 512);
+                vfs_write(vol->priv, buf, clus2lba(vol, clus) * 512, 512);
 
                 kfree(buf);
                 return;
@@ -442,7 +442,7 @@ void fat_mkfile(struct file* dir, const char* name, mode_t mode, uid_t uid, gid_
 {
     (void)mode; (void)uid; (void)gid;
 
-    struct fat32_volume* vol = dir->device;
+    struct fat32_volume* vol = dir->priv;
 
     struct fat_dirent dirent;
     memset(&dirent, 0, sizeof(struct fat_dirent));
@@ -459,7 +459,7 @@ void fat_mkdir(struct file* dir, const char* name, mode_t mode, uid_t uid, gid_t
 {
     (void)mode; (void)uid; (void)gid;
     
-    struct fat32_volume* vol = dir->device;
+    struct fat32_volume* vol = dir->priv;
     
     struct fat_dirent dirent;
     memset(&dirent, 0, sizeof(struct fat_dirent));
@@ -479,7 +479,7 @@ void fat_mkdir(struct file* dir, const char* name, mode_t mode, uid_t uid, gid_t
 // TODO: should return int error code
 void fat_unlink(struct file* dir, const char* name)
 {
-    struct fat32_volume* vol = dir->device;
+    struct fat32_volume* vol = dir->priv;
     unsigned int clus = dir->inode;
 
     struct fat_dirent* buf = kmalloc(512); // Hold the data we care about
@@ -489,7 +489,7 @@ void fat_unlink(struct file* dir, const char* name)
     {
         uint64_t lba = clus2lba(vol, clus);
 
-        vfs_read(vol->device, buf, lba * 512, 512);
+        vfs_read(vol->priv, buf, lba * 512, 512);
 
         for (unsigned int i = 0; i < 512 / sizeof(struct fat_dirent); i++)
         {
@@ -500,7 +500,7 @@ void fat_unlink(struct file* dir, const char* name)
                 if (fat_name_cmp(&buf[i], name))
                 {
                     struct fat_dirent* buf = kmalloc(512);
-                    vfs_read(vol->device, buf, clus2lba(vol, clus) * 512, 512);
+                    vfs_read(vol->priv, buf, clus2lba(vol, clus) * 512, 512);
                     
 
                     // TODO: delete the data
@@ -508,7 +508,7 @@ void fat_unlink(struct file* dir, const char* name)
                     memset(&buf[i], 0, sizeof(struct fat_dirent));
                     buf[i].name[0] = 0xe5; // Bit of a hack - mark the dirent as unused (no data is actually freed)
 
-                    vfs_write(vol->device, buf, clus2lba(vol, clus) * 512, 512);
+                    vfs_write(vol->priv, buf, clus2lba(vol, clus) * 512, 512);
 
                     kfree(buf);
                     return;
@@ -526,7 +526,7 @@ void fat_unlink(struct file* dir, const char* name)
 
 ssize_t fat_getdents(struct file* dir, off_t off, size_t size, struct dirent* dirp)
 {
-    struct fat32_volume* vol = dir->device;
+    struct fat32_volume* vol = dir->priv;
     unsigned int clus = dir->inode;
 
     struct fat_dirent* buf = kmalloc(512); // Hold the data we care about
@@ -543,7 +543,7 @@ ssize_t fat_getdents(struct file* dir, off_t off, size_t size, struct dirent* di
     {
         uint64_t lba = clus2lba(vol, clus);
 
-        vfs_read(vol->device, buf, lba * 512, 512);
+        vfs_read(vol->priv, buf, lba * 512, 512);
 
         for (unsigned int j = 0; j < DENTS_PER_SECT; j++)
         {
@@ -616,7 +616,7 @@ struct file* fat_mount(const char* dev, const void* data)
     vfs_resolve(dev, device, 1);
 
     struct fat32_volume* vol = kmalloc(sizeof(struct fat32_volume));
-    vol->device = device;
+    vol->priv = device;
 
     void* buf = kmalloc(512);
     vfs_read(device, buf, 0, 512);
@@ -629,7 +629,7 @@ struct file* fat_mount(const char* dev, const void* data)
     memset(file, 0, sizeof(struct file));
 
     file->type         = S_IFDIR;
-    file->device       = vol;
+    file->priv       = vol;
     file->inode        = vol->record.ebr.cluster_num;
     file->ops.find     = fat_find;
     file->ops.getdents = fat_getdents;
