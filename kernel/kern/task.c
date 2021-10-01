@@ -248,6 +248,21 @@ void task_exit(int status)
 
 void task_delete(struct task* task)
 {
+    // Remove the child from the parent
+    if (task->parent)
+    {
+        size_t i = 0;
+        LIST_FOREACH(&task->parent->children)
+        {
+            if (node->data == task)
+            {
+                list_remove(&task->parent->children, i);
+                break;
+            }
+            i++;
+        }
+    }
+
     mmu_destroy_vmmap(task->vm_map);
     kfree(task);
 }

@@ -160,6 +160,19 @@ struct fd* ptmx_open(struct file* file, uint32_t flags, mode_t mode)
     return vfs_open(pt->ptm, 0);
 }
 
+int ptmx_open_new(struct file* inode, struct fd* file)
+{
+    struct pt* pt = kmalloc(sizeof(struct pt));
+    memset(pt, 0, sizeof(struct pt));
+
+    pt->inbuf  = ringbuf_create(1024);
+    pt->outbuf = ringbuf_create(1024);
+    pt->ptm    = ptm_open(pt);
+    pt->pts    = pts_open(pt);
+
+    return 0;
+}
+
 int ptsfs_mount(const char* dev, const void* data, struct file* fsroot)
 {
     (void)dev; (void)data;
