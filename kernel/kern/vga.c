@@ -65,6 +65,6 @@ void vga_init()
     vga->type        = FL_CHRDEV;
     vga->perms       = 0660;
 
-    strcpy(vga->name, "vga0");
-    devfs_register(vga);
+    //strcpy(vga->name, "vga0");
+    devfs_register(vga, "vga0");
 }

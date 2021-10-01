@@ -292,7 +292,7 @@ int main(int argc, char** argv)
     size_t size = info.xres * info.yres * (info.bpp / 8);
 
     fbaddr = mmap(0x1000000, size, PROT_READ | PROT_WRITE,
-                  MAP_FIXED | MAP_PRIVATE, fb, 0);
+                  MAP_PRIVATE, fb, 0);
     fbend = (void*)((uintptr_t)fbaddr + size);
 
     char pts_name[128];

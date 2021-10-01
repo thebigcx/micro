@@ -295,8 +295,8 @@ void ahci_init_ctrl()
                 struct file* dev = ahci_create_dev(&vabar->ports[i]);
 
                 // TODO: alphabetize the disks when multiple are present
-                strcpy(dev->name, "sda");
-                devfs_register(dev);
+                //strcpy(dev->name, "sda");
+                devfs_register(dev, "sda");
             }
         }
     }

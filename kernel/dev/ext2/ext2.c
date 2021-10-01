@@ -116,7 +116,7 @@ static struct file* inode2file(struct ext2_volume* vol, struct file* parent,
     file->uid          = ino->uid;
     file->gid          = ino->gid;
 
-    strcpy(file->name, name);
+    //strcpy(file->name, name);
 
     return file;
 }
@@ -596,7 +596,8 @@ static void ext2_append_dirent(struct file* dir, struct ext2_dirent* dirent)
     kfree(buf);
 }
 
-void ext2_mkentry(struct file* dir, struct file* file)
+// TODO: struct dentry* instead of this garbage
+void ext2_mkentry(struct file* dir, struct file* file, const char* name)
 {
     struct ext2_volume* vol = dir->device;
 
@@ -611,17 +612,17 @@ void ext2_mkentry(struct file* dir, struct file* file)
     ext2_write_inode(vol, inonum, &ino);
 
     // Create the directory entry
-    size_t size = sizeof(struct ext2_dirent) + strlen(file->name);
+    size_t size = sizeof(struct ext2_dirent) + strlen(name);
 
     struct ext2_dirent* dirent = kmalloc(size);
 
     dirent->type     = ext2_dirent_type(file->type);
     dirent->inode    = inonum;
-    dirent->name_len = strlen(file->name);
+    dirent->name_len = strlen(name);
     dirent->size     = size;
 
     // Copy the name into the flexible array
-    memcpy(dirent->name, file->name, strlen(file->name));
+    memcpy(dirent->name, name, strlen(name));
 
     ext2_append_dirent(dir, dirent);
 }
@@ -635,9 +636,9 @@ void ext2_mkfile(struct file* dir, const char* name, mode_t mode, uid_t uid, gid
     file.gid   = gid;
     file.perms = mode & 0x0fff;
     file.type = FL_FILE;
-    strcpy(file.name, name);
+    //strcpy(file.name, name);
 
-    ext2_mkentry(dir, &file);
+    ext2_mkentry(dir, &file, name);
 }
 
 void ext2_mkdir(struct file* dir, const char* name, mode_t mode, uid_t uid, gid_t gid)
@@ -649,9 +650,9 @@ void ext2_mkdir(struct file* dir, const char* name, mode_t mode, uid_t uid, gid_
     file.gid   = gid;
     file.perms = mode & 0x0fff;
     file.type  = FL_DIR;
-    strcpy(file.name, name);
+    //strcpy(file.name, name);
 
-    ext2_mkentry(dir, &file);
+    ext2_mkentry(dir, &file, name);
 
     struct ext2_volume* vol = dir->device;
 
@@ -706,9 +707,9 @@ void ext2_mknod(struct file* dir, const char* name, mode_t mode, dev_t dev, uid_
         file.minor = dev & 0xffffffff;
     }
 
-    strcpy(file.name, name);
+    //strcpy(file.name, name);
 
-    ext2_mkentry(dir, &file);
+    ext2_mkentry(dir, &file, name);
 }
 
 // TODO: error code

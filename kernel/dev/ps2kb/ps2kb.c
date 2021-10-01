@@ -54,8 +54,8 @@ void ps2kb_init()
     kb->type        = FL_CHRDEV;
     kb->ops.read    = kb_read;
 
-    strcpy(kb->name, "keyboard");
-    devfs_register(kb);
+    //strcpy(kb->name, "keyboard");
+    devfs_register(kb, "keyboard");
 
     count = 0;
 }

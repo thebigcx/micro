@@ -80,9 +80,14 @@ struct fd
     uint32_t     flags;
 };
 
+struct dentry
+{
+    char name[256];
+    struct file* file;
+};
+
 struct file
 {
-    char            name[64];
     uint64_t        inode;
     void*           device;
     uint32_t        type;
@@ -122,13 +127,10 @@ int vfs_mkfile(const char* path, mode_t mode, uid_t uid, gid_t gid);
 int vfs_mkdir(const char* name, mode_t mode, uid_t uid, gid_t gid);
 int vfs_mknod(const char* path, mode_t mode, dev_t dev, uid_t uid, gid_t gid);
 
-//void vfs_rm(struct file* dir, const char* name);
 int vfs_unlink(const char* pathname);
 
 int vfs_ioctl(struct file* file, unsigned long req, void* argp);
 
-//int vfs_addnode(struct file* file, const char* path);
-//void* vfs_rmnode(const char* path);
 struct file* vfs_getmnt(const char* path, char** relat);
 
 int vfs_mount_fs(const char* dev, const char* mnt,

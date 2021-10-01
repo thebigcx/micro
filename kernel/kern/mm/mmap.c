@@ -27,12 +27,9 @@ unsigned long ksys_do_mmap(void* addr, size_t length, int prot, int flags, int f
 
         if (fd->filp->ops.mmap)
         {
-            struct vm_area area =
-            {
-                .base  = (uintptr_t)addr,
-                .end   = (uintptr_t)addr + length
-            };
-            vfs_mmap(fd->filp, &area);
+            struct vm_area* area = vm_map_anon(task_curr()->vm_map, addr, length, flags & MAP_FIXED);
+            
+            vfs_mmap(fd->filp, area);
         }
         else
         {

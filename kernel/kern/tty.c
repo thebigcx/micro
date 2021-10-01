@@ -88,11 +88,11 @@ struct file* ptsfs_find(struct file* dir, const char* name)
 {
     LIST_FOREACH(&slaves)
     {
-        struct file* dev = node->data;
+        struct dentry* dev = node->data;
         if (!strcmp(name, dev->name))
         {
             struct file* copy = kmalloc(sizeof(struct file));
-            memcpy(copy, dev, sizeof(struct file));
+            memcpy(copy, dev->file, sizeof(struct file));
             return copy;
         }
     }
@@ -107,7 +107,7 @@ ssize_t ptsfs_getdents(struct file* dir, off_t off, size_t size, struct dirent* 
     {
         if (i + off == slaves.size) break;
 
-        struct file* dev = list_get(&slaves, i + off);
+        struct dentry* dev = list_get(&slaves, i + off);
         strcpy(dirp[i].d_name, dev->name);
     }
 
@@ -136,8 +136,14 @@ struct file* pts_open(struct pt* pt)
     pts->device      = pt;
 
     // TODO: generate a unique name
-    strcpy(pts->name, "0");
-    list_enqueue(&slaves, pts);
+    //strcpy(pts->name, "0");
+    
+    struct dentry* dentry = kmalloc(sizeof(struct dentry));
+
+    strcpy(dentry->name, "0");
+    dentry->file = pts;
+    
+    list_enqueue(&slaves, dentry);
 
     return pts;
 }
@@ -165,8 +171,8 @@ void tty_init()
     ptmx->type        = FL_CHRDEV;
     ptmx->perms       = 0666;
 
-    strcpy(ptmx->name, "ptmx");
-    devfs_register(ptmx);
+    //strcpy(ptmx->name, "ptmx");
+    devfs_register(ptmx, "ptmx");
 
     ptsfs = vfs_create_file();
 
@@ -175,13 +181,16 @@ void tty_init()
     ptsfs->ops.find     = ptsfs_find;
     ptsfs->ops.getdents = ptsfs_getdents;
 
-    strcpy(ptsfs->name, "pts");
-    devfs_register(ptsfs);
+    //strcpy(ptsfs->name, "pts");
+    devfs_register(ptsfs, "pts");
 }
 
 // TODO: use the /proc filesystem instead of this syscall
 SYSCALL_DEFINE(ptsname, int fdno, char* buf, size_t n)
 {
+    strcpy(buf, "/dev/pts/0");
+    return 0;
+
     PTRVALID(buf);
     FDVALID(fdno);
 
@@ -191,10 +200,10 @@ SYSCALL_DEFINE(ptsname, int fdno, char* buf, size_t n)
     // THIS IS DANGEROUS - IT MIGHT NOT BE A MASTER PTY
     struct pt* pt = fd->filp->device;
 
-    if (strlen("/dev/pts/") + strlen(pt->pts->name) >= n) return -ERANGE;
+    //if (strlen("/dev/pts/") + strlen(pt->pts->name) >= n) return -ERANGE;
 
     strcpy(buf, "/dev/pts/");
-    strcpy(buf + strlen(buf), pt->pts->name);
+    //strcpy(buf + strlen(buf), pt->pts->name);
 
     return 0;
 }

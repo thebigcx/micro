@@ -22,6 +22,6 @@ void init_devices()
     null->ops.write   = null_write;
     null->type        = FL_CHRDEV;
 
-    strcpy(null->name, "null");
-    devfs_register(null);
+    //strcpy(null->name, "null");
+    devfs_register(null, "null");
 }

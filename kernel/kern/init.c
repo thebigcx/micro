@@ -52,8 +52,7 @@ void initrd_init(uintptr_t start, uintptr_t end)
     file->device    = initrd;
     file->perms     = 0660;
 
-    strcpy(file->name, "initrd");
-    devfs_register(file);
+    devfs_register(file, "initrd");
 }
 
 struct fheader
@@ -80,7 +79,7 @@ ssize_t initramfs_read(struct file* file, void* buf, off_t off, size_t size)
 }
 
 struct file* initramfs_find(struct file* dir, const char* name)
-{
+{   
     struct initrd* initrd = ((struct initramfs*)dir->device)->device;
     struct fheader* curr = (struct fheader*)initrd->start;
 
