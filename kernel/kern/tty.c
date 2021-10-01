@@ -120,7 +120,7 @@ struct file* ptm_open(struct pt* pt)
 
     ptm->ops.read    = ptm_read;
     ptm->ops.write   = ptm_write;
-    ptm->type        = FL_CHRDEV;
+    ptm->type        = S_IFCHR;
     ptm->device      = pt;
     
     return ptm;
@@ -132,7 +132,7 @@ struct file* pts_open(struct pt* pt)
 
     pts->ops.read    = pts_read;
     pts->ops.write   = pts_write;
-    pts->type        = FL_CHRDEV;
+    pts->type        = S_IFCHR;
     pts->device      = pt;
 
     // TODO: generate a unique name
@@ -168,7 +168,7 @@ void tty_init()
     struct file* ptmx = vfs_create_file();
 
     ptmx->ops.open    = ptmx_open;
-    ptmx->type        = FL_CHRDEV;
+    ptmx->type        = S_IFCHR;
     ptmx->perms       = 0666;
 
     //strcpy(ptmx->name, "ptmx");
@@ -176,7 +176,7 @@ void tty_init()
 
     ptsfs = vfs_create_file();
 
-    ptsfs->type         = FL_DIR;
+    ptsfs->type         = S_IFDIR;
     ptsfs->perms        = 0755;
     ptsfs->ops.find     = ptsfs_find;
     ptsfs->ops.getdents = ptsfs_getdents;

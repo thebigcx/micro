@@ -47,33 +47,39 @@ struct file_ops
     link_t     link;
 };
 
-#define FL_FIFO    (0x1000)
-#define FL_CHRDEV  (0x2000)
-#define FL_DIR     (0x4000)
-#define FL_BLKDEV  (0x6000)
-#define FL_FILE    (0x8000)
-#define FL_SYMLINK (0xa000)
-#define FL_SOCKET  (0xc000)
+#define S_IFIFO  (0x1000)
+#define S_IFCHR	 (0x2000)
+#define S_IFDIR	 (0x4000)
+#define S_IFBLK	 (0x6000)
+#define S_IFREG	 (0x8000)
+#define S_IFLNK	 (0xa000)
+#define S_IFSOCK (0xc000)
 
-#define FL_OEXEC   (00001)
-#define FL_OWRITE  (00002)
-#define FL_OREAD   (00004)
-#define FL_GEXEC   (00010)
-#define FL_GWRITE  (00020)
-#define FL_GREAD   (00040)
-#define FL_UEXEC   (00100)
-#define FL_UWRITE  (00200)
-#define FL_UREAD   (00400)
-#define FL_STICKY  (01000)
-#define FL_SETGID  (02000)
-#define FL_SETUID  (04000)
+#define S_IRWXU  (00700)
+#define S_IRUSR  (00400)
+#define S_IWUSR  (00200)
+#define S_IXUSR  (00100)
+
+#define S_IRWXG  (00070)
+#define S_IRGRP  (00040)
+#define S_IWGRP  (00020)
+#define S_IXGRP  (00010)
+
+#define S_IRWXO  (00007)
+#define S_IROTH  (00004)
+#define S_IWOTH  (00002)
+#define S_IXOTH  (00001)
+
+#define S_ISUID  (04000)
+#define S_ISGID  (02000)
+#define S_ISVTX  (01000)
 
 #define CHECK_RPERM(file) if (vfs_checkperm(file, 04) == -1) return -EACCES;
 #define CHECK_WPERM(file) if (vfs_checkperm(file, 02) == -1) return -EACCES;
 #define CHECK_XPERM(file) if (vfs_checkperm(file, 01) == -1) return -EACCES;
 
 // TODO: flags, modes, etc
-struct fd
+struct fd // TODO: rename to 'file'
 {
     struct file* filp;
     off_t        off;
@@ -86,15 +92,15 @@ struct dentry
     struct file* file;
 };
 
-struct file
+struct file // TODO: rename to 'inode'
 {
     uint64_t        inode;
     void*           device;
     uint32_t        type;
     uint32_t        perms;
     size_t          size;
-    struct file_ops ops;
-    struct file*    parent;
+    struct file_ops ops;    // TODO: remove
+    struct file*    parent; // TODO: remove
     dev_t           major;
     dev_t           minor;
     unsigned int    links;

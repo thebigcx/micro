@@ -52,7 +52,7 @@ int pipe_create(struct file* files[2])
     memset(files[0], 0, sizeof(struct file));
     memset(files[1], 0, sizeof(struct file));
 
-    files[0]->type = files[1]->type = FL_FIFO;
+    files[0]->type = files[1]->type = S_IFIFO;
     files[0]->device = files[1]->device = pipe;
 
     files[0]->ops.read = pipe_read;

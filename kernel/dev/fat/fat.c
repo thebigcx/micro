@@ -303,7 +303,7 @@ struct file* fat_find(struct file* dir, const char* name)
 
                     file->parent       = dir;
                     file->device       = vol;
-                    file->type         = (buf[i].attr & FAT_ATTR_DIR) ? FL_DIR : FL_FILE;
+                    file->type         = (buf[i].attr & FAT_ATTR_DIR) ? S_IFDIR : S_IFREG;
                     file->inode        = (buf[i].cluster_u << 16) | buf[i].cluster;
                     file->size         = buf[i].file_sz;
 
@@ -628,7 +628,7 @@ struct file* fat_mount(const char* dev, const void* data)
     struct file* file = vfs_create_file();
     memset(file, 0, sizeof(struct file));
 
-    file->type         = FL_DIR;
+    file->type         = S_IFDIR;
     file->device       = vol;
     file->inode        = vol->record.ebr.cluster_num;
     file->ops.find     = fat_find;

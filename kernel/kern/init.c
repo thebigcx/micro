@@ -48,7 +48,7 @@ void initrd_init(uintptr_t start, uintptr_t end)
 
     file->ops.read  = initrd_read;
     file->ops.write = initrd_write;
-    file->type      = FL_BLKDEV;
+    file->type      = S_IFBLK;
     file->device    = initrd;
     file->perms     = 0660;
 
@@ -89,7 +89,7 @@ struct file* initramfs_find(struct file* dir, const char* name)
         {
             struct file* file = kmalloc(sizeof(struct file));
             file->ops.read = initramfs_read;
-            file->type = FL_FILE;
+            file->type = S_IFREG;
 
             struct initramfs_file* ramfile = kmalloc(sizeof(struct initramfs_file));
             ramfile->start = (uintptr_t)curr + sizeof(struct fheader);
@@ -114,7 +114,7 @@ int initramfs_mount(const char* dev, const void* data, struct file* fsroot)
     ramfs->device = device->device;
 
     fsroot->ops.find = initramfs_find;
-    fsroot->type = FL_DIR;
+    fsroot->type = S_IFDIR;
     fsroot->device = ramfs;
 
     return 0;

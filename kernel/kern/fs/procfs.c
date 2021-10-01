@@ -6,7 +6,7 @@ void procfs_init()
 {
     /*struct file* proc = kcalloc(sizeof(struct file));
 
-    proc->type  = FL_DIR;
+    proc->type  = S_IFDIR;
     proc->perms = 0555;
     proc->uid   = 0;
     proc->gid   = 0;

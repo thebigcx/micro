@@ -236,19 +236,19 @@ static uint8_t ext2_dirent_type(unsigned int type)
 {
     switch (type)
     {
-        case FL_FILE:
+        case S_IFREG:
             return DIRENT_FILE;
-        case FL_DIR:
+        case S_IFDIR:
             return DIRENT_DIR;
-        case FL_CHRDEV:
+        case S_IFCHR:
             return DIRENT_CHARDEV;
-        case FL_BLKDEV:
+        case S_IFBLK:
             return DIRENT_BLOCKDEV;
-        case FL_FIFO:
+        case S_IFIFO:
             return DIRENT_FIFO;
-        case FL_SOCKET:
+        case S_IFSOCK:
             return DIRENT_SOCKET;
-        case FL_SYMLINK:
+        case S_IFLNK:
             return DIRENT_SYMLINK;
     }
 
@@ -635,7 +635,7 @@ void ext2_mkfile(struct file* dir, const char* name, mode_t mode, uid_t uid, gid
     file.uid   = uid;
     file.gid   = gid;
     file.perms = mode & 0x0fff;
-    file.type = FL_FILE;
+    file.type = S_IFREG;
     //strcpy(file.name, name);
 
     ext2_mkentry(dir, &file, name);
@@ -649,7 +649,7 @@ void ext2_mkdir(struct file* dir, const char* name, mode_t mode, uid_t uid, gid_
     file.uid   = uid;
     file.gid   = gid;
     file.perms = mode & 0x0fff;
-    file.type  = FL_DIR;
+    file.type  = S_IFDIR;
     //strcpy(file.name, name);
 
     ext2_mkentry(dir, &file, name);
@@ -786,7 +786,7 @@ int ext2_chown(struct file* file, uid_t uid, gid_t gid)
 
 int ext2_readlink(struct file* file, char* buf, size_t n)
 {
-    if (file->type != FL_SYMLINK) return -EINVAL;
+    if (file->type != S_IFLNK) return -EINVAL;
 
     struct ext2_inode ino;
     ext2_read_inode(file->device, file->inode, &ino);

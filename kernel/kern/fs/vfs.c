@@ -74,7 +74,7 @@ ssize_t vfs_write(struct file* file, const void* buf, off_t off, size_t size)
 
 struct file* vfs_find(struct file* dir, const char* name)
 {
-    if (dir && (dir->type == FL_DIR) && dir->ops.find)
+    if (dir && (dir->type == S_IFDIR) && dir->ops.find)
     {
         return dir->ops.find(dir, name);
     }
@@ -84,7 +84,7 @@ struct file* vfs_find(struct file* dir, const char* name)
 
 ssize_t vfs_getdents(struct file* dir, off_t off, size_t n, struct dirent* dirp)
 {
-    if (dir && (dir->type == FL_DIR) && dir->ops.getdents)
+    if (dir && (dir->type == S_IFDIR) && dir->ops.getdents)
     {
         return dir->ops.getdents(dir, off, n, dirp);
     }
@@ -105,7 +105,7 @@ static int get_parent_dir(const char* path, struct file* out, char** name)
 
     while (next)
     {
-        if (!(file->type == FL_DIR)) return -ENOTDIR;
+        if (!(file->type == S_IFDIR)) return -ENOTDIR;
 
         CHECK_RPERM(file);
 
@@ -118,7 +118,7 @@ static int get_parent_dir(const char* path, struct file* out, char** name)
         next = strtok_r(NULL, "/", &saveptr);
     }
 
-    if (file->type != FL_DIR) return -ENOTDIR;
+    if (file->type != S_IFDIR) return -ENOTDIR;
 
     memcpy(out, file, sizeof(struct file));
     *name = strdup(token);
@@ -186,7 +186,7 @@ int vfs_unlink(const char* pathname)
 
     struct file file;
     if ((e = vfs_resolve(pathname, &file, 1))) return e;
-    if (file.type == FL_DIR) return -EISDIR;
+    if (file.type == S_IFDIR) return -EISDIR;
 
     vfs_do_unlink(&dir, name);
 
@@ -320,7 +320,7 @@ static int do_vfs_resolve(const char* path, struct file* out, int symlinks, int 
 
     while (token)
     {
-        if (file->type != FL_DIR) return -ENOTDIR;
+        if (file->type != S_IFDIR) return -ENOTDIR;
 
         CHECK_RPERM(file);
 
@@ -330,7 +330,7 @@ static int do_vfs_resolve(const char* path, struct file* out, int symlinks, int 
 
         if (!file) return -ENOENT;
 
-        if (file->type == FL_SYMLINK && symlinks)
+        if (file->type == S_IFLNK && symlinks)
         {
             char link[60];
             ssize_t n = vfs_readlink(file, link, 60);
@@ -422,7 +422,7 @@ int vfs_symlink(const char* target, const char* link)
 
     if (vfs_access(link, F_OK) == 0) return -EEXIST;
 
-    vfs_mknod(link, FL_SYMLINK | 0777, 0, task_curr()->euid, task_curr()->egid);
+    vfs_mknod(link, S_IFLNK | 0777, 0, task_curr()->euid, task_curr()->egid);
 
     int e;
     if ((e = vfs_resolve(link, &file, 0))) return e;

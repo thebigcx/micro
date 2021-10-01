@@ -15,7 +15,7 @@ SYSCALL_DEFINE(mount, const char* src, const char* dst,
     int e;
     if ((e = vfs_resolve(dst, &target, 1))) return e;
 
-    if (target.type != FL_DIR) return -ENOTDIR;
+    if (target.type != S_IFDIR) return -ENOTDIR;
 
     return vfs_mount_fs(src, dst, fs, data);
 }

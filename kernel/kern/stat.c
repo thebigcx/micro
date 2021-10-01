@@ -77,7 +77,7 @@ SYSCALL_DEFINE(readlink, const char* pathname, char* buf, size_t n)
     kfree(canon);
 
     if (e) return e;
-    if (file.type != FL_SYMLINK) return -EINVAL;
+    if (file.type != S_IFLNK) return -EINVAL;
 
     return vfs_readlink(&file, buf, n);
 }

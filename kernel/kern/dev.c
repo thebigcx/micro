@@ -20,7 +20,7 @@ void init_devices()
     null->perms       = 0666;
     null->ops.read    = null_read;
     null->ops.write   = null_write;
-    null->type        = FL_CHRDEV;
+    null->type        = S_IFCHR;
 
     //strcpy(null->name, "null");
     devfs_register(null, "null");

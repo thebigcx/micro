@@ -33,7 +33,7 @@ unsigned long ksys_do_mmap(void* addr, size_t length, int prot, int flags, int f
         }
         else
         {
-            if (fd->filp->type != FL_FILE) return (unsigned long)-EACCES;
+            if (fd->filp->type != S_IFREG) return (unsigned long)-EACCES;
 
             unsigned int mmu_flags = PAGE_PR;
             mmu_flags |= prot & PROT_WRITE ? PAGE_RW : 0;

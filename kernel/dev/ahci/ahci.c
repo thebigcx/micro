@@ -262,7 +262,7 @@ struct file* ahci_create_dev(volatile struct hba_port* hba_port)
     memset(file, 0, sizeof(struct file));
 
     file->perms     = 0660;
-    file->type      = FL_BLKDEV;
+    file->type      = S_IFBLK;
     file->device    = ahci_create_port(hba_port);
     file->size      = 512;
 
