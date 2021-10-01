@@ -81,8 +81,7 @@ ssize_t ptm_write(struct file* file, const void* buf, off_t off, size_t size)
     return size;
 }
 
-static struct list  slaves;
-static struct file* ptsfs;
+static struct list slaves;
 
 struct file* ptsfs_find(struct file* dir, const char* name)
 {
@@ -130,13 +129,12 @@ struct file* pts_open(struct pt* pt)
 {
     struct file* pts = vfs_create_file();
 
-    pts->ops.read    = pts_read;
-    pts->ops.write   = pts_write;
-    pts->mode        = S_IFCHR | 0620;
+    pts->ops.read  = pts_read;
+    pts->ops.write = pts_write;
+    pts->mode      = S_IFCHR | 0620;
     pts->priv      = pt;
 
     // TODO: generate a unique name
-    //strcpy(pts->name, "0");
     
     struct dentry* dentry = kmalloc(sizeof(struct dentry));
 
@@ -161,6 +159,17 @@ struct fd* ptmx_open(struct file* file, uint32_t flags, mode_t mode)
     return vfs_open(pt->ptm, 0, 0);
 }
 
+int ptsfs_mount(const char* dev, const void* data, struct file* fsroot)
+{
+    (void)dev; (void)data;
+
+    fsroot->ops.find     = ptsfs_find;
+    fsroot->ops.getdents = ptsfs_getdents;
+    fsroot->mode         = S_IFDIR | 0755;
+
+    return 0;
+}
+
 void tty_init()
 {
     slaves = list_create();
@@ -170,22 +179,17 @@ void tty_init()
     ptmx->ops.open    = ptmx_open;
     ptmx->mode        = S_IFCHR | S_IFCHR;
 
-    //strcpy(ptmx->name, "ptmx");
     devfs_register(ptmx, "ptmx");
 
-    ptsfs = vfs_create_file();
-
-    ptsfs->mode         = S_IFDIR | 0755;
-    ptsfs->ops.find     = ptsfs_find;
-    ptsfs->ops.getdents = ptsfs_getdents;
-
-    //strcpy(ptsfs->name, "pts");
-    devfs_register(ptsfs, "pts");
+    // Pseudoterminal slave filesystem
+    vfs_register_fs("ptsfs", ptsfs_mount);
+    vfs_mount_fs("", "/dev/pts", "ptsfs", NULL);
 }
 
 // TODO: use the /proc filesystem instead of this syscall
 SYSCALL_DEFINE(ptsname, int fdno, char* buf, size_t n)
 {
+    // TODO: this is temporary!!
     strcpy(buf, "/dev/pts/0");
     return 0;
 

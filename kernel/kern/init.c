@@ -113,8 +113,8 @@ int initramfs_mount(const char* dev, const void* data, struct file* fsroot)
     ramfs->device = device->priv;
 
     fsroot->ops.find = initramfs_find;
-    fsroot->mode   = S_IFDIR | 0755;
-    fsroot->priv = ramfs;
+    fsroot->mode     = S_IFDIR | 0755;
+    fsroot->priv     = ramfs;
 
     return 0;
 }

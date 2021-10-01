@@ -213,6 +213,10 @@ struct file* vfs_getmnt(const char* path, char** relat)
     {
         struct mount* mount = node->data;
 
+        // Cannot be the mount point
+        if (strlen(mount->path) > strlen(path))
+            continue;
+
         size_t i;
         for (i = 0; i < strlen(mount->path); i++)
         {
@@ -234,11 +238,15 @@ struct file* vfs_getmnt(const char* path, char** relat)
 
     if (!candidate) return NULL;
 
-    // Root dir is special - "/test" matches "/", but "/dev/test" matches "/dev"
-    if (strcmp(candidate->path, "/")) match++;
-
-    *relat = kmalloc(strlen(path) - match + 1);
-    strcpy(*relat, path + match);
+    if (path[match] == 0)
+    {
+        *relat = strdup("");
+    }
+    else
+    {    
+        *relat = kmalloc(strlen(path) - match + 1);
+        strcpy(*relat, path + match);
+    }
 
     return memdup(candidate->file, sizeof(struct file));
 }
@@ -486,11 +494,13 @@ int vfs_mount_fs(const char* dev, const char* mnt,
     {
         if (!strcmp(fs_types[i].name, fs))
         {
-            struct file* fsroot = kmalloc(sizeof(struct file));
+            struct file* fsroot = kcalloc(sizeof(struct file));
+
+            fsroot->mode = S_IFDIR;
+
             int e;
             if ((e = fs_types[i].mount(dev, data, fsroot))) return e;
             
-            //vfs_addnode(fsroot, mnt);
             struct mount* mount = kmalloc(sizeof(struct mount));
 
             mount->file = fsroot;
