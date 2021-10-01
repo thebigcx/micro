@@ -14,17 +14,9 @@ typedef void         (*close_t   )(struct fd* fd);
 typedef ssize_t      (*read_t    )(struct file* file, void* buf, off_t off, size_t size);
 typedef ssize_t      (*write_t   )(struct file* file, const void* buf, off_t off, size_t size);
 typedef int          (*ioctl_t   )(struct file* file, unsigned long req, void* argp);
-typedef ssize_t      (*getdents_t)(struct file* dir, off_t off, size_t n, struct dirent* dirp);
-typedef void         (*mkfile_t  )(struct file* dir, const char* name, mode_t mode, uid_t uid, gid_t gid);
-typedef void         (*mkdir_t   )(struct file* dir, const char* name, mode_t mode, uid_t uid, gid_t gid);
-typedef void         (*mknod_t   )(struct file* dir, const char* name, mode_t mode, dev_t dev, uid_t uid, gid_t gid);
-typedef void         (*unlink_t  )(struct file* dir, const char* name);
 typedef void         (*mmap_t    )(struct file* file, struct vm_area* area);
 typedef int          (*chmod_t   )(struct file* file, mode_t mode);
 typedef int          (*chown_t   )(struct file* file, uid_t uid, gid_t gid);
-typedef int          (*readlink_t)(struct file* file, char* buf, size_t n);
-typedef int          (*symlink_t )(struct file* file, const char* link);
-typedef int          (*link_t    )(struct file* old, const char* new, struct file* dir);
 
 struct file_ops
 {
@@ -33,19 +25,21 @@ struct file_ops
     read_t     read;
     write_t    write;
     ioctl_t    ioctl;
-    getdents_t getdents;
-    unlink_t   unlink;
     mmap_t     mmap;
     chmod_t    chmod;
     chown_t    chown;
-    readlink_t readlink;
-    symlink_t  symlink;
-    link_t     link;
 
     // TODO: inode_operations
     int (*lookup)(struct file*, const char*, struct dentry*);
     int (*mknod)(struct file*, const char*, mode_t, dev_t, uid_t, gid_t);
     int (*mkdir)(struct file*, const char*, mode_t, uid_t, gid_t);
+
+    ssize_t (*getdents)(struct file*, off_t, size_t, struct dirent*);
+
+    int (*unlink)(struct file*, const char*);
+    int (*readlink)(struct file*, char*, size_t);
+    int (*symlink)(struct file*, const char*);
+    int (*link)(struct file*, const char*, struct file*);
 };
 
 #define S_IFMT   (0xf000)
