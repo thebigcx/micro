@@ -7,7 +7,7 @@ static void do_kstat(struct file* file, struct stat* buf)
 {
     buf->st_dev     = 0;
     buf->st_ino     = file->inode;
-    buf->st_mode    = file->type | file->perms;
+    buf->st_mode    = file->mode;
     buf->st_nlink   = file->links;
     buf->st_uid     = file->uid;
     buf->st_gid     = file->gid;
@@ -77,7 +77,7 @@ SYSCALL_DEFINE(readlink, const char* pathname, char* buf, size_t n)
     kfree(canon);
 
     if (e) return e;
-    if (file.type != S_IFLNK) return -EINVAL;
+    if (!S_ISLNK(file.mode)) return -EINVAL;
 
     return vfs_readlink(&file, buf, n);
 }

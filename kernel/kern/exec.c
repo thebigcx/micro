@@ -18,7 +18,7 @@ SYSCALL_DEFINE(execve, const char* path, const char* argv[], const char* envp[])
     kfree(canon);
 
     if (e) return e;
-    if (file.type != S_IFREG) return -EACCES;
+    if (!S_ISREG(file.mode)) return -EACCES;
 
     CHECK_XPERM(&file);
 

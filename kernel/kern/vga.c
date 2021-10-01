@@ -62,8 +62,7 @@ void vga_init()
     
     vga->ops.read    = vga_read;
     vga->ops.write   = vga_write;
-    vga->type        = S_IFCHR;
-    vga->perms       = 0660;
+    vga->mode        = S_IFCHR | 0660;
 
     //strcpy(vga->name, "vga0");
     devfs_register(vga, "vga0");

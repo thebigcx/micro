@@ -25,13 +25,13 @@ int vfs_checkperm(struct file* file, unsigned int mask)
     {
         if (task_curr()->euid == file->uid)
         {
-            if(!(file->perms & (mask << 6))) return -1;
+            if(!(file->mode & (mask << 6))) return -1;
             else return 0;
         }
 
         if (task_curr()->egid == file->gid)
         {
-            if (!(file->perms & (mask << 3))) return -1;
+            if (!(file->mode & (mask << 3))) return -1;
             else return 0;
         }
 
@@ -42,13 +42,13 @@ int vfs_checkperm(struct file* file, unsigned int mask)
             {
                 if (file->gid == task_curr()->groups[i])
                 {
-                    if (!(file->perms & (mask << 3))) return -1;
+                    if (!(file->mode & (mask << 3))) return -1;
                     else return 0;
                 }
             }
         }
 
-        if (!(file->perms & mask)) return -1;
+        if (!(file->mode & mask)) return -1;
     }
 
     return 0;
@@ -74,7 +74,7 @@ ssize_t vfs_write(struct file* file, const void* buf, off_t off, size_t size)
 
 struct file* vfs_find(struct file* dir, const char* name)
 {
-    if (dir && (dir->type == S_IFDIR) && dir->ops.find)
+    if (dir && S_ISDIR(dir->mode) && dir->ops.find)
     {
         return dir->ops.find(dir, name);
     }
@@ -84,7 +84,7 @@ struct file* vfs_find(struct file* dir, const char* name)
 
 ssize_t vfs_getdents(struct file* dir, off_t off, size_t n, struct dirent* dirp)
 {
-    if (dir && (dir->type == S_IFDIR) && dir->ops.getdents)
+    if (dir && S_ISDIR(dir->mode) && dir->ops.getdents)
     {
         return dir->ops.getdents(dir, off, n, dirp);
     }
@@ -105,7 +105,7 @@ static int get_parent_dir(const char* path, struct file* out, char** name)
 
     while (next)
     {
-        if (!(file->type == S_IFDIR)) return -ENOTDIR;
+        if (!S_ISDIR(file->mode)) return -ENOTDIR;
 
         CHECK_RPERM(file);
 
@@ -118,7 +118,7 @@ static int get_parent_dir(const char* path, struct file* out, char** name)
         next = strtok_r(NULL, "/", &saveptr);
     }
 
-    if (file->type != S_IFDIR) return -ENOTDIR;
+    if (!S_ISDIR(file->mode)) return -ENOTDIR;
 
     memcpy(out, file, sizeof(struct file));
     *name = strdup(token);
@@ -186,7 +186,7 @@ int vfs_unlink(const char* pathname)
 
     struct file file;
     if ((e = vfs_resolve(pathname, &file, 1))) return e;
-    if (file.type == S_IFDIR) return -EISDIR;
+    if (S_ISDIR(file.mode)) return -EISDIR;
 
     vfs_do_unlink(&dir, name);
 
@@ -320,7 +320,7 @@ static int do_vfs_resolve(const char* path, struct file* out, int symlinks, int 
 
     while (token)
     {
-        if (file->type != S_IFDIR) return -ENOTDIR;
+        if (!S_ISDIR(file->mode)) return -ENOTDIR;
 
         CHECK_RPERM(file);
 
@@ -330,7 +330,7 @@ static int do_vfs_resolve(const char* path, struct file* out, int symlinks, int 
 
         if (!file) return -ENOENT;
 
-        if (file->type == S_IFLNK && symlinks)
+        if (S_ISLNK(file->mode) && symlinks)
         {
             char link[60];
             ssize_t n = vfs_readlink(file, link, 60);

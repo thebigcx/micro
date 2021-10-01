@@ -47,6 +47,8 @@ struct file_ops
     link_t     link;
 };
 
+#define S_IFMT   (0xf000)
+
 #define S_IFIFO  (0x1000)
 #define S_IFCHR	 (0x2000)
 #define S_IFDIR	 (0x4000)
@@ -74,6 +76,16 @@ struct file_ops
 #define S_ISGID  (02000)
 #define S_ISVTX  (01000)
 
+#define S_PERMS  (0x0fff)
+
+#define S_ISFIFO(m) ((m & S_IFMT) == S_IFIFO)
+#define S_ISCHR(m)  ((m & S_IFMT) == S_IFCHR)
+#define S_ISDIR(m)  ((m & S_IFMT) == S_IFDIR)
+#define S_ISBLK(m)  ((m & S_IFMT) == S_IFBLK)
+#define S_ISREG(m)  ((m & S_IFMT) == S_IFREG)
+#define S_ISLNK(m)  ((m & S_IFMT) == S_IFLNK)
+#define S_ISSOCK(m) ((m & S_IFMT) == S_IFSOCK)
+
 #define CHECK_RPERM(file) if (vfs_checkperm(file, 04) == -1) return -EACCES;
 #define CHECK_WPERM(file) if (vfs_checkperm(file, 02) == -1) return -EACCES;
 #define CHECK_XPERM(file) if (vfs_checkperm(file, 01) == -1) return -EACCES;
@@ -96,8 +108,9 @@ struct file // TODO: rename to 'inode'
 {
     uint64_t        inode;
     void*           device;
-    uint32_t        type;
-    uint32_t        perms;
+    //uint32_t        type;
+    //uint32_t        perms;
+    mode_t          mode;
     size_t          size;
     struct file_ops ops;    // TODO: remove
     struct file*    parent; // TODO: remove

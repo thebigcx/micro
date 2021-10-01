@@ -50,8 +50,7 @@ void ps2kb_init()
 
     struct file* kb = vfs_create_file();
     
-    kb->perms       = 0660;
-    kb->type        = S_IFCHR;
+    kb->mode        = S_IFCHR | 0660;
     kb->ops.read    = kb_read;
 
     //strcpy(kb->name, "keyboard");

@@ -52,7 +52,7 @@ int pipe_create(struct file* files[2])
     memset(files[0], 0, sizeof(struct file));
     memset(files[1], 0, sizeof(struct file));
 
-    files[0]->type = files[1]->type = S_IFIFO;
+    files[0]->mode = files[1]->mode = S_IFIFO | 0777;
     files[0]->device = files[1]->device = pipe;
 
     files[0]->ops.read = pipe_read;
@@ -60,8 +60,6 @@ int pipe_create(struct file* files[2])
 
     files[0]->uid = files[1]->uid = task_curr()->euid;
     files[0]->gid = files[1]->gid = task_curr()->egid;
-
-    files[0]->perms = files[1]->perms = 0777;
     
     pipe->reader = files[0];
     pipe->writer = files[1];

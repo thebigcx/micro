@@ -181,8 +181,8 @@ int task_execve(struct task* task, const char* path, const char* argv[], const c
         if ((e = vfs_resolve(nargv[0], &interp, 1))) return e;
 
         // Don't know why POSIX defines these as different error codes
-        if (interp.type == S_IFDIR) return -EISDIR;
-        if (interp.type != S_IFREG) return -EACCES;
+        if (S_ISDIR(interp.mode)) return -EISDIR;
+        if (!S_ISREG(interp.mode)) return -EACCES;
 
         return task_execve(task, nargv[0], nargv, envp);
     }

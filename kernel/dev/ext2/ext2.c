@@ -110,8 +110,7 @@ static struct file* inode2file(struct ext2_volume* vol, struct file* parent,
     file->ctime        = ino->ctime;
     file->mtime        = ino->mtime;
 
-    file->type         = ino->mode & 0xf000;
-    file->perms        = ino->mode & 0x0fff;
+    file->mode         = ino->mode;
 
     file->uid          = ino->uid;
     file->gid          = ino->gid;
@@ -234,7 +233,7 @@ static void ext2_set_inode_blk(struct ext2_volume* vol, struct ext2_inode* ino,
 
 static uint8_t ext2_dirent_type(unsigned int type)
 {
-    switch (type)
+    switch (type & S_IFMT)
     {
         case S_IFREG:
             return DIRENT_FILE;
@@ -531,8 +530,7 @@ void ext2_init_inode(struct ext2_volume* vol, struct ext2_inode* ino, struct fil
 {
     memset(ino, 0, sizeof(struct ext2_inode));
 
-    ino->mode  |= file->perms & 0x0fff;
-    ino->mode  |= file->type & 0xf000;
+    ino->mode   = file->mode;
     ino->uid    = file->uid;
     ino->gid    = file->gid;
 
@@ -616,7 +614,7 @@ void ext2_mkentry(struct file* dir, struct file* file, const char* name)
 
     struct ext2_dirent* dirent = kmalloc(size);
 
-    dirent->type     = ext2_dirent_type(file->type);
+    dirent->type     = ext2_dirent_type(file->mode);
     dirent->inode    = inonum;
     dirent->name_len = strlen(name);
     dirent->size     = size;
@@ -634,9 +632,7 @@ void ext2_mkfile(struct file* dir, const char* name, mode_t mode, uid_t uid, gid
 
     file.uid   = uid;
     file.gid   = gid;
-    file.perms = mode & 0x0fff;
-    file.type = S_IFREG;
-    //strcpy(file.name, name);
+    file.mode  = (mode & S_PERMS) | S_IFREG;
 
     ext2_mkentry(dir, &file, name);
 }
@@ -648,9 +644,7 @@ void ext2_mkdir(struct file* dir, const char* name, mode_t mode, uid_t uid, gid_
 
     file.uid   = uid;
     file.gid   = gid;
-    file.perms = mode & 0x0fff;
-    file.type  = S_IFDIR;
-    //strcpy(file.name, name);
+    file.mode  = (mode & S_PERMS) | S_IFDIR;
 
     ext2_mkentry(dir, &file, name);
 
@@ -696,8 +690,7 @@ void ext2_mknod(struct file* dir, const char* name, mode_t mode, dev_t dev, uid_
 {
     struct file file;
     
-    file.perms = mode & 0x0fff;
-    file.type  = mode & 0xf000;
+    file.mode  = mode;
     file.uid   = uid;
     file.gid   = gid;
     
@@ -758,10 +751,10 @@ int ext2_chmod(struct file* file, mode_t mode)
 
     struct ext2_inode ino;
     ext2_read_inode(vol, file->inode, &ino);
-    ino.mode = (ino.mode & 0xf000) | (mode & 0x0fff);
+    ino.mode = (ino.mode & S_IFMT) | (mode & S_PERMS);
     ext2_write_inode(vol, file->inode, &ino);
 
-    file->perms = mode & 0x0fff;
+    file->mode = ino.mode;
 
     return 0;
 }
@@ -786,7 +779,7 @@ int ext2_chown(struct file* file, uid_t uid, gid_t gid)
 
 int ext2_readlink(struct file* file, char* buf, size_t n)
 {
-    if (file->type != S_IFLNK) return -EINVAL;
+    if (!S_ISLNK(file->mode)) return -EINVAL;
 
     struct ext2_inode ino;
     ext2_read_inode(file->device, file->inode, &ino);
@@ -827,7 +820,7 @@ int ext2_link(struct file* old, const char* name, struct file* dir)
     dirent->inode = old->inode;
     dirent->name_len = strlen(name);
     dirent->size = size;
-    dirent->type = ext2_dirent_type(old->type);
+    dirent->type = ext2_dirent_type(old->mode);
     
     strncpy(dirent->name, name, strlen(name));
 

@@ -41,8 +41,7 @@ int devfs_mount(const char* dev, const void* data, struct file* fsroot)
 
     memset(fsroot, 0, sizeof(struct file));
 
-    fsroot->perms        = 0755;
-    fsroot->type         = S_IFDIR;
+    fsroot->mode         = S_IFDIR | 0755;
     fsroot->ops.find     = devfs_find;
     fsroot->ops.getdents = devfs_getdents;
 
