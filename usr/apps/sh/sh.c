@@ -73,6 +73,10 @@ int main(int argc, char** argv)
             line[lineptr++] = c;
             if (c == '\n') break;
         }
+        line[lineptr] = 0;
+
+        if (lineptr == 1)
+            continue;
 
         char* ptr = strchr(line, '\n');
         if (ptr) *ptr = 0;

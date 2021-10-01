@@ -98,8 +98,8 @@ SYSCALL_DEFINE(pipe, int fds[2])
 
     if (find_slots(fds, 2)) return -EMFILE;
 
-    struct fd* fd1 = vfs_open(files[0], O_RDONLY, 0777);
-    struct fd* fd2 = vfs_open(files[1], O_WRONLY, 0777);
+    struct fd* fd1 = vfs_open(files[0], O_RDONLY);
+    struct fd* fd2 = vfs_open(files[1], O_WRONLY);
 
     task_curr()->fds[fds[0]] = fd1;
     task_curr()->fds[fds[1]] = fd2;

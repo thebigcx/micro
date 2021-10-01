@@ -80,6 +80,13 @@ static void ext2_write_inode(struct ext2_volume* ext2, unsigned int num,
     kfree(buf);
 }
 
+const struct new_file_ops ext2_fops =
+{
+    .open = ext2_open,
+    .read = ext2_read,
+    .write = ext2_write
+};
+
 static void inode2file(struct ext2_volume* vol, unsigned int inonum,
                        struct ext2_inode* ino, struct file* file)
 {
@@ -96,6 +103,8 @@ static void inode2file(struct ext2_volume* vol, unsigned int inonum,
     file->ops.symlink  = ext2_symlink;
     file->ops.link     = ext2_link;
     file->ops.lookup   = ext2_lookup;
+
+    file->fops         = ext2_fops;
 
     //file->parent       = parent;
     file->inode        = inonum;

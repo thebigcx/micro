@@ -157,7 +157,7 @@ struct fd* ptmx_open(struct file* file, uint32_t flags, mode_t mode)
     pt->ptm    = ptm_open(pt);
     pt->pts    = pts_open(pt);
 
-    return vfs_open(pt->ptm, 0, 0);
+    return vfs_open(pt->ptm, 0);
 }
 
 int ptsfs_mount(const char* dev, const void* data, struct file* fsroot)

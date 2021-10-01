@@ -333,9 +333,9 @@ int vfs_resolve(const char* path, struct file* out, int symlinks)
     return do_vfs_resolve(path, out, symlinks, 0);
 }
 
-struct fd* vfs_open(struct file* file, uint32_t flags, mode_t mode)
+struct fd* vfs_open(struct file* file, uint32_t flags)
 {
-    if (file->ops.open) return file->ops.open(file, flags, mode);
+    if (file->ops.open) return file->ops.open(file, flags, 0);
 
     struct fd* fd = kmalloc(sizeof(struct fd));
 
@@ -344,6 +344,24 @@ struct fd* vfs_open(struct file* file, uint32_t flags, mode_t mode)
     fd->flags = flags;
 
     return fd;
+}
+
+int vfs_open_new(const char* path, struct fd* file, uint32_t flags)
+{
+    struct file* inode = kcalloc(sizeof(struct file));
+    int e = vfs_resolve(path, inode, 1);
+    if (e) return e;
+
+    // Defaults
+    file->filp  = inode;
+    file->flags = flags;
+    file->off   = 0;
+    file->ops   = inode->fops;
+
+    if (inode->fops.open)
+        return inode->fops.open(inode, file);
+
+    return 0;
 }
 
 void vfs_close(struct fd* fd)

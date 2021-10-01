@@ -93,9 +93,9 @@ struct task* task_init_creat()
 
     struct file* null = kmalloc(sizeof(struct file));
     vfs_resolve("/dev/null", null, 1);
-    task->fds[0] = vfs_open(null, 0, 0);
-    task->fds[1] = vfs_open(null, 0, 0);
-    task->fds[2] = vfs_open(null, 0, 0);
+    task->fds[0] = vfs_open(null, 0);
+    task->fds[1] = vfs_open(null, 0);
+    task->fds[2] = vfs_open(null, 0);
 
     return task;
 }
@@ -129,7 +129,7 @@ struct task* task_clone(struct task* src, struct thread* calling)
     {
         if (src->fds[i])
         {
-            task->fds[i] = vfs_open(src->fds[i]->filp, 0, 0);
+            task->fds[i] = vfs_open(src->fds[i]->filp, 0);
         }
     }
 

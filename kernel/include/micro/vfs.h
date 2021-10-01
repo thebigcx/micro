@@ -7,8 +7,6 @@ struct file;
 struct vm_area;
 struct dentry;
 
-// TODO: should all return int's (errors), and store result in pointer
-// TODO: function called sync(), which will sync the file to the inode on disk, reducing extra unneeded functions like chmod(), and symlink()
 typedef struct fd*   (*open_t    )(struct file* file, uint32_t flags, mode_t mode);
 typedef void         (*close_t   )(struct fd* fd);
 typedef ssize_t      (*read_t    )(struct file* file, void* buf, off_t off, size_t size);
@@ -18,6 +16,20 @@ typedef void         (*mmap_t    )(struct file* file, struct vm_area* area);
 typedef int          (*chmod_t   )(struct file* file, mode_t mode);
 typedef int          (*chown_t   )(struct file* file, uid_t uid, gid_t gid);
 
+// TODO: rename to file_ops
+struct new_file_ops
+{
+    int     (*open)(struct file*, struct fd*);
+    int     (*close)(struct fd*);
+    ssize_t (*read)(struct fd*, void*, off_t, size_t);
+    ssize_t (*write)(struct fd*, const void*, off_t, size_t);
+    int     (*ioctl)(struct fd*, unsigned long, void*);
+    int     (*mmap)(struct fd*, struct vm_area*);
+    int     (*chmod)(struct fd*, mode_t);
+    int     (*chown)(struct fd*, uid_t, gid_t);
+};
+
+// TODO: delete this struct
 struct file_ops
 {
     open_t     open;
@@ -29,7 +41,21 @@ struct file_ops
     chmod_t    chmod;
     chown_t    chown;
 
-    // TODO: inode_operations
+    // TODO: remove
+    int (*lookup)(struct file*, const char*, struct dentry*);
+    int (*mknod)(struct file*, const char*, mode_t, dev_t, uid_t, gid_t);
+    int (*mkdir)(struct file*, const char*, mode_t, uid_t, gid_t);
+
+    ssize_t (*getdents)(struct file*, off_t, size_t, struct dirent*);
+
+    int (*unlink)(struct file*, const char*);
+    int (*readlink)(struct file*, char*, size_t);
+    int (*symlink)(struct file*, const char*);
+    int (*link)(struct file*, const char*, struct file*);
+};
+
+struct inode_ops
+{
     int (*lookup)(struct file*, const char*, struct dentry*);
     int (*mknod)(struct file*, const char*, mode_t, dev_t, uid_t, gid_t);
     int (*mkdir)(struct file*, const char*, mode_t, uid_t, gid_t);
@@ -88,9 +114,10 @@ struct file_ops
 // TODO: flags, modes, etc
 struct fd // TODO: rename to 'file'
 {
-    struct file* filp;
-    off_t        off;
-    uint32_t     flags;
+    struct file*    filp;
+    off_t           off;
+    uint32_t        flags;
+    struct new_file_ops ops;
 };
 
 struct dentry
@@ -113,8 +140,9 @@ struct file // TODO: rename to 'inode'
 
     ino_t           inode;
     void*           priv;
-    struct file_ops ops;    // TODO: remove
-    struct file*    parent; // TODO: remove
+
+    struct file_ops ops;
+    struct new_file_ops fops;
 };
 
 struct mount
@@ -146,7 +174,9 @@ int vfs_mount_fs(const char* dev, const char* mnt,
                  const char* fs, const void* data);
 int vfs_umount_fs(const char* mnt);
 
-struct fd* vfs_open(struct file* file, uint32_t flags, mode_t mode);
+int vfs_open_new(const char* path, struct fd* file, uint32_t flags);
+
+struct fd* vfs_open(struct file* file, uint32_t flags);
 void vfs_close(struct fd* fd);
 
 char* vfs_mkcanon(const char* path, const char* work);

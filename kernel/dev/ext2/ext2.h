@@ -150,6 +150,7 @@ struct file;
 
 void ext2_init();
 
+int ext2_open(struct file* inode, struct fd* file);
 ssize_t ext2_read(struct file* file, void* buf, off_t off, size_t size);
 ssize_t ext2_write(struct file* file, const void* buf, off_t off, size_t size);
 struct file* ext2_find(struct file* dir, const char* name);
