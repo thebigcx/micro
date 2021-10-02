@@ -10,10 +10,9 @@ SYSCALL_DEFINE(read, int fdno, void* buf, size_t size)
     struct task* task = task_curr();
     
     struct fd* fd = task->fds[fdno];
-    ssize_t ret = vfs_read(fd->filp, buf, fd->off, size);
-    fd->off += size;
-
-    return ret;
+    //ssize_t ret = vfs_read(fd->filp, buf, fd->off, size);
+    //fd->off += size;
+    return vfs_read_new(fd, buf, size);
 }
 
 SYSCALL_DEFINE(write, int fdno, const void* buf, size_t size)
@@ -31,10 +30,9 @@ SYSCALL_DEFINE(write, int fdno, const void* buf, size_t size)
 
     if (fd->flags & O_APPEND) fd->off = fd->filp->size;
 
-    ssize_t ret = vfs_write(fd->filp, buf, fd->off, size);
-    fd->off += size;
-
-    return ret;
+    //ssize_t ret = vfs_write(fd->filp, buf, fd->off, size);
+    //fd->off += size;
+    return vfs_write_new(fd, buf, size);
 }
 
 SYSCALL_DEFINE(pread, int fdno, void* buf, size_t size, off_t off)
@@ -43,9 +41,7 @@ SYSCALL_DEFINE(pread, int fdno, void* buf, size_t size, off_t off)
     PTRVALID(buf);
 
     struct task* task = task_curr();
-    ssize_t ret = vfs_read(task->fds[fdno]->filp, buf, off, size);
-
-    return ret;
+    return vfs_pread(task->fds[fdno], buf, size, off);
 }
 
 SYSCALL_DEFINE(pwrite, int fdno, const void* buf, size_t size, off_t off)
@@ -54,9 +50,7 @@ SYSCALL_DEFINE(pwrite, int fdno, const void* buf, size_t size, off_t off)
     FDVALID(fdno);
 
     struct task* task = task_curr();
-    ssize_t ret = vfs_write(task->fds[fdno]->filp, buf, off, size);
-
-    return ret;
+    return vfs_pwrite(task->fds[fdno], buf, size, off);
 }
 
 SYSCALL_DEFINE(lseek, int fdno, off_t offset, int whence)

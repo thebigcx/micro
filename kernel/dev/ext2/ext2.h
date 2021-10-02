@@ -133,7 +133,7 @@ struct PACKED ext2_sbfull
 
 struct ext2_volume
 {
-    struct file*     device;
+    struct fd*       device;
     size_t           blksize;
 
     struct ext2_bgd* groups;
@@ -151,8 +151,8 @@ struct file;
 void ext2_init();
 
 int ext2_open(struct file* inode, struct fd* file);
-ssize_t ext2_read(struct file* file, void* buf, off_t off, size_t size);
-ssize_t ext2_write(struct file* file, const void* buf, off_t off, size_t size);
+ssize_t ext2_read(struct fd* file, void* buf, off_t off, size_t size);
+ssize_t ext2_write(struct fd* file, const void* buf, off_t off, size_t size);
 struct file* ext2_find(struct file* dir, const char* name);
 int ext2_readdir(struct file* dir, size_t size, struct dirent* dirent);
 ssize_t ext2_getdents(struct file* dir, off_t off, size_t n, struct dirent* dirp);

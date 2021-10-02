@@ -27,7 +27,7 @@ void ps2kb_handler(struct regs* r)
     queue[count++] = sc;
 }
 
-ssize_t kb_read(struct file* file, void* buf, off_t off, size_t size)
+ssize_t kb_read(struct fd* file, void* buf, off_t off, size_t size)
 {
     (void)file; (void)off;
 
@@ -48,7 +48,7 @@ void ps2kb_init()
 
     register_irq_handler(1, ps2kb_handler);
 
-    struct file_ops ops = { .read = kb_read };
+    struct new_file_ops ops = { .read = kb_read };
     devfs_register_chrdev(&ops, "keyboard", 0660, NULL);
 
     count = 0;

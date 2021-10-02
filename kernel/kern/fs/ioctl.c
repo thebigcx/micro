@@ -10,5 +10,5 @@ SYSCALL_DEFINE(ioctl, int fdno, unsigned long req, void* argp)
 
     if (S_ISREG(fd->filp->mode) || S_ISDIR(fd->filp->mode)) return -ENOTTY;
 
-    return vfs_ioctl(fd->filp, req, argp);
+    return vfs_ioctl(fd, req, argp);
 }

@@ -16,22 +16,23 @@
 #include <micro/devfs.h>
 #include <micro/procfs.h>
 #include <micro/dev.h>
+#include <micro/fcntl.h>
 
 struct initrd
 {
     uintptr_t start, end;
 };
 
-ssize_t initrd_read(struct file* file, void* buf, off_t off, size_t size)
+ssize_t initrd_read(struct fd* file, void* buf, off_t off, size_t size)
 {
-    struct initrd* initrd = file->priv;
+    struct initrd* initrd = file->filp->priv;
     memcpy(buf, (void*)(initrd->start + off), size);
     return size;
 }
 
-ssize_t initrd_write(struct file* file, const void* buf, off_t off, size_t size)
+ssize_t initrd_write(struct fd* file, const void* buf, off_t off, size_t size)
 {
-    struct initrd* initrd = file->priv;
+    struct initrd* initrd = file->filp->priv;
     memcpy((void*)(initrd->start + off), buf, size);
     return size;
 }
@@ -45,7 +46,7 @@ void initrd_init(uintptr_t start, uintptr_t end)
     initrd->start = start;
     initrd->end   = end;
 
-    struct file_ops ops = { .read = initrd_read, .write = initrd_write };
+    struct new_file_ops ops = { .read = initrd_read, .write = initrd_write };
     devfs_register_blkdev(&ops, "initrd", 0660, initrd);
 }
 
@@ -65,9 +66,9 @@ struct initramfs
     struct initrd* device;
 };
 
-ssize_t initramfs_read(struct file* file, void* buf, off_t off, size_t size)
+ssize_t initramfs_read(struct fd* file, void* buf, off_t off, size_t size)
 {
-    struct initramfs_file* fs_file = file->priv;
+    struct initramfs_file* fs_file = file->filp->priv;
     memcpy(buf, (void*)(fs_file->start + off), size);
     return size;
 }
@@ -82,7 +83,8 @@ struct file* initramfs_find(struct file* dir, const char* name)
         if (!strcmp(curr->name, name))
         {
             struct file* file = kmalloc(sizeof(struct file));
-            file->ops.read = initramfs_read;
+            //file->ops.read = initramfs_read;
+            file->fops.read = initramfs_read;
             file->mode = S_IFREG | 0555;
 
             struct initramfs_file* ramfile = kmalloc(sizeof(struct initramfs_file));
@@ -110,7 +112,7 @@ int initramfs_lookup(struct file* dir, const char* name, struct dentry* dentry)
         if (!strcmp(curr->name, name))
         {
             dentry->file = kmalloc(sizeof(struct file));
-            dentry->file->ops.read = initramfs_read;
+            dentry->file->fops.read = initramfs_read;
             dentry->file->mode = S_IFREG | 0555;
 
             struct initramfs_file* ramfile = kmalloc(sizeof(struct initramfs_file));
@@ -151,12 +153,18 @@ void initramfs_init()
 
 static void kmod_load(const char* path)
 {
-    struct file* mod = kmalloc(sizeof(struct file));
-    vfs_resolve(path, mod, 1);
-    void* buffer = kmalloc(mod->size);
-    vfs_read(mod, buffer, 0, mod->size);
+    //struct file* mod = kmalloc(sizeof(struct file));
+    //vfs_resolve(path, mod, 1);
+    //void* buffer = kmalloc(mod->size);
+    //vfs_read(mod, buffer, 0, mod->size);
 
-    module_load(buffer, mod->size);
+    struct fd mod;
+    vfs_open_new(path, &mod, O_RDONLY);
+
+    void* buffer = kmalloc(mod.filp->size);
+    vfs_read_new(&mod, buffer, mod.filp->size);
+
+    module_load(buffer, mod.filp->size);
 }
 
 void generic_init(struct genbootparams params)

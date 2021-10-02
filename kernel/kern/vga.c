@@ -34,7 +34,7 @@ void update_cursor()
     outb(0x3d5, (uint8_t)((pos >> 8) & 0xff));
 }*/
 
-ssize_t vga_read(struct file* file, void* ptr, off_t off, size_t size)
+ssize_t vga_read(struct fd* file, void* ptr, off_t off, size_t size)
 {
     if (off + size >= ROWS * COLS)
         size -= ((off + size) - ROWS * COLS);
@@ -44,7 +44,7 @@ ssize_t vga_read(struct file* file, void* ptr, off_t off, size_t size)
     return size;
 }
 
-ssize_t vga_write(struct file* file, const void* ptr, off_t off, size_t size)
+ssize_t vga_write(struct fd* file, const void* ptr, off_t off, size_t size)
 {
     if (off + size >= ROWS * COLS)
         size -= ((off + size) - ROWS * COLS);
@@ -58,6 +58,6 @@ void vga_init()
 {
     buf = (struct vga_char*)0xb8000;
 
-    struct file_ops ops = { .read = vga_read, .write = vga_write };
+    struct new_file_ops ops = { .read = vga_read, .write = vga_write };
     devfs_register_chrdev(&ops, "vga0", 0660, NULL);
 }

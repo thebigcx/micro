@@ -59,12 +59,12 @@ void devfs_init()
 }
 
 // TODO: remove 'new'
-static void devfs_register(struct file_ops* ops, const char* name, mode_t mode, void* priv)
+static void devfs_register(struct new_file_ops* ops, const char* name, mode_t mode, void* priv)
 {
     struct file* file = kcalloc(sizeof(struct file));
 
-    file->ops = *ops;
-    file->mode = S_IFBLK | mode;
+    file->fops = *ops;
+    file->mode = mode;
     file->priv = priv;
 
     struct dentry* dentry = kmalloc(sizeof(struct dentry));
@@ -75,12 +75,12 @@ static void devfs_register(struct file_ops* ops, const char* name, mode_t mode, 
     list_enqueue(&devices, dentry);
 }
 
-void devfs_register_chrdev(struct file_ops* ops, const char* name, mode_t mode, void* priv)
+void devfs_register_chrdev(struct new_file_ops* ops, const char* name, mode_t mode, void* priv)
 {
     devfs_register(ops, name, mode | S_IFCHR, priv);
 }
 
-void devfs_register_blkdev(struct file_ops* ops, const char* name, mode_t mode, void* priv)
+void devfs_register_blkdev(struct new_file_ops* ops, const char* name, mode_t mode, void* priv)
 {
     devfs_register(ops, name, mode | S_IFBLK, priv);
 }

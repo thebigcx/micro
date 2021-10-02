@@ -25,11 +25,11 @@ unsigned long ksys_do_mmap(void* addr, size_t length, int prot, int flags, int f
 
         struct fd* fd = task_curr()->fds[fdno];
 
-        if (fd->filp->ops.mmap)
+        if (fd->ops.mmap)
         {
             struct vm_area* area = vm_map_anon(task_curr()->vm_map, addr, length, flags & MAP_FIXED);
             
-            vfs_mmap(fd->filp, area);
+            vfs_mmap(fd, area);
         }
         else
         {
@@ -43,7 +43,7 @@ unsigned long ksys_do_mmap(void* addr, size_t length, int prot, int flags, int f
                 mmu_map(task_curr()->vm_map, i, mmu_alloc_phys(), mmu_flags);
             }
 
-            vfs_read(fd->filp, addr, 0, fd->filp->size);
+            vfs_read_new(fd, addr, fd->filp->size);
         }
     }
 

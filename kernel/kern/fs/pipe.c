@@ -55,8 +55,8 @@ int pipe_create(struct file* files[2])
     files[0]->mode = files[1]->mode = S_IFIFO | 0777;
     files[0]->priv = files[1]->priv = pipe;
 
-    files[0]->ops.read = pipe_read;
-    files[1]->ops.write = pipe_write;
+    files[0]->fops.read = pipe_read;
+    files[1]->fops.write = pipe_write;
 
     files[0]->uid = files[1]->uid = task_curr()->euid;
     files[0]->gid = files[1]->gid = task_curr()->egid;
@@ -98,8 +98,17 @@ SYSCALL_DEFINE(pipe, int fds[2])
 
     if (find_slots(fds, 2)) return -EMFILE;
 
-    struct fd* fd1 = vfs_open(files[0], O_RDONLY);
+    /*struct fd* fd1 = vfs_open(files[0], O_RDONLY);
     struct fd* fd2 = vfs_open(files[1], O_WRONLY);
+
+    task_curr()->fds[fds[0]] = fd1;
+    task_curr()->fds[fds[1]] = fd2;*/
+
+    struct fd* fd1 = kmalloc(sizeof(struct fd));
+    struct fd* fd2 = kmalloc(sizeof(struct fd));
+
+    files[0]->fops.open(files[0], fd1);
+    files[1]->fops.open(files[1], fd2);
 
     task_curr()->fds[fds[0]] = fd1;
     task_curr()->fds[fds[1]] = fd2;

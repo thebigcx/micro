@@ -21,7 +21,7 @@ SYSCALL_DEFINE(open, const char* path, uint32_t flags, mode_t mode)
     char* canon = vfs_mkcanon(path, task->workd);
     struct file* file = kmalloc(sizeof(struct file));
 
-    /*for (unsigned int i = 0; i < FD_MAX; i++)
+    for (unsigned int i = 0; i < FD_MAX; i++)
     {
         if (!task->fds[i] && i >= 3)
         {
@@ -31,9 +31,9 @@ SYSCALL_DEFINE(open, const char* path, uint32_t flags, mode_t mode)
             if ((e = vfs_open_new(canon, task->fds[i], flags))) return e;
             return i;
         }
-    }*/
+    }
 
-    int e = vfs_resolve(canon, file, 1);
+    /*int e = vfs_resolve(canon, file, 1);
 
     if (!e && (flags & O_CREAT) && (flags & O_EXCL)) return -EEXIST;
 
@@ -63,7 +63,7 @@ SYSCALL_DEFINE(open, const char* path, uint32_t flags, mode_t mode)
         }
     }
 
-    return -EMFILE;
+    return -EMFILE;*/
 }
 
 SYSCALL_DEFINE(close, int fd)

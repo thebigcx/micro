@@ -5,6 +5,7 @@
 #include <micro/module.h>
 #include <micro/debug.h>
 #include <micro/errno.h>
+#include <micro/fcntl.h>
 #include <arch/cmos.h>
 
 #define SUPER_BLK 1
@@ -15,13 +16,13 @@
 static ssize_t read_blocks(struct ext2_volume* vol, void* buf,
                            uintptr_t blk, size_t cnt)
 {
-    return vfs_read(vol->device, buf, blk * vol->blksize, vol->blksize * cnt);
+    return vfs_pread(vol->device, buf, vol->blksize * cnt, blk * vol->blksize);
 }
 
 static ssize_t write_blocks(struct ext2_volume* vol, const void* buf,
                             uintptr_t blk, size_t cnt)
 {
-    return vfs_write(vol->device, buf, blk * vol->blksize, vol->blksize * cnt);
+    return vfs_pwrite(vol->device, buf, vol->blksize * cnt, blk * vol->blksize);
 }
 
 static void ext2_rewrite_bgds(struct ext2_volume* vol)
@@ -82,7 +83,6 @@ static void ext2_write_inode(struct ext2_volume* ext2, unsigned int num,
 
 const struct new_file_ops ext2_fops =
 {
-    .open = ext2_open,
     .read = ext2_read,
     .write = ext2_write
 };
@@ -90,15 +90,15 @@ const struct new_file_ops ext2_fops =
 static void inode2file(struct ext2_volume* vol, unsigned int inonum,
                        struct ext2_inode* ino, struct file* file)
 {
-    file->ops.read     = ext2_read;
-    file->ops.write    = ext2_write;
+    //file->ops.read     = ext2_read;
+    //file->ops.write    = ext2_write;
     file->ops.getdents = ext2_getdents;
     //file->ops.mkfile   = ext2_mkfile;
     file->ops.mkdir    = ext2_mkdir;
     file->ops.mknod    = ext2_mknod;
     file->ops.unlink   = ext2_unlink;
-    file->ops.chmod    = ext2_chmod;
-    file->ops.chown    = ext2_chown;
+    //file->ops.chmod    = ext2_chmod;
+    //file->ops.chown    = ext2_chown;
     file->ops.readlink = ext2_readlink;
     file->ops.symlink  = ext2_symlink;
     file->ops.link     = ext2_link;
@@ -389,16 +389,16 @@ void ext2_resize(struct file* file, size_t size)
     file->size = size;
 }
 
-ssize_t ext2_read(struct file* file, void* buf, off_t off, size_t size)
+ssize_t ext2_read(struct fd* file, void* buf, off_t off, size_t size)
 {
-    if (off > file->size) return 0;
-    if (off + size > file->size)
+    if (off > file->filp->size) return 0;
+    if (off + size > file->filp->size)
     {
-        size = file->size - off;
+        size = file->filp->size - off;
         if (!size) return 0;
     }
 
-    struct ext2_volume* vol = file->priv;
+    struct ext2_volume* vol = file->filp->priv;
 
     uint32_t startblk =  off         / vol->blksize; // Start block
     uint32_t modoff   =  off         % vol->blksize; // Byte offset of start block
@@ -407,7 +407,7 @@ ssize_t ext2_read(struct file* file, void* buf, off_t off, size_t size)
     uint32_t modend   = (size + off) % vol->blksize; // Byte offset of end block
 
     struct ext2_inode ino;
-    ext2_read_inode(vol, file->inode, &ino);
+    ext2_read_inode(vol, file->filp->inode, &ino);
 
     uint8_t* fullbuf = kmalloc(vol->blksize);
     
@@ -438,17 +438,17 @@ ssize_t ext2_read(struct file* file, void* buf, off_t off, size_t size)
     return size;
 }
 
-ssize_t ext2_write(struct file* file, const void* buf, off_t off, size_t size)
+ssize_t ext2_write(struct fd* file, const void* buf, off_t off, size_t size)
 {
-    struct ext2_volume* vol = file->priv;
+    struct ext2_volume* vol = file->filp->priv;
 
-    if (file->size < off + size)
+    if (file->filp->size < off + size)
     {
         ext2_resize(file, off + size);
     }
 
     struct ext2_inode ino;
-    ext2_read_inode(vol, file->inode, &ino);
+    ext2_read_inode(vol, file->filp->inode, &ino);
 
     uint32_t startblk =  off         / vol->blksize; // Start block
     uint32_t modoff   =  off         % vol->blksize; // Byte offset of start block
@@ -821,14 +821,15 @@ static int ext2_mount(const char* dev, const void* data, struct file* fsroot)
     (void)data;
 
     struct ext2_volume* vol = kmalloc(sizeof(struct ext2_volume));
-    vol->device = kmalloc(sizeof(struct file));
+    vol->device = kmalloc(sizeof(struct fd));
     
-    int e;
-    if ((e = vfs_resolve(dev, vol->device, 1))) return e;
+    //int e;
+    //if ((e = vfs_resolve(dev, vol->device, 1))) return e;
+    int e = vfs_open_new(dev, vol->device, O_RDWR);
 
     void* buf = kmalloc(512);
 
-    vfs_read(vol->device, buf, SUPER_BLK * 1024, 512); // FIXME: here we assume that the blocks are 1024 in size
+    vfs_pread(vol->device, buf, 512, SUPER_BLK * 1024); // FIXME: here we assume that the blocks are 1024 in size
 
     struct sb_full* sb = (struct sb_full*)&vol->sb;
     memcpy(sb, buf, sizeof(struct ext2_sb) + sizeof(struct ext2_sbext));

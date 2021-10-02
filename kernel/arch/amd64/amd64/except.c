@@ -51,12 +51,12 @@ void backtrace(uintptr_t rip, uintptr_t rbp, uint32_t maxframes)
     struct frame* frame = (struct frame*)rbp;
 
     printk("Stack trace:\n");
-    printk("    0x%x\n", rip);
+    printk("    %x\n", rip);
 
     for (uint32_t i = 0; i < maxframes; i++)
     {
         if (frame == NULL) return;
-        printk("    0x%x\n", frame->rip);
+        printk("    %x\n", frame->rip);
         frame = frame->rbp;
     }
 }

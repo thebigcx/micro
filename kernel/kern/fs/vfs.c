@@ -60,18 +60,11 @@ void vfs_init()
     //root = tree_create();
 }
 
-ssize_t vfs_read(struct file* file, void* buf, off_t off, size_t size)
-{
-    if (file->ops.read) return file->ops.read(file, buf, off, size);
-    return 0;
-}
-
 ssize_t vfs_read_new(struct fd* file, void* buf, size_t size)
 {
     if (file->ops.read)
     {
-        //ssize_t nread = file->ops.read(file, buf, file->off, size);
-        ssize_t nread = file->filp->ops.read(file->filp, buf, file->off, size);
+        ssize_t nread = file->ops.read(file, buf, file->off, size);
         file->off += nread;
         return nread;
     }
@@ -79,9 +72,31 @@ ssize_t vfs_read_new(struct fd* file, void* buf, size_t size)
     return 0;
 }
 
-ssize_t vfs_write(struct file* file, const void* buf, off_t off, size_t size)
+ssize_t vfs_write_new(struct fd* file, const void* buf, size_t size)
 {
-    if (file->ops.write) return file->ops.write(file, buf, off, size);
+    if (file->ops.write)
+    {
+        ssize_t nwrite = file->ops.write(file, buf, file->off, size);
+        file->off += nwrite;
+        return nwrite;
+    }
+
+    return 0;
+}
+
+ssize_t vfs_pread(struct fd* file, void* buf, size_t size, off_t off)
+{
+    if (file->ops.read)
+        return file->ops.read(file, buf, off, size);
+
+    return 0;
+}
+
+ssize_t vfs_pwrite(struct fd* file, const void* buf, size_t size, off_t off)
+{
+    if (file->ops.write)
+        return file->ops.write(file, buf, off, size);
+
     return 0;
 }
 
@@ -182,7 +197,7 @@ int vfs_unlink(const char* pathname)
     return 0;
 }
 
-int vfs_ioctl(struct file* file, unsigned long req, void* argp)
+int vfs_ioctl(struct fd* file, unsigned long req, void* argp)
 {
     if (file && file->ops.ioctl)
         return file->ops.ioctl(file, req, argp);
@@ -346,19 +361,6 @@ int vfs_resolve(const char* path, struct file* out, int symlinks)
     return do_vfs_resolve(path, out, symlinks, 0);
 }
 
-struct fd* vfs_open(struct file* file, uint32_t flags)
-{
-    if (file->ops.open) return file->ops.open(file, flags, 0);
-
-    struct fd* fd = kmalloc(sizeof(struct fd));
-
-    fd->filp  = file;
-    fd->off   = flags & O_APPEND ? file->size : 0; // Offset to end (O_APPEND)
-    fd->flags = flags;
-
-    return fd;
-}
-
 int vfs_open_new(const char* path, struct fd* file, uint32_t flags)
 {
     struct file* inode = kcalloc(sizeof(struct file));
@@ -379,9 +381,9 @@ int vfs_open_new(const char* path, struct fd* file, uint32_t flags)
 
 void vfs_close(struct fd* fd)
 {
-    if (fd->filp->ops.close)
+    if (fd->ops.close)
     {
-        fd->filp->ops.close(fd);
+        fd->ops.close(fd);
         return;
     }
 
@@ -408,13 +410,13 @@ int vfs_access(const char* path, int mode)
     return 0;
 }
 
-void vfs_mmap(struct file* file, struct vm_area* area)
+void vfs_mmap(struct fd* file, struct vm_area* area)
 {
     if (file->ops.mmap)
         file->ops.mmap(file, area);
 }
 
-int vfs_chmod(struct file* file, mode_t mode)
+int vfs_chmod(struct fd* file, mode_t mode)
 {
     if (file->ops.chmod)
         return file->ops.chmod(file, mode);
@@ -422,7 +424,7 @@ int vfs_chmod(struct file* file, mode_t mode)
     return -ENOENT;
 }
 
-int vfs_chown(struct file* file, uid_t uid, gid_t gid)
+int vfs_chown(struct fd* file, uid_t uid, gid_t gid)
 {
     if (file->ops.chown)
         return file->ops.chown(file, uid, gid);

@@ -184,6 +184,11 @@ void __ubsan_handle_vla_bound_not_positive(struct vla_bound_info* info, void* va
     print_location(info->location);
 }
 
+void __ubsan_handle_builtin_unreachable()
+{
+    printk("UBSAN: __builtin_unreachable() reached!\n");
+}
+
 #define STACK_CHK_GUARD 0x595e9fbd94fda766
 
 uintptr_t __stack_chk_guard = STACK_CHK_GUARD;

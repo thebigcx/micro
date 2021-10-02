@@ -124,7 +124,7 @@ struct task* task_clone(struct task* src, struct thread* calling)
     {
         if (src->fds[i])
         {
-            task->fds[i] = vfs_open(src->fds[i]->filp, 0);
+            task->fds[i] = memdup(src->fds[i], sizeof(struct fd));
         }
     }
 

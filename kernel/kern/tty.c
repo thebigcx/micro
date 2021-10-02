@@ -10,9 +10,9 @@
 #include <micro/stdlib.h>
 #include <micro/devfs.h>
 
-ssize_t pts_read(struct file* file, void* buf, off_t off, size_t size)
+ssize_t pts_read(struct fd* file, void* buf, off_t off, size_t size)
 {
-    struct pt* pt = file->priv;
+    struct pt* pt = file->filp->priv;
 
     //ssize_t bytes = ringbuf_size(pt->inbuf);
 
@@ -28,18 +28,18 @@ ssize_t pts_read(struct file* file, void* buf, off_t off, size_t size)
     return size;
 }
 
-ssize_t pts_write(struct file* file, const void* buf, off_t off, size_t size)
+ssize_t pts_write(struct fd* file, const void* buf, off_t off, size_t size)
 {
-    struct pt* pt = file->priv;
+    struct pt* pt = file->filp->priv;
 
     ringbuf_write(pt->outbuf, buf, size);
 
     return size;
 }
 
-int pts_ioctl(struct file* file, unsigned long req, void* argp)
+int pts_ioctl(struct fd* file, unsigned long req, void* argp)
 {
-    struct pt* pt = file->priv;
+    struct pt* pt = file->filp->priv;
 
     switch (req)
     {
@@ -58,9 +58,9 @@ int pts_ioctl(struct file* file, unsigned long req, void* argp)
     return -EINVAL;
 }
 
-ssize_t ptm_read(struct file* file, void* buf, off_t off, size_t size)
+ssize_t ptm_read(struct fd* file, void* buf, off_t off, size_t size)
 {
-    struct pt* pt = file->priv;
+    struct pt* pt = file->filp->priv;
 
     ssize_t bytes = ringbuf_size(pt->outbuf);
 
@@ -72,9 +72,9 @@ ssize_t ptm_read(struct file* file, void* buf, off_t off, size_t size)
     return size;
 }
 
-ssize_t ptm_write(struct file* file, const void* buf, off_t off, size_t size)
+ssize_t ptm_write(struct fd* file, const void* buf, off_t off, size_t size)
 {
-    struct pt* pt = file->priv;
+    struct pt* pt = file->filp->priv;
 
     ringbuf_write(pt->inbuf, buf, size);
 
@@ -118,10 +118,10 @@ struct file* ptm_open(struct pt* pt)
 {
     struct file* ptm = vfs_create_file();
 
-    ptm->ops.read    = ptm_read;
-    ptm->ops.write   = ptm_write;
-    ptm->mode        = S_IFCHR | 0620;
-    ptm->priv      = pt;
+    ptm->fops.read    = ptm_read;
+    ptm->fops.write   = ptm_write;
+    ptm->mode         = S_IFCHR | 0620;
+    ptm->priv         = pt;
     
     return ptm;
 }
@@ -130,10 +130,10 @@ struct file* pts_open(struct pt* pt)
 {
     struct file* pts = vfs_create_file();
 
-    pts->ops.read  = pts_read;
-    pts->ops.write = pts_write;
-    pts->mode      = S_IFCHR | 0620;
-    pts->priv      = pt;
+    pts->fops.read  = pts_read;
+    pts->fops.write = pts_write;
+    pts->mode       = S_IFCHR | 0620;
+    pts->priv       = pt;
 
     // TODO: generate a unique name
     
@@ -147,19 +147,6 @@ struct file* pts_open(struct pt* pt)
     return pts;
 }
 
-struct fd* ptmx_open(struct file* file, uint32_t flags, mode_t mode)
-{
-    struct pt* pt = kmalloc(sizeof(struct pt));
-    memset(pt, 0, sizeof(struct pt));
-
-    pt->inbuf  = ringbuf_create(1024);
-    pt->outbuf = ringbuf_create(1024);
-    pt->ptm    = ptm_open(pt);
-    pt->pts    = pts_open(pt);
-
-    return vfs_open(pt->ptm, 0);
-}
-
 int ptmx_open_new(struct file* inode, struct fd* file)
 {
     struct pt* pt = kmalloc(sizeof(struct pt));
@@ -169,6 +156,12 @@ int ptmx_open_new(struct file* inode, struct fd* file)
     pt->outbuf = ringbuf_create(1024);
     pt->ptm    = ptm_open(pt);
     pt->pts    = pts_open(pt);
+
+    file->ops = pt->ptm->fops;
+    file->filp->priv = pt;
+
+    //file->filp->priv = pt;
+    //memcpy(file, pt->ptm, sizeof(struct file));
 
     return 0;
 }
@@ -188,7 +181,7 @@ void tty_init()
 {
     slaves = list_create();
 
-    struct file_ops ops = { .open = ptmx_open };
+    struct new_file_ops ops = { .open = ptmx_open_new };
     devfs_register_blkdev(&ops, "ptmx", 0666, NULL);
 
     // Pseudoterminal slave filesystem

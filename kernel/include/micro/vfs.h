@@ -6,15 +6,7 @@
 struct file;
 struct vm_area;
 struct dentry;
-
-typedef struct fd*   (*open_t    )(struct file* file, uint32_t flags, mode_t mode);
-typedef void         (*close_t   )(struct fd* fd);
-typedef ssize_t      (*read_t    )(struct file* file, void* buf, off_t off, size_t size);
-typedef ssize_t      (*write_t   )(struct file* file, const void* buf, off_t off, size_t size);
-typedef int          (*ioctl_t   )(struct file* file, unsigned long req, void* argp);
-typedef void         (*mmap_t    )(struct file* file, struct vm_area* area);
-typedef int          (*chmod_t   )(struct file* file, mode_t mode);
-typedef int          (*chown_t   )(struct file* file, uid_t uid, gid_t gid);
+struct fd;
 
 // TODO: rename to file_ops
 struct new_file_ops
@@ -27,31 +19,6 @@ struct new_file_ops
     int     (*mmap)(struct fd*, struct vm_area*);
     int     (*chmod)(struct fd*, mode_t);
     int     (*chown)(struct fd*, uid_t, gid_t);
-};
-
-// TODO: delete this struct
-struct file_ops
-{
-    open_t     open;
-    close_t    close;
-    read_t     read;
-    write_t    write;
-    ioctl_t    ioctl;
-    mmap_t     mmap;
-    chmod_t    chmod;
-    chown_t    chown;
-
-    // TODO: remove
-    int (*lookup)(struct file*, const char*, struct dentry*);
-    int (*mknod)(struct file*, const char*, mode_t, dev_t, uid_t, gid_t);
-    int (*mkdir)(struct file*, const char*, mode_t, uid_t, gid_t);
-
-    ssize_t (*getdents)(struct file*, off_t, size_t, struct dirent*);
-
-    int (*unlink)(struct file*, const char*);
-    int (*readlink)(struct file*, char*, size_t);
-    int (*symlink)(struct file*, const char*);
-    int (*link)(struct file*, const char*, struct file*);
 };
 
 struct inode_ops
@@ -141,7 +108,7 @@ struct file // TODO: rename to 'inode'
     ino_t           inode;
     void*           priv;
 
-    struct file_ops ops;
+    struct inode_ops ops;
     struct new_file_ops fops;
 };
 
@@ -157,17 +124,19 @@ struct file* vfs_create_file();
 
 void vfs_init();
 
-ssize_t vfs_read(struct file* file, void* buf, off_t off, size_t size);
 ssize_t vfs_read_new(struct fd* file, void* buf, size_t size);
-ssize_t vfs_write(struct file* file, const void* buf, off_t off, size_t size);
+ssize_t vfs_write_new(struct fd* file, const void* buf, size_t size);
 ssize_t vfs_getdents(struct file* dir, off_t off, size_t n, struct dirent* dirp);
+
+ssize_t vfs_pread(struct fd* file, void* buf, size_t size, off_t off);
+ssize_t vfs_pwrite(struct fd* file, const void* buf, size_t size, off_t off);
 
 int vfs_mkdir(const char* name, mode_t mode, uid_t uid, gid_t gid);
 int vfs_mknod(const char* path, mode_t mode, dev_t dev, uid_t uid, gid_t gid);
 
 int vfs_unlink(const char* pathname);
 
-int vfs_ioctl(struct file* file, unsigned long req, void* argp);
+int vfs_ioctl(struct fd* file, unsigned long req, void* argp);
 
 struct file* vfs_getmnt(const char* path, char** relat);
 
@@ -177,7 +146,6 @@ int vfs_umount_fs(const char* mnt);
 
 int vfs_open_new(const char* path, struct fd* file, uint32_t flags);
 
-struct fd* vfs_open(struct file* file, uint32_t flags);
 void vfs_close(struct fd* fd);
 
 char* vfs_mkcanon(const char* path, const char* work);
@@ -186,10 +154,10 @@ int vfs_resolve(const char* path, struct file* out, int symlinks);
 
 int vfs_access(const char* path, int mode);
 
-void vfs_mmap(struct file* file, struct vm_area* area);
+void vfs_mmap(struct fd* file, struct vm_area* area);
 
-int vfs_chmod(struct file* file, mode_t mode);
-int vfs_chown(struct file* file, uid_t uid, gid_t gid);
+int vfs_chmod(struct fd* file, mode_t mode);
+int vfs_chown(struct fd* file, uid_t uid, gid_t gid);
 
 int vfs_checkperm(struct file* file, unsigned int mask);
 
