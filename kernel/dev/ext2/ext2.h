@@ -159,8 +159,8 @@ ssize_t ext2_getdents(struct file* dir, off_t off, size_t n, struct dirent* dirp
 void ext2_mkdir(struct file* dir, const char* name, mode_t mode, uid_t uid, gid_t gid);
 void ext2_unlink(struct file* dir, const char* name);
 void ext2_mknod(struct file* dir, const char* name, mode_t mode, dev_t dev, uid_t uid, gid_t gid);
-int ext2_chmod(struct file* file, mode_t mode);
-int ext2_chown(struct file* file, uid_t uid, gid_t gid);
+int ext2_chmod(struct fd* file, mode_t mode);
+int ext2_chown(struct fd* file, uid_t uid, gid_t gid);
 int ext2_readlink(struct file* file, char* buf, size_t n);
 int ext2_symlink(struct file* file, const char* link);
 int ext2_link(struct file* old, const char* name, struct file* dir);

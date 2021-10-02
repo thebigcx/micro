@@ -403,9 +403,9 @@ int vfs_access(const char* path, int mode)
     int e = vfs_open_new(path, &file, O_RDONLY);
     if (e) return e;
 
-    //if (mode & R_OK) CHECK_RPERM(&file);
-    //if (mode & W_OK) CHECK_WPERM(&file);
-    //if (mode & X_OK) CHECK_XPERM(&file);
+    if (mode & R_OK) CHECK_RPERM(file.filp);
+    if (mode & W_OK) CHECK_WPERM(file.filp);
+    if (mode & X_OK) CHECK_XPERM(file.filp);
 
     return 0;
 }

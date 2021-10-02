@@ -5,7 +5,40 @@
 
 int do_sys_open(const char* path, uint32_t flags, mode_t mode)
 {
-    return 0;
+    struct task* task = task_curr();
+    struct fd file;
+
+    for (unsigned int i = 0; i < FD_MAX; i++)
+    {
+        if (!task->fds[i] && i >= 3)
+        {
+            int e = vfs_open_new(path, &file, flags);
+
+            if (e == -ENOENT)
+            {
+                if (!(flags & O_CREAT)) return e;
+
+                e = vfs_mknod(path, (mode & ~task->umask) | S_IFREG, 0, task->euid, task->egid);
+                if (e) return e;
+
+                vfs_open_new(path, &file, flags);
+            }
+            else if (flags & O_EXCL)
+                return -EEXIST;
+            
+            if (e) return e;
+
+            if ((flags & 3) == O_RDONLY || (flags & 3) == O_RDWR) CHECK_RPERM(file.filp);
+            if ((flags & 3) == O_WRONLY || (flags & 3) == O_RDWR) CHECK_WPERM(file.filp);
+
+            task->fds[i] = memdup(&file, sizeof(struct fd));
+
+            return i;
+        }
+    }
+
+    // Out of file slots
+    return -EMFILE;
 }
 
 // TODO: make opening files better and more organized
@@ -17,21 +50,9 @@ SYSCALL_DEFINE(open, const char* path, uint32_t flags, mode_t mode)
     if (!(flags & 3)) return -EINVAL;
 
     struct task* task = task_curr();
-
     char* canon = vfs_mkcanon(path, task->workd);
-    struct file* file = kmalloc(sizeof(struct file));
 
-    for (unsigned int i = 0; i < FD_MAX; i++)
-    {
-        if (!task->fds[i] && i >= 3)
-        {
-            task->fds[i] = kcalloc(sizeof(struct fd));
-
-            int e;
-            if ((e = vfs_open_new(canon, task->fds[i], flags))) return e;
-            return i;
-        }
-    }
+    return do_sys_open(canon, flags, mode);
 
     /*int e = vfs_resolve(canon, file, 1);
 
@@ -97,17 +118,15 @@ SYSCALL_DEFINE(chdir, const char* path)
     struct task* task = task_curr();
     char* new = vfs_mkcanon(path, task->workd);
 
-    struct file* dir = kmalloc(sizeof(struct file));
-    int e = vfs_resolve(new, dir, 1);
-    
+    struct fd dir;
+    int e = vfs_open_new(new, &dir, O_RDONLY);
+
     if (e) return e;
-    if (!S_ISDIR(dir->mode)) return -ENOTDIR;
+    if (!S_ISDIR(dir.filp->mode)) return -ENOTDIR;
 
     strcpy(task->workd, new);
 
-    kfree(dir);
     kfree(new);
-
     return 0;
 }
 
@@ -131,12 +150,12 @@ SYSCALL_DEFINE(chmod, const char* pathname, mode_t mode)
 
     char* canon = vfs_mkcanon(pathname, task_curr()->workd);
     
-    struct file file;
-    int e;
-    if ((e = vfs_resolve(canon, &file, 1)))
-        return e;
+    struct fd file;
+    int e = vfs_open_new(canon, &file, O_RDONLY);
 
-    if (file.uid != task_curr()->euid) return -EPERM;
+    kfree(canon);
+    if (e) return e;
+    if (file.filp->uid != task_curr()->euid) return -EPERM;
 
     return vfs_chmod(&file, mode);
 }
@@ -145,11 +164,8 @@ SYSCALL_DEFINE(fchmod, int fd, mode_t mode)
 {
     FDVALID(fd);
 
-    struct file* file = task_curr()->fds[fd]->filp;
-
-    if (file->uid != task_curr()->euid) return -EPERM;
-
-    return vfs_chmod(file, mode);
+    if (task_curr()->fds[fd]->filp->uid != task_curr()->euid) return -EPERM;
+    return vfs_chmod(task_curr()->fds[fd], mode);
 }
 
 SYSCALL_DEFINE(chown, const char* pathname, uid_t uid, uid_t gid)
@@ -157,13 +173,13 @@ SYSCALL_DEFINE(chown, const char* pathname, uid_t uid, uid_t gid)
     PTRVALID(pathname);
 
     char* canon = vfs_mkcanon(pathname, task_curr()->workd);
-    
-    struct file file;
-    int e;
-    if ((e = vfs_resolve(canon, &file, 1)))
-        return e;
 
-    if (task_curr()->euid != 0) return -EPERM;
+    struct fd file;
+    int e = vfs_open_new(canon, &file, O_RDONLY);
+
+    kfree(canon);
+    if (e) return e;
+    if (task_curr()->euid) return -EPERM; // Must be root TODO: capabilities like Linux
 
     return vfs_chown(&file, uid, gid);
 }

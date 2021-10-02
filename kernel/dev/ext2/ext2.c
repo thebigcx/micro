@@ -84,7 +84,9 @@ static void ext2_write_inode(struct ext2_volume* ext2, unsigned int num,
 const struct new_file_ops ext2_fops =
 {
     .read = ext2_read,
-    .write = ext2_write
+    .write = ext2_write,
+    .chown = ext2_chown,
+    .chmod = ext2_chmod
 };
 
 static void inode2file(struct ext2_volume* vol, unsigned int inonum,
@@ -730,34 +732,29 @@ void ext2_unlink(struct file* dir, const char* name)
     kfree(buf);
 }
 
-int ext2_chmod(struct file* file, mode_t mode)
+int ext2_chmod(struct fd* file, mode_t mode)
 {
-    struct ext2_volume* vol = file->priv;
+    struct ext2_volume* vol = file->filp->priv;
 
     struct ext2_inode ino;
-    ext2_read_inode(vol, file->inode, &ino);
+    ext2_read_inode(vol, file->filp->inode, &ino);
     ino.mode = (ino.mode & S_IFMT) | (mode & S_PERMS);
-    ext2_write_inode(vol, file->inode, &ino);
-
-    file->mode = ino.mode;
+    ext2_write_inode(vol, file->filp->inode, &ino);
 
     return 0;
 }
 
-int ext2_chown(struct file* file, uid_t uid, gid_t gid)
+int ext2_chown(struct fd* file, uid_t uid, gid_t gid)
 {
-    struct ext2_volume* vol = file->priv;
+    struct ext2_volume* vol = file->filp->priv;
 
     struct ext2_inode ino;
-    ext2_read_inode(vol, file->inode, &ino);
+    ext2_read_inode(vol, file->filp->inode, &ino);
     
     if (uid != -1) ino.uid = uid;
     if (gid != -1) ino.gid = gid;
 
-    ext2_write_inode(vol, file->inode, &ino);
-
-    file->uid = ino.uid;
-    file->gid = ino.gid;
+    ext2_write_inode(vol, file->filp->inode, &ino);
 
     return 0;
 }
