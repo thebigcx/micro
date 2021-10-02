@@ -14,8 +14,8 @@ static void do_kstat(struct inode* inode, struct stat* buf)
     buf->st_gid     = inode->gid;
     buf->st_rdev    = inode->rdev;
     buf->st_size    = inode->size;
-    buf->st_blksize = 1024;
-    buf->st_blocks  = 0;
+    buf->st_blksize = inode->blksize;
+    buf->st_blocks  = inode->blocks;
     buf->st_atime   = inode->atime;
     buf->st_mtime   = inode->mtime;
     buf->st_ctime   = inode->ctime;

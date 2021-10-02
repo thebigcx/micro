@@ -103,6 +103,8 @@ struct inode
 	time_t          ctime;
     uid_t           uid;
     gid_t           gid;
+    blksize_t       blksize;
+    blkcnt_t        blocks;
 
     ino_t           inode;
     void*           priv;

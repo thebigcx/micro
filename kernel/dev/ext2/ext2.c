@@ -89,39 +89,39 @@ const struct file_ops ext2_fops =
     .chmod = ext2_chmod
 };
 
+const struct inode_ops ext2_iops =
+{
+    .getdents = ext2_getdents,
+    .mkdir    = ext2_mkdir,
+    .mknod    = ext2_mknod,
+    .unlink   = ext2_unlink,
+    .readlink = ext2_readlink,
+    .symlink  = ext2_symlink,
+    .link     = ext2_link,
+    .lookup   = ext2_lookup
+};
+
 static void inode2file(struct ext2_volume* vol, unsigned int inonum,
                        struct ext2_inode* ino, struct inode* file)
 {
-    //file->ops.read     = ext2_read;
-    //file->ops.write    = ext2_write;
-    file->ops.getdents = ext2_getdents;
-    //file->ops.mkfile   = ext2_mkfile;
-    file->ops.mkdir    = ext2_mkdir;
-    file->ops.mknod    = ext2_mknod;
-    file->ops.unlink   = ext2_unlink;
-    //file->ops.chmod    = ext2_chmod;
-    //file->ops.chown    = ext2_chown;
-    file->ops.readlink = ext2_readlink;
-    file->ops.symlink  = ext2_symlink;
-    file->ops.link     = ext2_link;
-    file->ops.lookup   = ext2_lookup;
+    file->ops     = ext2_iops;
+    file->fops    = ext2_fops;
 
-    file->fops         = ext2_fops;
+    file->inode   = inonum;
+    file->size    = INOSIZE(*ino);
+    file->priv    = vol;
+    file->nlink   = ino->nlink;
 
-    //file->parent       = parent;
-    file->inode        = inonum;
-    file->size         = INOSIZE(*ino);
-    file->priv       = vol;
-    file->nlink        = ino->nlink;
+    file->atime   = ino->atime;
+    file->ctime   = ino->ctime;
+    file->mtime   = ino->mtime;
 
-    file->atime        = ino->atime;
-    file->ctime        = ino->ctime;
-    file->mtime        = ino->mtime;
+    file->mode    = ino->mode;
 
-    file->mode         = ino->mode;
-
-    file->uid          = ino->uid;
-    file->gid          = ino->gid;
+    file->uid     = ino->uid;
+    file->gid     = ino->gid;
+    file->blksize = vol->blksize;
+    file->blocks  = ino->sectors * (vol->blksize / 512);
 }
 
 static void dirent2file(struct ext2_volume* vol, struct ext2_dirent* dirent,

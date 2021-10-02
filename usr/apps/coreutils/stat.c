@@ -35,6 +35,8 @@ int main(int argc, char** argv)
     printf("Group ID: %ld\n", buf.st_gid);
     printf("Size: %ld\n", buf.st_size);
     printf("Link count: %d\n", buf.st_nlink);
+    printf("Block size: %ld\n", buf.st_blksize);
+    printf("Blocks: %ld\n", buf.st_blocks);
 
     printf("Last access: %s", ctime(&buf.st_atime));
     printf("Creation time: %s", ctime(&buf.st_ctime));
