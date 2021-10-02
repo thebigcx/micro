@@ -6,6 +6,7 @@
 #include <micro/debug.h>
 #include <micro/binfmt.h>
 #include <micro/vfs.h>
+#include <micro/fcntl.h>
 #include <micro/stdlib.h>
 #include <micro/errno.h>
 
@@ -75,12 +76,12 @@ struct task* task_init_creat()
 {
     struct task* task = mktask(NULL, mmu_create_vmmap());
 
-    struct file file;
-    int e;
-    if ((e = vfs_resolve("/init", &file, 1))) return e;
+    struct fd file;
+    int e = vfs_open_new("/init", &file, O_RDONLY);
+    if (e) return e;
 
-    void* data = kmalloc(file.size);
-    vfs_read(&file, data, 0, file.size);
+    void* data = kmalloc(file.filp->size);
+    vfs_read_new(&file, data, file.filp->size);
 
     const char* argv[] = { "/init", NULL };
     const char* envp[] = { NULL };
@@ -90,12 +91,6 @@ struct task* task_init_creat()
         return e;
 
     init_user_task(task, argv[0], argv, envp, entry);
-
-    struct file* null = kmalloc(sizeof(struct file));
-    vfs_resolve("/dev/null", null, 1);
-    task->fds[0] = vfs_open(null, 0);
-    task->fds[1] = vfs_open(null, 0);
-    task->fds[2] = vfs_open(null, 0);
 
     return task;
 }
@@ -157,12 +152,17 @@ struct task* task_clone(struct task* src, struct thread* calling)
 // TODO: move into exec.c
 int task_execve(struct task* task, const char* path, const char* argv[], const char* envp[])
 {
-    struct file file;
-    int e;
-    if ((e = vfs_resolve(path, &file, 1))) return e;
+    struct fd file;
+    int e = vfs_open_new(path, &file, O_RDONLY);
+    if (e) return e;
 
-    void* data = kmalloc(file.size);
-    vfs_read(&file, data, 0, file.size);
+    //CHECK_XPERM(file.filp->mode);
+
+    if (!S_ISREG(file.filp->mode))
+        return -ENOEXEC;
+
+    void* data = kmalloc(file.filp->size);
+    vfs_read_new(&file, data, file.filp->size);
 
     const char* interp = elf_getinterp(data);
     if (interp)
@@ -174,15 +174,12 @@ int task_execve(struct task* task, const char* path, const char* argv[], const c
         nargv[0] = interp;
         memcpy(&nargv[1], &argv[0], argc * sizeof(const char*));
 
-        // TODO: this leaks memory
-        struct file interp;
+        struct fd interp;
+        int e = vfs_open_new(nargv[0], &interp, O_RDONLY);
+        if (e) return e;
 
-        int e;
-        if ((e = vfs_resolve(nargv[0], &interp, 1))) return e;
-
-        // Don't know why POSIX defines these as different error codes
-        if (S_ISDIR(interp.mode)) return -EISDIR;
-        if (!S_ISREG(interp.mode)) return -EACCES;
+        if (S_ISDIR(interp.filp->mode)) return -EISDIR;
+        if (!S_ISREG(interp.filp->mode)) return -EACCES;
 
         return task_execve(task, nargv[0], nargv, envp);
     }

@@ -1,5 +1,6 @@
 #include <micro/sys.h>
 #include <micro/vfs.h>
+#include <micro/fcntl.h>
 #include <micro/heap.h>
 #include <micro/sched.h>
 #include <micro/stdlib.h>
@@ -10,17 +11,7 @@ SYSCALL_DEFINE(execve, const char* path, const char* argv[], const char* envp[])
     PTRVALID(argv);
     PTRVALID(envp);
 
-    char* canon = vfs_mkcanon(path, task_curr()->workd);
-
-    struct file file;
-    int e = vfs_resolve(canon, &file, 1);
-    
-    kfree(canon);
-
-    if (e) return e;
-    if (!S_ISREG(file.mode)) return -EACCES;
-
-    CHECK_XPERM(&file);
+    // Copy the arguments and environment variables from userspace
 
     char* arg_copy[16];
     size_t argc = 0;
@@ -46,12 +37,17 @@ SYSCALL_DEFINE(execve, const char* path, const char* argv[], const char* envp[])
     }
     env_copy[envc] = NULL;
 
+    char* canon = vfs_mkcanon(path, task_curr()->workd);
+
     // TODO: return error code from task_execve
-    if ((e = task_execve(task_curr(), canon,
-                         (const char**)arg_copy,
-                         (const char**)env_copy)))
-        return e;
+    int e = task_execve(task_curr(), canon,
+                        (const char**)arg_copy,
+                        (const char**)env_copy);
+
+    kfree(canon);
+
+    if (e) return e;
         
     sched_yield();
-    return -1;
+    __builtin_unreachable();
 }

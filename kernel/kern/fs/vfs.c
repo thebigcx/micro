@@ -66,6 +66,19 @@ ssize_t vfs_read(struct file* file, void* buf, off_t off, size_t size)
     return 0;
 }
 
+ssize_t vfs_read_new(struct fd* file, void* buf, size_t size)
+{
+    if (file->ops.read)
+    {
+        //ssize_t nread = file->ops.read(file, buf, file->off, size);
+        ssize_t nread = file->filp->ops.read(file->filp, buf, file->off, size);
+        file->off += nread;
+        return nread;
+    }
+
+    return 0;
+}
+
 ssize_t vfs_write(struct file* file, const void* buf, off_t off, size_t size)
 {
     if (file->ops.write) return file->ops.write(file, buf, off, size);
@@ -379,10 +392,19 @@ void vfs_close(struct fd* fd)
 
 int vfs_access(const char* path, int mode)
 {
-    struct file* file = kmalloc(sizeof(struct file));
-    int e = vfs_resolve(path, file, 1);
+    //struct file* file = kmalloc(sizeof(struct file));
+    //int e = vfs_resolve(path, file, 1);
 
+    //if (e) return e;
+
+    struct fd file;
+    int e = vfs_open_new(path, &file, O_RDONLY);
     if (e) return e;
+
+    //if (mode & R_OK) CHECK_RPERM(&file);
+    //if (mode & W_OK) CHECK_WPERM(&file);
+    //if (mode & X_OK) CHECK_XPERM(&file);
+
     return 0;
 }
 

@@ -158,6 +158,7 @@ struct file* vfs_create_file();
 void vfs_init();
 
 ssize_t vfs_read(struct file* file, void* buf, off_t off, size_t size);
+ssize_t vfs_read_new(struct fd* file, void* buf, size_t size);
 ssize_t vfs_write(struct file* file, const void* buf, off_t off, size_t size);
 ssize_t vfs_getdents(struct file* dir, off_t off, size_t n, struct dirent* dirp);
 

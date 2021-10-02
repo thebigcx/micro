@@ -3,6 +3,11 @@
 #include <micro/fcntl.h>
 #include <micro/stdlib.h>
 
+int do_sys_open(const char* path, uint32_t flags, mode_t mode)
+{
+    return 0;
+}
+
 // TODO: make opening files better and more organized
 SYSCALL_DEFINE(open, const char* path, uint32_t flags, mode_t mode)
 {
@@ -18,7 +23,7 @@ SYSCALL_DEFINE(open, const char* path, uint32_t flags, mode_t mode)
 
     /*for (unsigned int i = 0; i < FD_MAX; i++)
     {
-        if (!task->fds[i])
+        if (!task->fds[i] && i >= 3)
         {
             task->fds[i] = kcalloc(sizeof(struct fd));
 
@@ -27,8 +32,6 @@ SYSCALL_DEFINE(open, const char* path, uint32_t flags, mode_t mode)
             return i;
         }
     }*/
-
-    
 
     int e = vfs_resolve(canon, file, 1);
 
@@ -53,7 +56,7 @@ SYSCALL_DEFINE(open, const char* path, uint32_t flags, mode_t mode)
 
     for (unsigned int i = 0; i < FD_MAX; i++)
     {
-        if (!task->fds[i])
+        if (!task->fds[i] && i >= 3) // reserve 1, 2, 3 TODO: don't do this?
         {
             task->fds[i] = vfs_open(file, flags);
             return i;

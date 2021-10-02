@@ -1,23 +1,24 @@
 #include <micro/sys.h>
 #include <micro/stat.h>
 #include <micro/vfs.h>
+#include <micro/fcntl.h>
 #include <micro/heap.h>
 
-static void do_kstat(struct file* file, struct stat* buf)
+static void do_kstat(struct file* inode, struct stat* buf)
 {
     buf->st_dev     = 0;
-    buf->st_ino     = file->inode;
-    buf->st_mode    = file->mode;
-    buf->st_nlink   = file->nlink;
-    buf->st_uid     = file->uid;
-    buf->st_gid     = file->gid;
-    buf->st_rdev    = file->rdev;
-    buf->st_size    = file->size;
+    buf->st_ino     = inode->inode;
+    buf->st_mode    = inode->mode;
+    buf->st_nlink   = inode->nlink;
+    buf->st_uid     = inode->uid;
+    buf->st_gid     = inode->gid;
+    buf->st_rdev    = inode->rdev;
+    buf->st_size    = inode->size;
     buf->st_blksize = 1024;
     buf->st_blocks  = 0;
-    buf->st_atime   = file->atime;
-    buf->st_mtime   = file->mtime;
-    buf->st_ctime   = file->ctime;
+    buf->st_atime   = inode->atime;
+    buf->st_mtime   = inode->mtime;
+    buf->st_ctime   = inode->ctime;
 }
 
 SYSCALL_DEFINE(stat, const char* path, struct stat* buf)
@@ -27,13 +28,13 @@ SYSCALL_DEFINE(stat, const char* path, struct stat* buf)
 
     char* canon = vfs_mkcanon(path, task_curr()->workd);
 
-    struct file file;
-    int e = vfs_resolve(canon, &file, 1);
+    struct fd file;
+    int e = vfs_open_new(canon, &file, O_RDONLY);
 
     kfree(canon);
     if (e) return e;
 
-    do_kstat(&file, buf);
+    do_kstat(file.filp, buf);
     return 0;
 }
 
@@ -48,19 +49,18 @@ SYSCALL_DEFINE(fstat, int fd, struct stat* buf)
 
 SYSCALL_DEFINE(lstat, const char* path, struct stat* buf)
 {
-    // TODO: symbolic links
     PTRVALID(path);
     PTRVALID(buf);
 
     char* canon = vfs_mkcanon(path, task_curr()->workd);
 
-    struct file file;
-    int e = vfs_resolve(canon, &file, 0);
+    struct fd file;
+    int e = vfs_open_new(canon, &file, O_RDONLY);
 
     kfree(canon);
     if (e) return e;
 
-    do_kstat(&file, buf);
+    do_kstat(file.filp, buf);
     return 0;
 }
 
