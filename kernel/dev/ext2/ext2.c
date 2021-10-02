@@ -343,7 +343,14 @@ ssize_t ext2_getdents(struct inode* dir, off_t off, size_t n, struct dirent* dir
 
         if (dirent->inode == 0 || idx++ < (size_t)off) continue;
 
+        // TODO: struct dirent should hold a flexible array for the name
+        dirp[dentidx].d_ino    = dirent->inode;
+        dirp[dentidx].d_off    = sizeof(struct dirent);
+        dirp[dentidx].d_reclen = sizeof(struct dirent);
+        dirp[dentidx].d_type   = dirent->type;
+
         strncpy(dirp[dentidx].d_name, dirent->name, dirent->name_len);
+
         dentidx++;
         bytes += dirent->size;
         if (idx >= off + n)
