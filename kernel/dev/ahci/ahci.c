@@ -130,9 +130,9 @@ int port_access(struct ahci_port* port, uintptr_t lba, uint32_t cnt, int write)
     return 0;
 }
 
-ssize_t port_read(struct fd* file, void* buf, off_t off, size_t size)
+ssize_t port_read(struct file* file, void* buf, off_t off, size_t size)
 {
-    struct ahci_port* port = file->filp->priv;
+    struct ahci_port* port = file->inode->priv;
 
     uintptr_t lba   = off / 512;
     size_t    count = size / 512;
@@ -153,9 +153,9 @@ ssize_t port_read(struct fd* file, void* buf, off_t off, size_t size)
     return read * 512;
 }
 
-ssize_t port_write(struct fd* file, const void* buf, off_t off, size_t size)
+ssize_t port_write(struct file* file, const void* buf, off_t off, size_t size)
 {
-    struct ahci_port* port = file->filp->priv;
+    struct ahci_port* port = file->inode->priv;
 
     uintptr_t lba   = off / 512;
     size_t    count = size / 512;
@@ -276,7 +276,7 @@ void ahci_init_ctrl()
 
             if (type == AHCI_PORT_SATA || type == AHCI_PORT_SATAPI)
             {
-                struct new_file_ops ops = { .read = port_read, .write = port_write };
+                struct file_ops ops = { .read = port_read, .write = port_write };
                 devfs_register_blkdev(&ops, "sda", 0660, ahci_create_port(&vabar->ports[i]));
             }
         }

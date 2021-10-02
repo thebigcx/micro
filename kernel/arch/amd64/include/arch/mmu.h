@@ -39,12 +39,12 @@ struct anon_vmo
     uintptr_t* pages;
 };
 
-struct file;
+struct inode;
 
 struct file_vmo
 {
     struct vm_object obj;
-    struct file* file;
+    struct inode* file;
 };
 
 struct vm_area
@@ -81,7 +81,7 @@ struct vm_area* vm_map_alloc(struct vm_map* map, size_t size);
 struct vm_area* vm_map_allocat(struct vm_map* map, uintptr_t base, size_t size);
 
 struct vm_area* vm_map_anon(struct vm_map* map, uintptr_t base, size_t size, int fixed);
-struct vm_area* vm_map_file(struct vm_map* map, uintptr_t base, int fixed, struct file* file);
+struct vm_area* vm_map_file(struct vm_map* map, uintptr_t base, int fixed, struct inode* file);
 
 void vm_map_anon_alloc(struct vm_map* map, struct vm_area* area, uintptr_t base, size_t size);
 

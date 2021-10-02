@@ -4,7 +4,7 @@
 #include <micro/fcntl.h>
 #include <micro/heap.h>
 
-static void do_kstat(struct file* inode, struct stat* buf)
+static void do_kstat(struct inode* inode, struct stat* buf)
 {
     buf->st_dev     = 0;
     buf->st_ino     = inode->inode;
@@ -28,13 +28,13 @@ SYSCALL_DEFINE(stat, const char* path, struct stat* buf)
 
     char* canon = vfs_mkcanon(path, task_curr()->workd);
 
-    struct fd file;
+    struct file file;
     int e = vfs_open_new(canon, &file, O_RDONLY);
 
     kfree(canon);
     if (e) return e;
 
-    do_kstat(file.filp, buf);
+    do_kstat(file.inode, buf);
     return 0;
 }
 
@@ -43,7 +43,7 @@ SYSCALL_DEFINE(fstat, int fd, struct stat* buf)
     PTRVALID(buf);
     FDVALID(fd);
 
-    do_kstat(task_curr()->fds[fd]->filp, buf);
+    do_kstat(task_curr()->fds[fd]->inode, buf);
     return 0;
 }
 
@@ -54,13 +54,13 @@ SYSCALL_DEFINE(lstat, const char* path, struct stat* buf)
 
     char* canon = vfs_mkcanon(path, task_curr()->workd);
 
-    struct fd file;
+    struct file file;
     int e = vfs_open_new(canon, &file, O_RDONLY | O_NOFOLLOW | O_PATH);
 
     kfree(canon);
     if (e) return e;
 
-    do_kstat(file.filp, buf);
+    do_kstat(file.inode, buf);
     return 0;
 }
 
@@ -71,15 +71,15 @@ SYSCALL_DEFINE(readlink, const char* pathname, char* buf, size_t n)
 
     char* canon = vfs_mkcanon(pathname, task_curr()->workd);
 
-    struct fd file;
+    struct file file;
     int e = vfs_open_new(canon, &file, O_RDONLY | O_NOFOLLOW | O_PATH);
-    //struct file file;
+    //struct inode file;
     //int e = vfs_resolve(canon, &file, 0);
 
     kfree(canon);
 
     if (e) return e;
-    if (!S_ISLNK(file.filp->mode)) return -EINVAL;
+    if (!S_ISLNK(file.inode->mode)) return -EINVAL;
 
-    return vfs_readlink(file.filp, buf, n);
+    return vfs_readlink(file.inode, buf, n);
 }

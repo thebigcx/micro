@@ -23,16 +23,16 @@ struct initrd
     uintptr_t start, end;
 };
 
-ssize_t initrd_read(struct fd* file, void* buf, off_t off, size_t size)
+ssize_t initrd_read(struct file* file, void* buf, off_t off, size_t size)
 {
-    struct initrd* initrd = file->filp->priv;
+    struct initrd* initrd = file->inode->priv;
     memcpy(buf, (void*)(initrd->start + off), size);
     return size;
 }
 
-ssize_t initrd_write(struct fd* file, const void* buf, off_t off, size_t size)
+ssize_t initrd_write(struct file* file, const void* buf, off_t off, size_t size)
 {
-    struct initrd* initrd = file->filp->priv;
+    struct initrd* initrd = file->inode->priv;
     memcpy((void*)(initrd->start + off), buf, size);
     return size;
 }
@@ -46,7 +46,7 @@ void initrd_init(uintptr_t start, uintptr_t end)
     initrd->start = start;
     initrd->end   = end;
 
-    struct new_file_ops ops = { .read = initrd_read, .write = initrd_write };
+    struct file_ops ops = { .read = initrd_read, .write = initrd_write };
     devfs_register_blkdev(&ops, "initrd", 0660, initrd);
 }
 
@@ -66,14 +66,14 @@ struct initramfs
     struct initrd* device;
 };
 
-ssize_t initramfs_read(struct fd* file, void* buf, off_t off, size_t size)
+ssize_t initramfs_read(struct file* file, void* buf, off_t off, size_t size)
 {
-    struct initramfs_file* fs_file = file->filp->priv;
+    struct initramfs_file* fs_file = file->inode->priv;
     memcpy(buf, (void*)(fs_file->start + off), size);
     return size;
 }
 
-struct file* initramfs_find(struct file* dir, const char* name)
+struct inode* initramfs_find(struct inode* dir, const char* name)
 {   
     struct initrd* initrd = ((struct initramfs*)dir->priv)->device;
     struct fheader* curr = (struct fheader*)initrd->start;
@@ -82,7 +82,7 @@ struct file* initramfs_find(struct file* dir, const char* name)
     {
         if (!strcmp(curr->name, name))
         {
-            struct file* file = kmalloc(sizeof(struct file));
+            struct inode* file = kmalloc(sizeof(struct inode));
             //file->ops.read = initramfs_read;
             file->fops.read = initramfs_read;
             file->mode = S_IFREG | 0555;
@@ -102,7 +102,7 @@ struct file* initramfs_find(struct file* dir, const char* name)
     return NULL;
 }
 
-int initramfs_lookup(struct file* dir, const char* name, struct dentry* dentry)
+int initramfs_lookup(struct inode* dir, const char* name, struct dentry* dentry)
 {
     struct initrd* initrd = ((struct initramfs*)dir->priv)->device;
     struct fheader* curr = (struct fheader*)initrd->start;
@@ -111,7 +111,7 @@ int initramfs_lookup(struct file* dir, const char* name, struct dentry* dentry)
     {
         if (!strcmp(curr->name, name))
         {
-            dentry->file = kmalloc(sizeof(struct file));
+            dentry->file = kmalloc(sizeof(struct inode));
             dentry->file->fops.read = initramfs_read;
             dentry->file->mode = S_IFREG | 0555;
 
@@ -132,9 +132,9 @@ int initramfs_lookup(struct file* dir, const char* name, struct dentry* dentry)
     return -ENOENT;
 }
 
-int initramfs_mount(const char* dev, const void* data, struct file* fsroot)
+int initramfs_mount(const char* dev, const void* data, struct inode* fsroot)
 {
-    struct file* device = kmalloc(sizeof(struct file));
+    struct inode* device = kmalloc(sizeof(struct inode));
     vfs_resolve(dev, device, 1);
     struct initramfs* ramfs = kmalloc(sizeof(struct initramfs));
     ramfs->device = device->priv;
@@ -153,18 +153,18 @@ void initramfs_init()
 
 static void kmod_load(const char* path)
 {
-    //struct file* mod = kmalloc(sizeof(struct file));
+    //struct inode* mod = kmalloc(sizeof(struct inode));
     //vfs_resolve(path, mod, 1);
     //void* buffer = kmalloc(mod->size);
     //vfs_read(mod, buffer, 0, mod->size);
 
-    struct fd mod;
+    struct file mod;
     vfs_open_new(path, &mod, O_RDONLY);
 
-    void* buffer = kmalloc(mod.filp->size);
-    vfs_read_new(&mod, buffer, mod.filp->size);
+    void* buffer = kmalloc(mod.inode->size);
+    vfs_read(&mod, buffer, mod.inode->size);
 
-    module_load(buffer, mod.filp->size);
+    module_load(buffer, mod.inode->size);
 }
 
 void generic_init(struct genbootparams params)

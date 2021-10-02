@@ -6,7 +6,7 @@
 
 static struct list  devices;
 
-int devfs_lookup(struct file* dir, const char* name, struct dentry* dentry)
+int devfs_lookup(struct inode* dir, const char* name, struct dentry* dentry)
 {
     LIST_FOREACH(&devices)
     {
@@ -14,7 +14,7 @@ int devfs_lookup(struct file* dir, const char* name, struct dentry* dentry)
         if (!strcmp(name, dev->name))
         {
             strcpy(dentry->name, name);
-            dentry->file = memdup(dev->file, sizeof(struct file));
+            dentry->file = memdup(dev->file, sizeof(struct inode));
 
             return 0;
         }
@@ -23,7 +23,7 @@ int devfs_lookup(struct file* dir, const char* name, struct dentry* dentry)
     return -ENOENT;
 }
 
-ssize_t devfs_getdents(struct file* dir, off_t off, size_t size, struct dirent* dirp)
+ssize_t devfs_getdents(struct inode* dir, off_t off, size_t size, struct dirent* dirp)
 {
     size_t i;
     for (i = 0; i < size; i++)
@@ -37,11 +37,11 @@ ssize_t devfs_getdents(struct file* dir, off_t off, size_t size, struct dirent* 
     return i;
 }
 
-int devfs_mount(const char* dev, const void* data, struct file* fsroot)
+int devfs_mount(const char* dev, const void* data, struct inode* fsroot)
 {
     (void)dev; (void)data;
 
-    memset(fsroot, 0, sizeof(struct file));
+    memset(fsroot, 0, sizeof(struct inode));
 
     fsroot->mode         = S_IFDIR | 0755;
     fsroot->ops.lookup   = devfs_lookup;
@@ -59,9 +59,9 @@ void devfs_init()
 }
 
 // TODO: remove 'new'
-static void devfs_register(struct new_file_ops* ops, const char* name, mode_t mode, void* priv)
+static void devfs_register(struct file_ops* ops, const char* name, mode_t mode, void* priv)
 {
-    struct file* file = kcalloc(sizeof(struct file));
+    struct inode* file = kcalloc(sizeof(struct inode));
 
     file->fops = *ops;
     file->mode = mode;
@@ -75,12 +75,12 @@ static void devfs_register(struct new_file_ops* ops, const char* name, mode_t mo
     list_enqueue(&devices, dentry);
 }
 
-void devfs_register_chrdev(struct new_file_ops* ops, const char* name, mode_t mode, void* priv)
+void devfs_register_chrdev(struct file_ops* ops, const char* name, mode_t mode, void* priv)
 {
     devfs_register(ops, name, mode | S_IFCHR, priv);
 }
 
-void devfs_register_blkdev(struct new_file_ops* ops, const char* name, mode_t mode, void* priv)
+void devfs_register_blkdev(struct file_ops* ops, const char* name, mode_t mode, void* priv)
 {
     devfs_register(ops, name, mode | S_IFBLK, priv);
 }

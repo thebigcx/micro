@@ -3,36 +3,35 @@
 #include <micro/types.h>
 #include <micro/fs.h>
 
-struct file;
+struct inode;
 struct vm_area;
 struct dentry;
-struct fd;
+struct file;
 
-// TODO: rename to file_ops
-struct new_file_ops
+struct file_ops
 {
-    int     (*open)(struct file*, struct fd*);
-    int     (*close)(struct fd*);
-    ssize_t (*read)(struct fd*, void*, off_t, size_t);
-    ssize_t (*write)(struct fd*, const void*, off_t, size_t);
-    int     (*ioctl)(struct fd*, unsigned long, void*);
-    int     (*mmap)(struct fd*, struct vm_area*);
-    int     (*chmod)(struct fd*, mode_t);
-    int     (*chown)(struct fd*, uid_t, gid_t);
+    int     (*open)(struct inode*, struct file*);
+    int     (*close)(struct file*);
+    ssize_t (*read)(struct file*, void*, off_t, size_t);
+    ssize_t (*write)(struct file*, const void*, off_t, size_t);
+    int     (*ioctl)(struct file*, unsigned long, void*);
+    int     (*mmap)(struct file*, struct vm_area*);
+    int     (*chmod)(struct file*, mode_t);
+    int     (*chown)(struct file*, uid_t, gid_t);
 };
 
 struct inode_ops
 {
-    int (*lookup)(struct file*, const char*, struct dentry*);
-    int (*mknod)(struct file*, const char*, mode_t, dev_t, uid_t, gid_t);
-    int (*mkdir)(struct file*, const char*, mode_t, uid_t, gid_t);
+    int (*lookup)(struct inode*, const char*, struct dentry*);
+    int (*mknod)(struct inode*, const char*, mode_t, dev_t, uid_t, gid_t);
+    int (*mkdir)(struct inode*, const char*, mode_t, uid_t, gid_t);
 
-    ssize_t (*getdents)(struct file*, off_t, size_t, struct dirent*);
+    ssize_t (*getdents)(struct inode*, off_t, size_t, struct dirent*);
 
-    int (*unlink)(struct file*, const char*);
-    int (*readlink)(struct file*, char*, size_t);
-    int (*symlink)(struct file*, const char*);
-    int (*link)(struct file*, const char*, struct file*);
+    int (*unlink)(struct inode*, const char*);
+    int (*readlink)(struct inode*, char*, size_t);
+    int (*symlink)(struct inode*, const char*);
+    int (*link)(struct inode*, const char*, struct inode*);
 };
 
 #define S_IFMT   (0xf000)
@@ -79,21 +78,21 @@ struct inode_ops
 #define CHECK_XPERM(file) if (vfs_checkperm(file, 01) == -1) return -EACCES;
 
 // TODO: flags, modes, etc
-struct fd // TODO: rename to 'file'
+struct file // TODO: rename to 'file'
 {
-    struct file*    filp;
+    struct inode*   inode;
     off_t           off;
     uint32_t        flags;
-    struct new_file_ops ops;
+    struct file_ops ops;
 };
 
 struct dentry
 {
     char name[256];
-    struct file* file;
+    struct inode* file;
 };
 
-struct file // TODO: rename to 'inode'
+struct inode
 {
     mode_t          mode;
     size_t          size;
@@ -109,66 +108,66 @@ struct file // TODO: rename to 'inode'
     void*           priv;
 
     struct inode_ops ops;
-    struct new_file_ops fops;
+    struct file_ops  fops;
 };
 
 struct mount
 {
     const char* path;
-    struct file* file;
+    struct inode* file;
 };
 
 struct dirent;
 
-struct file* vfs_create_file();
+struct inode* vfs_create_file();
 
 void vfs_init();
 
-ssize_t vfs_read_new(struct fd* file, void* buf, size_t size);
-ssize_t vfs_write_new(struct fd* file, const void* buf, size_t size);
-ssize_t vfs_getdents(struct file* dir, off_t off, size_t n, struct dirent* dirp);
+ssize_t vfs_read(struct file* file, void* buf, size_t size);
+ssize_t vfs_write(struct file* file, const void* buf, size_t size);
+ssize_t vfs_getdents(struct inode* dir, off_t off, size_t n, struct dirent* dirp);
 
-ssize_t vfs_pread(struct fd* file, void* buf, size_t size, off_t off);
-ssize_t vfs_pwrite(struct fd* file, const void* buf, size_t size, off_t off);
+ssize_t vfs_pread(struct file* file, void* buf, size_t size, off_t off);
+ssize_t vfs_pwrite(struct file* file, const void* buf, size_t size, off_t off);
 
 int vfs_mkdir(const char* name, mode_t mode, uid_t uid, gid_t gid);
 int vfs_mknod(const char* path, mode_t mode, dev_t dev, uid_t uid, gid_t gid);
 
 int vfs_unlink(const char* pathname);
 
-int vfs_ioctl(struct fd* file, unsigned long req, void* argp);
+int vfs_ioctl(struct file* file, unsigned long req, void* argp);
 
-struct file* vfs_getmnt(const char* path, char** relat);
+int vfs_getmnt(const char* path, char** relat, struct inode* out);
 
 int vfs_mount_fs(const char* dev, const char* mnt,
                  const char* fs, const void* data);
 int vfs_umount_fs(const char* mnt);
 
-int vfs_open_new(const char* path, struct fd* file, uint32_t flags);
+int vfs_open_new(const char* path, struct file* file, uint32_t flags);
 
-void vfs_close(struct fd* fd);
+void vfs_close(struct file* fd);
 
 char* vfs_mkcanon(const char* path, const char* work);
 
-int vfs_resolve(const char* path, struct file* out, int symlinks);
+int vfs_resolve(const char* path, struct inode* out, int symlinks);
 
 int vfs_access(const char* path, int mode);
 
-void vfs_mmap(struct fd* file, struct vm_area* area);
+void vfs_mmap(struct file* file, struct vm_area* area);
 
-int vfs_chmod(struct fd* file, mode_t mode);
-int vfs_chown(struct fd* file, uid_t uid, gid_t gid);
+int vfs_chmod(struct file* file, mode_t mode);
+int vfs_chown(struct file* file, uid_t uid, gid_t gid);
 
-int vfs_checkperm(struct file* file, unsigned int mask);
+int vfs_checkperm(struct inode* file, unsigned int mask);
 
-int vfs_readlink(struct file* inode, char* buf, size_t n);
+int vfs_readlink(struct inode* inode, char* buf, size_t n);
 int vfs_symlink(const char* target, const char* link);
 int vfs_link(const char* old, const char* new);
 int vfs_rename(const char* old, const char* new);
 
 int vfs_rmdir(const char* path);
 
-typedef int (*mount_t)(const char*, const void* data, struct file* fsroot);
+typedef int (*mount_t)(const char*, const void* data, struct inode* fsroot);
 
 struct fs_type
 {

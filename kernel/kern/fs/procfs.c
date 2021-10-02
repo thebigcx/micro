@@ -4,7 +4,7 @@
 
 void procfs_init()
 {
-    /*struct file* proc = kcalloc(sizeof(struct file));
+    /*struct inode* proc = kcalloc(sizeof(struct inode));
 
     proc->type  = S_IFDIR;
     proc->perms = 0555;

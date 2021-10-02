@@ -9,10 +9,10 @@ SYSCALL_DEFINE(read, int fdno, void* buf, size_t size)
 
     struct task* task = task_curr();
     
-    struct fd* fd = task->fds[fdno];
-    //ssize_t ret = vfs_read(fd->filp, buf, fd->off, size);
+    struct file* fd = task->fds[fdno];
+    //ssize_t ret = vfs_read(fd->inode, buf, fd->off, size);
     //fd->off += size;
-    return vfs_read_new(fd, buf, size);
+    return vfs_read(fd, buf, size);
 }
 
 SYSCALL_DEFINE(write, int fdno, const void* buf, size_t size)
@@ -26,13 +26,13 @@ SYSCALL_DEFINE(write, int fdno, const void* buf, size_t size)
 
     struct task* task = task_curr();
     
-    struct fd* fd = task->fds[fdno];
+    struct file* fd = task->fds[fdno];
 
-    if (fd->flags & O_APPEND) fd->off = fd->filp->size;
+    if (fd->flags & O_APPEND) fd->off = fd->inode->size;
 
-    //ssize_t ret = vfs_write(fd->filp, buf, fd->off, size);
+    //ssize_t ret = vfs_write(fd->inode, buf, fd->off, size);
     //fd->off += size;
-    return vfs_write_new(fd, buf, size);
+    return vfs_write(fd, buf, size);
 }
 
 SYSCALL_DEFINE(pread, int fdno, void* buf, size_t size, off_t off)
@@ -57,20 +57,20 @@ SYSCALL_DEFINE(lseek, int fdno, off_t offset, int whence)
 {
     FDVALID(fdno);
 
-    struct fd* fd = task_curr()->fds[fdno];
+    struct file* fd = task_curr()->fds[fdno];
 
     switch (whence)
     {
         case SEEK_SET:
             if (fd->flags & O_APPEND)
-                fd->off = offset + fd->filp->size;
+                fd->off = offset + fd->inode->size;
             else
                 fd->off = offset;
 
             return fd->off;
 
         case SEEK_END:
-            fd->off = fd->filp->size + offset;
+            fd->off = fd->inode->size + offset;
             return fd->off;
         
         case SEEK_CUR:

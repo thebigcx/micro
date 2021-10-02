@@ -7,9 +7,9 @@ SYSCALL_DEFINE(getdents, int fdno, struct dirent* dirp, size_t n)
     PTRVALID(dirp);
     FDVALID(fdno);
 
-    struct fd* fd = task_curr()->fds[fdno];
+    struct file* fd = task_curr()->fds[fdno];
 
-    if (!S_ISDIR(fd->filp->mode)) return -ENOTDIR;
+    if (!S_ISDIR(fd->inode->mode)) return -ENOTDIR;
 
-    return vfs_getdents(fd->filp, fd->off++, n, dirp);
+    return vfs_getdents(fd->inode, fd->off++, n, dirp);
 }

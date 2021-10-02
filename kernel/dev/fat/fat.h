@@ -68,7 +68,7 @@ struct PACKED fat_dirent
 struct fat32_volume
 {
     struct fat32_record record;
-    struct file* device;
+    struct inode* device;
 };
 
 // Number of characters one LFN can hold
@@ -101,11 +101,11 @@ struct dirent;
 
 void fat_init();
 
-ssize_t fat_read(struct file* file, void* buf, off_t off, size_t size);
-ssize_t fat_write(struct file* file, const void* buf, off_t off, size_t size);
-struct file* fat_find(struct file* dir, const char* name);
-ssize_t fat_getdents(struct file* dir, off_t off, size_t size, struct dirent* dirp);
-void fat_mkfile(struct file* dir, const char* name, mode_t mode, uid_t uid, gid_t gid);
-void fat_mkdir(struct file* dir, const char* name, mode_t mode, uid_t uid, gid_t gid);
-void fat_rm(struct file* dir, const char* name);
-void fat_unlink(struct file* dir, const char* name);
+ssize_t fat_read(struct inode* file, void* buf, off_t off, size_t size);
+ssize_t fat_write(struct inode* file, const void* buf, off_t off, size_t size);
+struct inode* fat_find(struct inode* dir, const char* name);
+ssize_t fat_getdents(struct inode* dir, off_t off, size_t size, struct dirent* dirp);
+void fat_mkfile(struct inode* dir, const char* name, mode_t mode, uid_t uid, gid_t gid);
+void fat_mkdir(struct inode* dir, const char* name, mode_t mode, uid_t uid, gid_t gid);
+void fat_rm(struct inode* dir, const char* name);
+void fat_unlink(struct inode* dir, const char* name);

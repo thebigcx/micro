@@ -6,7 +6,7 @@ SYSCALL_DEFINE(fcntl, int fdno, int cmd, unsigned long arg)
 {
     FDVALID(fdno);
 
-    struct fd* fd = task_curr()->fds[fdno];
+    struct file* fd = task_curr()->fds[fdno];
 
     switch (cmd)
     {

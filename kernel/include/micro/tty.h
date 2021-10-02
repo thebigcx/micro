@@ -7,8 +7,8 @@ struct pt
     struct ringbuf* inbuf;
     struct ringbuf* outbuf;
 
-    struct file*    ptm;
-    struct file*    pts;
+    struct inode*    ptm;
+    struct inode*    pts;
 
     struct winsize  size;
 };

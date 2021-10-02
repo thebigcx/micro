@@ -21,7 +21,7 @@ struct task
     struct task* parent;
 
     // Array of FD_MAX file descriptors
-    struct fd** fds;
+    struct file** fds;
 
     struct thread* main;
 

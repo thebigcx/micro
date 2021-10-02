@@ -12,14 +12,14 @@
 
 static struct list mounts;
 
-struct file* vfs_create_file()
+struct inode* vfs_create_file()
 {
-    struct file* file = kmalloc(sizeof(struct file));
-    memset(file, 0, sizeof(struct file));
+    struct inode* file = kmalloc(sizeof(struct inode));
+    memset(file, 0, sizeof(struct inode));
     return file;
 }
 
-int vfs_checkperm(struct file* file, unsigned int mask)
+int vfs_checkperm(struct inode* file, unsigned int mask)
 {
     if (task_curr() && task_curr()->euid != 0)
     {
@@ -60,7 +60,7 @@ void vfs_init()
     //root = tree_create();
 }
 
-ssize_t vfs_read_new(struct fd* file, void* buf, size_t size)
+ssize_t vfs_read(struct file* file, void* buf, size_t size)
 {
     if (file->ops.read)
     {
@@ -72,7 +72,7 @@ ssize_t vfs_read_new(struct fd* file, void* buf, size_t size)
     return 0;
 }
 
-ssize_t vfs_write_new(struct fd* file, const void* buf, size_t size)
+ssize_t vfs_write(struct file* file, const void* buf, size_t size)
 {
     if (file->ops.write)
     {
@@ -84,7 +84,7 @@ ssize_t vfs_write_new(struct fd* file, const void* buf, size_t size)
     return 0;
 }
 
-ssize_t vfs_pread(struct fd* file, void* buf, size_t size, off_t off)
+ssize_t vfs_pread(struct file* file, void* buf, size_t size, off_t off)
 {
     if (file->ops.read)
         return file->ops.read(file, buf, off, size);
@@ -92,7 +92,7 @@ ssize_t vfs_pread(struct fd* file, void* buf, size_t size, off_t off)
     return 0;
 }
 
-ssize_t vfs_pwrite(struct fd* file, const void* buf, size_t size, off_t off)
+ssize_t vfs_pwrite(struct file* file, const void* buf, size_t size, off_t off)
 {
     if (file->ops.write)
         return file->ops.write(file, buf, off, size);
@@ -100,7 +100,7 @@ ssize_t vfs_pwrite(struct fd* file, const void* buf, size_t size, off_t off)
     return 0;
 }
 
-ssize_t vfs_getdents(struct file* dir, off_t off, size_t n, struct dirent* dirp)
+ssize_t vfs_getdents(struct inode* dir, off_t off, size_t n, struct dirent* dirp)
 {
     if (dir && S_ISDIR(dir->mode) && dir->ops.getdents)
     {
@@ -110,10 +110,13 @@ ssize_t vfs_getdents(struct file* dir, off_t off, size_t n, struct dirent* dirp)
     return -ENOTDIR;
 }
 
-static int get_parent_dir(const char* path, struct file* out, char** name)
+static int get_parent_dir(const char* path, struct inode* out, char** name)
 {
     char* relat;
-    struct file* file = vfs_getmnt(path, &relat);
+    struct inode* file = kmalloc(sizeof(struct inode));
+    int e = vfs_getmnt(path, &relat, file);
+
+    if (e) return e;
 
     char* saveptr;
     char* token = strtok_r(relat, "/", &saveptr);
@@ -128,9 +131,11 @@ static int get_parent_dir(const char* path, struct file* out, char** name)
         CHECK_RPERM(file);
 
         struct dentry dentry;
-        int e;
-        if ((e = file->ops.lookup(file, token, &dentry))) return e;
+        e = file->ops.lookup(file, token, &dentry);
+
         kfree(file);
+        if (e) return e;
+
         file = dentry.file;
 
         token = next;
@@ -139,7 +144,7 @@ static int get_parent_dir(const char* path, struct file* out, char** name)
 
     if (!S_ISDIR(file->mode)) return -ENOTDIR;
 
-    memcpy(out, file, sizeof(struct file));
+    memcpy(out, file, sizeof(struct inode));
     *name = strdup(token);
 
     kfree(file);
@@ -148,7 +153,7 @@ static int get_parent_dir(const char* path, struct file* out, char** name)
 
 int vfs_mkdir(const char* path, mode_t mode, uid_t uid, gid_t gid)
 {
-    struct file dir;
+    struct inode dir;
     char* name;
     int e;
     if ((e = get_parent_dir(path, &dir, &name))) return e;
@@ -162,7 +167,7 @@ int vfs_mkdir(const char* path, mode_t mode, uid_t uid, gid_t gid)
 
 int vfs_mknod(const char* path, mode_t mode, dev_t dev, uid_t uid, gid_t gid)
 {
-    struct file dir;
+    struct inode dir;
     char* name;
     int e;
     if ((e = get_parent_dir(path, &dir, &name))) return e;
@@ -174,7 +179,7 @@ int vfs_mknod(const char* path, mode_t mode, dev_t dev, uid_t uid, gid_t gid)
     return 0;
 }
 
-static void vfs_do_unlink(struct file* dir, const char* name)
+static void vfs_do_unlink(struct inode* dir, const char* name)
 {
     if (dir->ops.unlink)
         dir->ops.unlink(dir, name);
@@ -182,12 +187,12 @@ static void vfs_do_unlink(struct file* dir, const char* name)
 
 int vfs_unlink(const char* pathname)
 {
-    struct file dir;
+    struct inode dir;
     char* name;
     int e;
     if ((e = get_parent_dir(pathname, &dir, &name))) return e;
 
-    struct file file;
+    struct inode file;
     if ((e = vfs_resolve(pathname, &file, 1))) return e;
     if (S_ISDIR(file.mode)) return -EISDIR;
 
@@ -197,7 +202,7 @@ int vfs_unlink(const char* pathname)
     return 0;
 }
 
-int vfs_ioctl(struct fd* file, unsigned long req, void* argp)
+int vfs_ioctl(struct file* file, unsigned long req, void* argp)
 {
     if (file && file->ops.ioctl)
         return file->ops.ioctl(file, req, argp);
@@ -207,7 +212,7 @@ int vfs_ioctl(struct fd* file, unsigned long req, void* argp)
 
 // vfs_getmnt(): returns a copy of the mount point of a path
 // *relat: the relative path in the mounted filesystem
-struct file* vfs_getmnt(const char* path, char** relat)
+int vfs_getmnt(const char* path, char** relat, struct inode* out)
 {
     struct mount* candidate = NULL;
     size_t match = 0;
@@ -237,7 +242,7 @@ struct file* vfs_getmnt(const char* path, char** relat)
         kfree(pathcpy);
     }
 
-    if (!candidate) return NULL;
+    if (!candidate) return -ENOENT;
 
     // getmnt() called with the mount point itself (no children)
     if (path[match] == 0)
@@ -248,7 +253,8 @@ struct file* vfs_getmnt(const char* path, char** relat)
         strcpy(*relat, path + match);
     }
 
-    return memdup(candidate->file, sizeof(struct file));
+    memcpy(out, candidate->file, sizeof(struct inode));
+    return 0;
 }
 
 char* vfs_mkcanon(const char* path, const char* work)
@@ -310,22 +316,22 @@ char* vfs_mkcanon(const char* path, const char* work)
 }
 
 // Hold the depth of symlinks, so we can return ELOOP is necessary
-static int do_vfs_resolve(const char* path, struct file* out, int symlinks, int depth)
+static int do_vfs_resolve(const char* path, struct inode* out, int symlinks, int depth)
 {
     if (depth >= 8) return -ELOOP;
 
     char* relat;
-    struct file* file = vfs_getmnt(path, &relat); // TODO: getmnt() return error code
+    struct inode* file = kmalloc(sizeof(struct inode));
+    int e = vfs_getmnt(path, &relat, file); // TODO: getmnt() return error code
 
-    if (!file)
-        return -ENOENT;
+    if (e) return e;
 
     char* saveptr;
     char* token = strtok_r(relat, "/", &saveptr);
 
     if (!token) // Return the mounted filesystem root
     {
-        memcpy(out, file, sizeof(struct file));
+        memcpy(out, file, sizeof(struct inode));
         return 0;
     }
 
@@ -336,12 +342,12 @@ static int do_vfs_resolve(const char* path, struct file* out, int symlinks, int 
         CHECK_RPERM(file);
 
         struct dentry dentry;
-        int e;
-        if ((e = file->ops.lookup(file, token, &dentry))) return e;
-        kfree(file);
-        file = dentry.file;
+        e = file->ops.lookup(file, token, &dentry);
 
-        if (!file) return -ENOENT;
+        kfree(file);
+        if (e) return e;
+
+        file = dentry.file;
 
         if (S_ISLNK(file->mode) && symlinks)
         {
@@ -355,23 +361,23 @@ static int do_vfs_resolve(const char* path, struct file* out, int symlinks, int 
         token = strtok_r(NULL, "/", &saveptr);
     }
 
-    memcpy(out, file, sizeof(struct file));
+    memcpy(out, file, sizeof(struct inode));
     return 0;
 }
 
-int vfs_resolve(const char* path, struct file* out, int symlinks)
+int vfs_resolve(const char* path, struct inode* out, int symlinks)
 {
     return do_vfs_resolve(path, out, symlinks, 0);
 }
 
-int vfs_open_new(const char* path, struct fd* file, uint32_t flags)
+int vfs_open_new(const char* path, struct file* file, uint32_t flags)
 {
-    struct file* inode = kcalloc(sizeof(struct file));
+    struct inode* inode = kcalloc(sizeof(struct inode));
     int e = vfs_resolve(path, inode, !(flags & O_NOFOLLOW));
     if (e) return e;
 
     // Defaults
-    file->filp  = inode;
+    file->inode  = inode;
     file->flags = flags;
     file->off   = 0;
     file->ops   = inode->fops;
@@ -382,7 +388,7 @@ int vfs_open_new(const char* path, struct fd* file, uint32_t flags)
     return 0;
 }
 
-void vfs_close(struct fd* fd)
+void vfs_close(struct file* fd)
 {
     if (fd->ops.close)
     {
@@ -390,31 +396,31 @@ void vfs_close(struct fd* fd)
         return;
     }
 
-    //kfree(fd->filp);
+    //kfree(fd->inode);
     //kfree(fd);
     // TODO: free memory
 }
 
 int vfs_access(const char* path, int mode)
 {
-    struct fd file;
+    struct file file;
     int e = vfs_open_new(path, &file, O_RDONLY);
     if (e) return e;
 
-    if (mode & R_OK) CHECK_RPERM(file.filp);
-    if (mode & W_OK) CHECK_WPERM(file.filp);
-    if (mode & X_OK) CHECK_XPERM(file.filp);
+    if (mode & R_OK) CHECK_RPERM(file.inode);
+    if (mode & W_OK) CHECK_WPERM(file.inode);
+    if (mode & X_OK) CHECK_XPERM(file.inode);
 
     return 0;
 }
 
-void vfs_mmap(struct fd* file, struct vm_area* area)
+void vfs_mmap(struct file* file, struct vm_area* area)
 {
     if (file->ops.mmap)
         file->ops.mmap(file, area);
 }
 
-int vfs_chmod(struct fd* file, mode_t mode)
+int vfs_chmod(struct file* file, mode_t mode)
 {
     if (file->ops.chmod)
         return file->ops.chmod(file, mode);
@@ -422,7 +428,7 @@ int vfs_chmod(struct fd* file, mode_t mode)
     return -ENOENT;
 }
 
-int vfs_chown(struct fd* file, uid_t uid, gid_t gid)
+int vfs_chown(struct file* file, uid_t uid, gid_t gid)
 {
     if (file->ops.chown)
         return file->ops.chown(file, uid, gid);
@@ -430,7 +436,7 @@ int vfs_chown(struct fd* file, uid_t uid, gid_t gid)
     return -ENOENT;
 }
 
-int vfs_readlink(struct file* inode, char* buf, size_t n)
+int vfs_readlink(struct inode* inode, char* buf, size_t n)
 {
     if (inode->ops.readlink)
         return inode->ops.readlink(inode, buf, n);
@@ -440,7 +446,7 @@ int vfs_readlink(struct file* inode, char* buf, size_t n)
 
 int vfs_symlink(const char* target, const char* link)
 {
-    struct file file;
+    struct inode file;
 
     if (vfs_access(link, F_OK) == 0) return -EEXIST;
 
@@ -457,11 +463,11 @@ int vfs_symlink(const char* target, const char* link)
 
 int vfs_link(const char* old, const char* new)
 {
-    struct file file;
+    struct inode file;
     int e;
     if ((e = vfs_resolve(old, &file, 1))) return e;
 
-    struct file dir;
+    struct inode dir;
     char* name;
     if ((e = get_parent_dir(new, &dir, &name))) return e;
 
@@ -476,7 +482,7 @@ int vfs_rename(const char* old, const char* new)
     int e;
     if ((e = vfs_link(old, new))) return e;
 
-    struct file dir;
+    struct inode dir;
     char* name;
     if ((e = get_parent_dir(old, &dir, &name))) return e;
 
@@ -488,7 +494,7 @@ int vfs_rename(const char* old, const char* new)
 int vfs_rmdir(const char* path)
 {
     // TODO: check empty
-    struct file dir;
+    struct inode dir;
     char* name;
     int e;
     if ((e = get_parent_dir(path, &dir, &name))) return e;
@@ -508,7 +514,7 @@ int vfs_mount_fs(const char* dev, const char* mnt,
     {
         if (!strcmp(fs_types[i].name, fs))
         {
-            struct file* fsroot = kcalloc(sizeof(struct file));
+            struct inode* fsroot = kcalloc(sizeof(struct inode));
 
             fsroot->mode = S_IFDIR;
 

@@ -6,7 +6,7 @@
 int do_sys_open(const char* path, uint32_t flags, mode_t mode)
 {
     struct task* task = task_curr();
-    struct fd file;
+    struct file file;
 
     for (unsigned int i = 0; i < FD_MAX; i++)
     {
@@ -28,10 +28,10 @@ int do_sys_open(const char* path, uint32_t flags, mode_t mode)
             
             if (e) return e;
 
-            if ((flags & 3) == O_RDONLY || (flags & 3) == O_RDWR) CHECK_RPERM(file.filp);
-            if ((flags & 3) == O_WRONLY || (flags & 3) == O_RDWR) CHECK_WPERM(file.filp);
+            if ((flags & 3) == O_RDONLY || (flags & 3) == O_RDWR) CHECK_RPERM(file.inode);
+            if ((flags & 3) == O_WRONLY || (flags & 3) == O_RDWR) CHECK_WPERM(file.inode);
 
-            task->fds[i] = memdup(&file, sizeof(struct fd));
+            task->fds[i] = memdup(&file, sizeof(struct file));
 
             return i;
         }
@@ -118,11 +118,11 @@ SYSCALL_DEFINE(chdir, const char* path)
     struct task* task = task_curr();
     char* new = vfs_mkcanon(path, task->workd);
 
-    struct fd dir;
+    struct file dir;
     int e = vfs_open_new(new, &dir, O_RDONLY);
 
     if (e) return e;
-    if (!S_ISDIR(dir.filp->mode)) return -ENOTDIR;
+    if (!S_ISDIR(dir.inode->mode)) return -ENOTDIR;
 
     strcpy(task->workd, new);
 
@@ -150,12 +150,12 @@ SYSCALL_DEFINE(chmod, const char* pathname, mode_t mode)
 
     char* canon = vfs_mkcanon(pathname, task_curr()->workd);
     
-    struct fd file;
+    struct file file;
     int e = vfs_open_new(canon, &file, O_RDONLY);
 
     kfree(canon);
     if (e) return e;
-    if (file.filp->uid != task_curr()->euid) return -EPERM;
+    if (file.inode->uid != task_curr()->euid) return -EPERM;
 
     return vfs_chmod(&file, mode);
 }
@@ -164,7 +164,7 @@ SYSCALL_DEFINE(fchmod, int fd, mode_t mode)
 {
     FDVALID(fd);
 
-    if (task_curr()->fds[fd]->filp->uid != task_curr()->euid) return -EPERM;
+    if (task_curr()->fds[fd]->inode->uid != task_curr()->euid) return -EPERM;
     return vfs_chmod(task_curr()->fds[fd], mode);
 }
 
@@ -174,7 +174,7 @@ SYSCALL_DEFINE(chown, const char* pathname, uid_t uid, uid_t gid)
 
     char* canon = vfs_mkcanon(pathname, task_curr()->workd);
 
-    struct fd file;
+    struct file file;
     int e = vfs_open_new(canon, &file, O_RDONLY);
 
     kfree(canon);

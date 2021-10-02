@@ -11,7 +11,7 @@ SYSCALL_DEFINE(mount, const char* src, const char* dst,
 
     PTRVALIDNULL(data);
 
-    struct file target;
+    struct inode target;
     int e;
     if ((e = vfs_resolve(dst, &target, 1))) return e;
 

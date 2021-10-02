@@ -9,11 +9,11 @@ struct pipe
 {
     struct ringbuf* buffer;
 
-    struct file* reader;
-    struct file* writer;
+    struct inode* reader;
+    struct inode* writer;
 };
 
-ssize_t pipe_read(struct file* file, void* buf, off_t off, size_t size)
+ssize_t pipe_read(struct inode* file, void* buf, off_t off, size_t size)
 {
     struct pipe* pipe = file->priv;
 
@@ -27,7 +27,7 @@ ssize_t pipe_read(struct file* file, void* buf, off_t off, size_t size)
     return bytes;
 }
 
-ssize_t pipe_write(struct file* file, const void* buf, off_t off, size_t size)
+ssize_t pipe_write(struct inode* file, const void* buf, off_t off, size_t size)
 {
     struct pipe* pipe = file->priv;
 
@@ -40,17 +40,17 @@ ssize_t pipe_write(struct file* file, const void* buf, off_t off, size_t size)
     return bytes;
 }
 
-int pipe_create(struct file* files[2])
+int pipe_create(struct inode* files[2])
 {
     struct pipe* pipe = kmalloc(sizeof(struct pipe));
 
     pipe->buffer = ringbuf_create(4096);
 
-    files[0] = kmalloc(sizeof(struct file));
-    files[1] = kmalloc(sizeof(struct file));
+    files[0] = kmalloc(sizeof(struct inode));
+    files[1] = kmalloc(sizeof(struct inode));
 
-    memset(files[0], 0, sizeof(struct file));
-    memset(files[1], 0, sizeof(struct file));
+    memset(files[0], 0, sizeof(struct inode));
+    memset(files[1], 0, sizeof(struct inode));
 
     files[0]->mode = files[1]->mode = S_IFIFO | 0777;
     files[0]->priv = files[1]->priv = pipe;
@@ -91,21 +91,21 @@ static int find_slots(int* slots, size_t nr)
 
 SYSCALL_DEFINE(pipe, int fds[2])
 {
-    struct file* files[2];
+    struct inode* files[2];
     int ret = pipe_create(files);
 
     if (ret) return ret;
 
     if (find_slots(fds, 2)) return -EMFILE;
 
-    /*struct fd* fd1 = vfs_open(files[0], O_RDONLY);
-    struct fd* fd2 = vfs_open(files[1], O_WRONLY);
+    /*struct file* fd1 = vfs_open(files[0], O_RDONLY);
+    struct file* fd2 = vfs_open(files[1], O_WRONLY);
 
     task_curr()->fds[fds[0]] = fd1;
     task_curr()->fds[fds[1]] = fd2;*/
 
-    struct fd* fd1 = kmalloc(sizeof(struct fd));
-    struct fd* fd2 = kmalloc(sizeof(struct fd));
+    struct file* fd1 = kmalloc(sizeof(struct file));
+    struct file* fd2 = kmalloc(sizeof(struct file));
 
     files[0]->fops.open(files[0], fd1);
     files[1]->fops.open(files[1], fd2);

@@ -34,26 +34,26 @@ void fb_set_phys(uintptr_t phys)
     fb.phys = phys;
 }
 
-ssize_t fb_read(struct fd* file, void* buf, off_t off, size_t size)
+ssize_t fb_read(struct file* file, void* buf, off_t off, size_t size)
 {
-    size = min(size, file->filp->size - off);
+    size = min(size, file->inode->size - off);
     
     memcpy(buf, (void*)((uintptr_t)fb.addr + off), size);
 
     return size;
 }
 
-ssize_t fb_write(struct fd* file, const void* buf, off_t off, size_t size)
+ssize_t fb_write(struct file* file, const void* buf, off_t off, size_t size)
 {
     printk("fb write\n");
-    size = min(size, file->filp->size - off);
+    size = min(size, file->inode->size - off);
     
     memcpy((void*)((uintptr_t)fb.addr + off), buf, size);
 
     return size;
 }
 
-int fb_ioctl(struct fd* file, unsigned long req, void* argp)
+int fb_ioctl(struct file* file, unsigned long req, void* argp)
 {
     switch (req)
     {
@@ -70,7 +70,7 @@ int fb_ioctl(struct fd* file, unsigned long req, void* argp)
     return -EINVAL;
 }
 
-int fb_mmap(struct fd* file, struct vm_area* area)
+int fb_mmap(struct file* file, struct vm_area* area)
 {
     for (uintptr_t i = 0; i < (area->end - area->base) / PAGE4K; i++)
     {
@@ -82,7 +82,7 @@ int fb_mmap(struct fd* file, struct vm_area* area)
 
 void fb_init_dev()
 {
-    struct new_file_ops ops =
+    struct file_ops ops =
     {
         .read = fb_read,
         .write = fb_write,

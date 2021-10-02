@@ -19,7 +19,7 @@ static struct task* mktask(struct task* parent, struct vm_map* vm_map)
     struct task* task = kcalloc(sizeof(struct task));
 
     task->threads  = list_create();
-    task->fds      = kmalloc(sizeof(struct fd*) * FD_MAX);
+    task->fds      = kmalloc(sizeof(struct file*) * FD_MAX);
     task->id       = s_id++;
     task->vm_map   = vm_map;
     task->children = list_create();
@@ -28,7 +28,7 @@ static struct task* mktask(struct task* parent, struct vm_map* vm_map)
     task->umask    = 0022;
     
     strcpy(task->workd, "/");
-    memset(task->fds, 0, sizeof(struct fd*) * FD_MAX);
+    memset(task->fds, 0, sizeof(struct file*) * FD_MAX);
 
     if (parent)
         list_enqueue(&parent->children, task);
@@ -76,12 +76,12 @@ struct task* task_init_creat()
 {
     struct task* task = mktask(NULL, mmu_create_vmmap());
 
-    struct fd file;
+    struct file file;
     int e = vfs_open_new("/init", &file, O_RDONLY);
     if (e) return e;
 
-    void* data = kmalloc(file.filp->size);
-    vfs_read_new(&file, data, file.filp->size);
+    void* data = kmalloc(file.inode->size);
+    vfs_read(&file, data, file.inode->size);
 
     const char* argv[] = { "/init", NULL };
     const char* envp[] = { NULL };
@@ -124,7 +124,7 @@ struct task* task_clone(struct task* src, struct thread* calling)
     {
         if (src->fds[i])
         {
-            task->fds[i] = memdup(src->fds[i], sizeof(struct fd));
+            task->fds[i] = memdup(src->fds[i], sizeof(struct file));
         }
     }
 
@@ -152,17 +152,17 @@ struct task* task_clone(struct task* src, struct thread* calling)
 // TODO: move into exec.c
 int task_execve(struct task* task, const char* path, const char* argv[], const char* envp[])
 {
-    struct fd file;
+    struct file file;
     int e = vfs_open_new(path, &file, O_RDONLY);
     if (e) return e;
 
-    //CHECK_XPERM(file.filp->mode);
+    //CHECK_XPERM(file.inode->mode);
 
-    if (!S_ISREG(file.filp->mode))
+    if (!S_ISREG(file.inode->mode))
         return -ENOEXEC;
 
-    void* data = kmalloc(file.filp->size);
-    vfs_read_new(&file, data, file.filp->size);
+    void* data = kmalloc(file.inode->size);
+    vfs_read(&file, data, file.inode->size);
 
     const char* interp = elf_getinterp(data);
     if (interp)
@@ -174,12 +174,12 @@ int task_execve(struct task* task, const char* path, const char* argv[], const c
         nargv[0] = interp;
         memcpy(&nargv[1], &argv[0], argc * sizeof(const char*));
 
-        struct fd interp;
+        struct file interp;
         int e = vfs_open_new(nargv[0], &interp, O_RDONLY);
         if (e) return e;
 
-        if (S_ISDIR(interp.filp->mode)) return -EISDIR;
-        if (!S_ISREG(interp.filp->mode)) return -EACCES;
+        if (S_ISDIR(interp.inode->mode)) return -EISDIR;
+        if (!S_ISREG(interp.inode->mode)) return -EACCES;
 
         return task_execve(task, nargv[0], nargv, envp);
     }

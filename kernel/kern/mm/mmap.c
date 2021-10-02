@@ -23,7 +23,7 @@ unsigned long ksys_do_mmap(void* addr, size_t length, int prot, int flags, int f
 
         FDVALID(fdno);
 
-        struct fd* fd = task_curr()->fds[fdno];
+        struct file* fd = task_curr()->fds[fdno];
 
         if (fd->ops.mmap)
         {
@@ -33,7 +33,7 @@ unsigned long ksys_do_mmap(void* addr, size_t length, int prot, int flags, int f
         }
         else
         {
-            if (!S_ISREG(fd->filp->mode)) return (unsigned long)-EACCES;
+            if (!S_ISREG(fd->inode->mode)) return (unsigned long)-EACCES;
 
             unsigned int mmu_flags = PAGE_PR;
             mmu_flags |= prot & PROT_WRITE ? PAGE_RW : 0;
@@ -43,7 +43,7 @@ unsigned long ksys_do_mmap(void* addr, size_t length, int prot, int flags, int f
                 mmu_map(task_curr()->vm_map, i, mmu_alloc_phys(), mmu_flags);
             }
 
-            vfs_read_new(fd, addr, fd->filp->size);
+            vfs_read(fd, addr, fd->inode->size);
         }
     }
 

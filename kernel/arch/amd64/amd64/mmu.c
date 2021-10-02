@@ -541,7 +541,7 @@ struct vm_area* vm_map_anon(struct vm_map* map, uintptr_t base, size_t size, int
     return area;
 }
 
-struct vm_area* vm_map_file(struct vm_map* map, uintptr_t base, int fixed, struct file* file)
+struct vm_area* vm_map_file(struct vm_map* map, uintptr_t base, int fixed, struct inode* file)
 {
     return NULL; // TODO: implement
 }

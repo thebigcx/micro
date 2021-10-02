@@ -133,7 +133,7 @@ struct PACKED ext2_sbfull
 
 struct ext2_volume
 {
-    struct fd*       device;
+    struct file*       device;
     size_t           blksize;
 
     struct ext2_bgd* groups;
@@ -146,22 +146,22 @@ struct ext2_volume
     };
 };
 
-struct file;
+struct inode;
 
 void ext2_init();
 
-int ext2_open(struct file* inode, struct fd* file);
-ssize_t ext2_read(struct fd* file, void* buf, off_t off, size_t size);
-ssize_t ext2_write(struct fd* file, const void* buf, off_t off, size_t size);
-struct file* ext2_find(struct file* dir, const char* name);
-int ext2_readdir(struct file* dir, size_t size, struct dirent* dirent);
-ssize_t ext2_getdents(struct file* dir, off_t off, size_t n, struct dirent* dirp);
-void ext2_mkdir(struct file* dir, const char* name, mode_t mode, uid_t uid, gid_t gid);
-void ext2_unlink(struct file* dir, const char* name);
-void ext2_mknod(struct file* dir, const char* name, mode_t mode, dev_t dev, uid_t uid, gid_t gid);
-int ext2_chmod(struct fd* file, mode_t mode);
-int ext2_chown(struct fd* file, uid_t uid, gid_t gid);
-int ext2_readlink(struct file* file, char* buf, size_t n);
-int ext2_symlink(struct file* file, const char* link);
-int ext2_link(struct file* old, const char* name, struct file* dir);
-int ext2_lookup(struct file* dir, const char* name, struct dentry* dentry);
+int ext2_open(struct inode* inode, struct file* file);
+ssize_t ext2_read(struct file* file, void* buf, off_t off, size_t size);
+ssize_t ext2_write(struct file* file, const void* buf, off_t off, size_t size);
+struct inode* ext2_find(struct inode* dir, const char* name);
+int ext2_readdir(struct inode* dir, size_t size, struct dirent* dirent);
+ssize_t ext2_getdents(struct inode* dir, off_t off, size_t n, struct dirent* dirp);
+void ext2_mkdir(struct inode* dir, const char* name, mode_t mode, uid_t uid, gid_t gid);
+void ext2_unlink(struct inode* dir, const char* name);
+void ext2_mknod(struct inode* dir, const char* name, mode_t mode, dev_t dev, uid_t uid, gid_t gid);
+int ext2_chmod(struct file* file, mode_t mode);
+int ext2_chown(struct file* file, uid_t uid, gid_t gid);
+int ext2_readlink(struct inode* file, char* buf, size_t n);
+int ext2_symlink(struct inode* file, const char* link);
+int ext2_link(struct inode* old, const char* name, struct inode* dir);
+int ext2_lookup(struct inode* dir, const char* name, struct dentry* dentry);

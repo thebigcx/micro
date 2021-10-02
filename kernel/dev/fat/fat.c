@@ -140,7 +140,7 @@ unsigned int fat_alloc_clus(struct fat32_volume* vol)
     return 0;
 }
 
-ssize_t fat_read(struct file* file, void* buf, off_t off, size_t size)
+ssize_t fat_read(struct inode* file, void* buf, off_t off, size_t size)
 {
     struct fat32_volume* vol = file->priv;
 
@@ -204,7 +204,7 @@ void fat_resize_dirent(struct fat32_volume* vol, unsigned int clus, const char* 
     }
 }
 
-void fat_resize_file(struct file* file, size_t size)
+void fat_resize_file(struct inode* file, size_t size)
 {
     if (file->size == size) return; // No need
 
@@ -238,7 +238,7 @@ void fat_resize_file(struct file* file, size_t size)
     file->size = size;
 }
 
-struct file* fat_find(struct file* dir, const char* name)
+struct inode* fat_find(struct inode* dir, const char* name)
 {
     struct fat32_volume* vol = dir->priv;
     unsigned int clus = dir->inode;
@@ -299,7 +299,7 @@ struct file* fat_find(struct file* dir, const char* name)
 
                 if (cmp)
                 {
-                    struct file* file  = vfs_create_file();
+                    struct inode* file  = vfs_create_file();
 
                     file->parent       = dir;
                     file->priv       = vol;
@@ -332,7 +332,7 @@ struct file* fat_find(struct file* dir, const char* name)
     return NULL;
 }
 
-ssize_t fat_write(struct file* file, const void* buf, off_t off, size_t size)
+ssize_t fat_write(struct inode* file, const void* buf, off_t off, size_t size)
 {
     struct fat32_volume* vol = file->priv;
     
@@ -388,7 +388,7 @@ ssize_t fat_write(struct file* file, const void* buf, off_t off, size_t size)
     return 0;
 }
 
-void fat_dirent_append(struct file* dir, struct fat_dirent* dirent)
+void fat_dirent_append(struct inode* dir, struct fat_dirent* dirent)
 {
     struct fat32_volume* vol = dir->priv;
     unsigned int clus = dir->inode;
@@ -430,7 +430,7 @@ void fat_dirent_append(struct file* dir, struct fat_dirent* dirent)
     kfree(buf);
 }
 
-void fat_mkdirent(struct file* dir, struct fat_dirent* dirent)
+void fat_mkdirent(struct inode* dir, struct fat_dirent* dirent)
 {
     struct fat_dirent zero;
     memset(&zero, 0, sizeof(struct fat_dirent));
@@ -438,7 +438,7 @@ void fat_mkdirent(struct file* dir, struct fat_dirent* dirent)
     fat_dirent_append(dir, &zero);
 }
 
-void fat_mkfile(struct file* dir, const char* name, mode_t mode, uid_t uid, gid_t gid)
+void fat_mkfile(struct inode* dir, const char* name, mode_t mode, uid_t uid, gid_t gid)
 {
     (void)mode; (void)uid; (void)gid;
 
@@ -455,7 +455,7 @@ void fat_mkfile(struct file* dir, const char* name, mode_t mode, uid_t uid, gid_
     fat_table_write(vol, dirent.cluster, 0xffffff8);
 }
 
-void fat_mkdir(struct file* dir, const char* name, mode_t mode, uid_t uid, gid_t gid)
+void fat_mkdir(struct inode* dir, const char* name, mode_t mode, uid_t uid, gid_t gid)
 {
     (void)mode; (void)uid; (void)gid;
     
@@ -477,7 +477,7 @@ void fat_mkdir(struct file* dir, const char* name, mode_t mode, uid_t uid, gid_t
 // TODO: IMPORTANT: move directory entry parsing to a different function
 
 // TODO: should return int error code
-void fat_unlink(struct file* dir, const char* name)
+void fat_unlink(struct inode* dir, const char* name)
 {
     struct fat32_volume* vol = dir->priv;
     unsigned int clus = dir->inode;
@@ -524,7 +524,7 @@ void fat_unlink(struct file* dir, const char* name)
 
 #define DENTS_PER_SECT 512 / sizeof(struct fat_dirent)
 
-ssize_t fat_getdents(struct file* dir, off_t off, size_t size, struct dirent* dirp)
+ssize_t fat_getdents(struct inode* dir, off_t off, size_t size, struct dirent* dirp)
 {
     struct fat32_volume* vol = dir->priv;
     unsigned int clus = dir->inode;
@@ -608,11 +608,11 @@ ssize_t fat_getdents(struct file* dir, off_t off, size_t size, struct dirent* di
     return bytes;
 }
 
-struct file* fat_mount(const char* dev, const void* data)
+struct inode* fat_mount(const char* dev, const void* data)
 {
     (void)data;
     
-    struct file* device = kmalloc(sizeof(struct file));
+    struct inode* device = kmalloc(sizeof(struct inode));
     vfs_resolve(dev, device, 1);
 
     struct fat32_volume* vol = kmalloc(sizeof(struct fat32_volume));
@@ -625,8 +625,8 @@ struct file* fat_mount(const char* dev, const void* data)
 
     kfree(buf);
 
-    struct file* file = vfs_create_file();
-    memset(file, 0, sizeof(struct file));
+    struct inode* file = vfs_create_file();
+    memset(file, 0, sizeof(struct inode));
 
     file->type         = S_IFDIR;
     file->priv       = vol;

@@ -10,9 +10,9 @@
 #include <micro/stdlib.h>
 #include <micro/devfs.h>
 
-ssize_t pts_read(struct fd* file, void* buf, off_t off, size_t size)
+ssize_t pts_read(struct file* file, void* buf, off_t off, size_t size)
 {
-    struct pt* pt = file->filp->priv;
+    struct pt* pt = file->inode->priv;
 
     //ssize_t bytes = ringbuf_size(pt->inbuf);
 
@@ -28,18 +28,18 @@ ssize_t pts_read(struct fd* file, void* buf, off_t off, size_t size)
     return size;
 }
 
-ssize_t pts_write(struct fd* file, const void* buf, off_t off, size_t size)
+ssize_t pts_write(struct file* file, const void* buf, off_t off, size_t size)
 {
-    struct pt* pt = file->filp->priv;
+    struct pt* pt = file->inode->priv;
 
     ringbuf_write(pt->outbuf, buf, size);
 
     return size;
 }
 
-int pts_ioctl(struct fd* file, unsigned long req, void* argp)
+int pts_ioctl(struct file* file, unsigned long req, void* argp)
 {
-    struct pt* pt = file->filp->priv;
+    struct pt* pt = file->inode->priv;
 
     switch (req)
     {
@@ -58,9 +58,9 @@ int pts_ioctl(struct fd* file, unsigned long req, void* argp)
     return -EINVAL;
 }
 
-ssize_t ptm_read(struct fd* file, void* buf, off_t off, size_t size)
+ssize_t ptm_read(struct file* file, void* buf, off_t off, size_t size)
 {
-    struct pt* pt = file->filp->priv;
+    struct pt* pt = file->inode->priv;
 
     ssize_t bytes = ringbuf_size(pt->outbuf);
 
@@ -72,9 +72,9 @@ ssize_t ptm_read(struct fd* file, void* buf, off_t off, size_t size)
     return size;
 }
 
-ssize_t ptm_write(struct fd* file, const void* buf, off_t off, size_t size)
+ssize_t ptm_write(struct file* file, const void* buf, off_t off, size_t size)
 {
-    struct pt* pt = file->filp->priv;
+    struct pt* pt = file->inode->priv;
 
     ringbuf_write(pt->inbuf, buf, size);
 
@@ -83,7 +83,7 @@ ssize_t ptm_write(struct fd* file, const void* buf, off_t off, size_t size)
 
 static struct list slaves;
 
-int ptsfs_lookup(struct file* dir, const char* name, struct dentry* dentry)
+int ptsfs_lookup(struct inode* dir, const char* name, struct dentry* dentry)
 {
     LIST_FOREACH(&slaves)
     {
@@ -91,7 +91,7 @@ int ptsfs_lookup(struct file* dir, const char* name, struct dentry* dentry)
         if (!strcmp(name, dev->name))
         {
             strcpy(dentry->name, name);
-            dentry->file = memdup(dev->file, sizeof(struct file));
+            dentry->file = memdup(dev->file, sizeof(struct inode));
 
             return 0;
         }
@@ -100,7 +100,7 @@ int ptsfs_lookup(struct file* dir, const char* name, struct dentry* dentry)
     return -ENOENT;
 }
 
-ssize_t ptsfs_getdents(struct file* dir, off_t off, size_t size, struct dirent* dirp)
+ssize_t ptsfs_getdents(struct inode* dir, off_t off, size_t size, struct dirent* dirp)
 {
     size_t i;
     for (i = 0; i < size; i++)
@@ -114,9 +114,9 @@ ssize_t ptsfs_getdents(struct file* dir, off_t off, size_t size, struct dirent* 
     return i;
 }
 
-struct file* ptm_open(struct pt* pt)
+struct inode* ptm_open(struct pt* pt)
 {
-    struct file* ptm = vfs_create_file();
+    struct inode* ptm = vfs_create_file();
 
     ptm->fops.read    = ptm_read;
     ptm->fops.write   = ptm_write;
@@ -126,9 +126,9 @@ struct file* ptm_open(struct pt* pt)
     return ptm;
 }
 
-struct file* pts_open(struct pt* pt)
+struct inode* pts_open(struct pt* pt)
 {
-    struct file* pts = vfs_create_file();
+    struct inode* pts = vfs_create_file();
 
     pts->fops.read  = pts_read;
     pts->fops.write = pts_write;
@@ -147,7 +147,7 @@ struct file* pts_open(struct pt* pt)
     return pts;
 }
 
-int ptmx_open_new(struct file* inode, struct fd* file)
+int ptmx_open_new(struct inode* inode, struct file* file)
 {
     struct pt* pt = kmalloc(sizeof(struct pt));
     memset(pt, 0, sizeof(struct pt));
@@ -158,15 +158,15 @@ int ptmx_open_new(struct file* inode, struct fd* file)
     pt->pts    = pts_open(pt);
 
     file->ops = pt->ptm->fops;
-    file->filp->priv = pt;
+    file->inode->priv = pt;
 
-    //file->filp->priv = pt;
-    //memcpy(file, pt->ptm, sizeof(struct file));
+    //file->inode->priv = pt;
+    //memcpy(file, pt->ptm, sizeof(struct inode));
 
     return 0;
 }
 
-int ptsfs_mount(const char* dev, const void* data, struct file* fsroot)
+int ptsfs_mount(const char* dev, const void* data, struct inode* fsroot)
 {
     (void)dev; (void)data;
 
@@ -181,7 +181,7 @@ void tty_init()
 {
     slaves = list_create();
 
-    struct new_file_ops ops = { .open = ptmx_open_new };
+    struct file_ops ops = { .open = ptmx_open_new };
     devfs_register_blkdev(&ops, "ptmx", 0666, NULL);
 
     // Pseudoterminal slave filesystem
@@ -199,11 +199,11 @@ SYSCALL_DEFINE(ptsname, int fdno, char* buf, size_t n)
     PTRVALID(buf);
     FDVALID(fdno);
 
-    struct fd* fd = task_curr()->fds[fdno];
+    struct file* fd = task_curr()->fds[fdno];
 
-    // TODO: struct file should hold flags like MASTER_PTY, DEVICE, etc (for fcntl() calls)
+    // TODO: struct inode should hold flags like MASTER_PTY, DEVICE, etc (for fcntl() calls)
     // THIS IS DANGEROUS - IT MIGHT NOT BE A MASTER PTY
-    struct pt* pt = fd->filp->priv;
+    struct pt* pt = fd->inode->priv;
 
     //if (strlen("/dev/pts/") + strlen(pt->pts->name) >= n) return -ERANGE;
 
