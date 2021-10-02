@@ -356,7 +356,7 @@ int vfs_resolve(const char* path, struct inode* out, int symlinks)
     return do_vfs_resolve(path, out, symlinks, 0);
 }
 
-int vfs_open_new(const char* path, struct file* file, uint32_t flags)
+int vfs_open(const char* path, struct file* file, uint32_t flags)
 {
     struct inode* inode = kcalloc(sizeof(struct inode));
     TRY(vfs_resolve(path, inode, !(flags & O_NOFOLLOW)));
@@ -389,7 +389,7 @@ void vfs_close(struct file* fd)
 int vfs_access(const char* path, int mode)
 {
     struct file file;
-    TRY(vfs_open_new(path, &file, O_RDONLY));
+    TRY(vfs_open(path, &file, O_RDONLY));
 
     if (mode & R_OK) CHECK_RPERM(file.inode);
     if (mode & W_OK) CHECK_WPERM(file.inode);

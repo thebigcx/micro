@@ -54,8 +54,8 @@ int main(int argc, char** argv)
 {
     exitcode = 0;
 
-    seteuid(1000);
-    setegid(1000);
+    //seteuid(1000);
+    //setegid(1000);
 
     while (1)
     {

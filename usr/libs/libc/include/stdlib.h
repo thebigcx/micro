@@ -17,6 +17,8 @@ char* ultoa(unsigned long n, char* str, int base);
 
 int atoi(const char* str);
 long int atol(const char* str);
+double atof(const char* str);
+
 int abs(int n);
 
 unsigned long strtoul(const char* str, char** endptr, int base);

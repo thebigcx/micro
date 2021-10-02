@@ -165,3 +165,5 @@ int ext2_readlink(struct inode* file, char* buf, size_t n);
 int ext2_symlink(struct inode* file, const char* link);
 int ext2_link(struct inode* old, const char* name, struct inode* dir);
 int ext2_lookup(struct inode* dir, const char* name, struct dentry* dentry);
+int ext2_set_atime(struct inode* ino, time_t atime);
+int ext2_set_mtime(struct inode* ino, time_t mtime);

@@ -13,7 +13,7 @@ int do_sys_open(const char* path, uint32_t flags, mode_t mode)
     {
         if (!task->fds[i] && i >= 3)
         {
-            int e = vfs_open_new(path, &file, flags);
+            int e = vfs_open(path, &file, flags);
 
             if (e == -ENOENT)
             {
@@ -22,7 +22,7 @@ int do_sys_open(const char* path, uint32_t flags, mode_t mode)
                 e = vfs_mknod(path, (mode & ~task->umask) | S_IFREG, 0, task->euid, task->egid);
                 if (e) return e;
 
-                vfs_open_new(path, &file, flags);
+                vfs_open(path, &file, flags);
             }
             else if (flags & O_EXCL)
                 return -EEXIST;
@@ -88,7 +88,7 @@ SYSCALL_DEFINE(chdir, const char* path)
     char* new = vfs_mkcanon(path, task->workd); // TODO: buffer on stack
 
     struct file dir;
-    TRY(vfs_open_new(new, &dir, O_RDONLY));
+    TRY(vfs_open(new, &dir, O_RDONLY));
     
     if (!S_ISDIR(dir.inode->mode)) return -ENOTDIR;
 
@@ -119,7 +119,7 @@ SYSCALL_DEFINE(chmod, const char* pathname, mode_t mode)
     char* canon = vfs_mkcanon(pathname, task_curr()->workd);
     
     struct file file;
-    TRY2(vfs_open_new(canon, &file, O_RDONLY), kfree(canon));
+    TRY2(vfs_open(canon, &file, O_RDONLY), kfree(canon));
     
     if (file.inode->uid != task_curr()->euid) return -EPERM;
 
@@ -141,7 +141,7 @@ SYSCALL_DEFINE(chown, const char* pathname, uid_t uid, uid_t gid)
     char* canon = vfs_mkcanon(pathname, task_curr()->workd);
 
     struct file file;
-    TRY2(vfs_open_new(canon, &file, O_RDONLY), kfree(canon));
+    TRY2(vfs_open(canon, &file, O_RDONLY), kfree(canon));
     
     if (task_curr()->euid) return -EPERM; // Must be root TODO: capabilities like Linux
     return vfs_chown(&file, uid, gid);

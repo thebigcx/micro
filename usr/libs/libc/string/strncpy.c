@@ -2,7 +2,7 @@
 
 char* strncpy(char* dst, const char* src, uint32_t n)
 {
-    while (n-- > 0)
+    while (n-- > 0 && *src != 0)
     {
         *dst++ = *src++;
     }

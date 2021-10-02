@@ -25,9 +25,14 @@ char*  strerror(int errnum);
 char*  strerror_r(int errnum, char* buf, size_t len);
 char*  strrchr(const char* str, int c);
 char*  strcat(char* dst, const char* src);
+char*  strncat(char* dst, const char* src, size_t n);
 char*  strndup(const char* str, size_t size);
 char*  strpbrk(const char* str1, const char* str2);
 char*  strsignal(int sig);
+int    strcoll(const char* str1, const char* str2);
+
+const char* sigdescr_np(int sig);
+const char* sigabbrev_np(int sig);
 
 // POSIX compatibility (see strings.h)
 int    strcasecmp(const char* str1, const char* str2);

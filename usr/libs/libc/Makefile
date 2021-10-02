@@ -39,6 +39,8 @@ SOURCES := internal/generic/init.c				\
 		   string/strndup.c						\
 		   string/strpbrk.c						\
 		   string/strsignal.c					\
+		   string/strncat.c						\
+		   string/strcoll.c						\
 		   stdlib/abs.c							\
 		   stdlib/atoi.c						\
 		   stdlib/atol.c						\
@@ -57,6 +59,7 @@ SOURCES := internal/generic/init.c				\
 		   stdlib/mbstowcs.c					\
 		   stdlib/mktemp.c						\
 		   stdlib/mkdtemp.c						\
+		   stdlib/atof.c						\
 		   stdio/fprintf.c						\
 		   stdio/printf.c						\
 		   stdio/snprintf.c						\
@@ -216,6 +219,8 @@ SOURCES := internal/generic/init.c				\
 		   sysdeps/micro/generic/getppid.c		\
 		   sysdeps/micro/generic/fchmod.c		\
 		   sysdeps/micro/generic/mknod.c		\
+		   sysdeps/micro/generic/utime.c		\
+		   sysdeps/micro/generic/utimes.c		\
 
 ASM :=     sysdeps/micro/generic/syscall.S		\
 		   arch/x86_64/setjmp.S					\

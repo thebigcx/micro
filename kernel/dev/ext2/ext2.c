@@ -537,6 +537,30 @@ int ext2_lookup(struct inode* dir, const char* name, struct dentry* dentry)
     return -ENOENT;
 }
 
+int ext2_set_atime(struct inode* ino, time_t atime)
+{
+    ino->atime = atime;
+
+    struct ext2_inode eino;
+    ext2_read_inode(ino->priv, ino->inode, &eino);
+    eino.atime = atime;
+    ext2_write_inode(ino->priv, ino->inode, &eino);
+
+    return 0;
+}
+
+int ext2_set_mtime(struct inode* ino, time_t mtime)
+{
+    ino->atime = mtime;
+
+    struct ext2_inode eino;
+    ext2_read_inode(ino->priv, ino->inode, &eino);
+    eino.mtime = mtime;
+    ext2_write_inode(ino->priv, ino->inode, &eino);
+
+    return 0;
+}
+
 void ext2_init_inode(struct ext2_volume* vol, struct ext2_inode* ino, struct inode* file)
 {
     memset(ino, 0, sizeof(struct ext2_inode));
@@ -689,6 +713,7 @@ void ext2_mkdir(struct inode* dir, const char* name, mode_t mode, uid_t uid, gid
 void ext2_mknod(struct inode* dir, const char* name, mode_t mode, dev_t dev, uid_t uid, gid_t gid)
 {
     struct inode file;
+    memset(&file, 0, sizeof(struct inode));
     
     file.mode  = mode;
     file.uid   = uid;
@@ -828,7 +853,7 @@ static int ext2_mount(const char* dev, const void* data, struct inode* fsroot)
     struct ext2_volume* vol = kmalloc(sizeof(struct ext2_volume));
     vol->device = kmalloc(sizeof(struct file));
     
-    TRY(vfs_open_new(dev, vol->device, O_RDWR));
+    TRY(vfs_open(dev, vol->device, O_RDWR));
 
     void* buf = kmalloc(512);
 

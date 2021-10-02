@@ -14,3 +14,9 @@ struct timezone
     int tz_minuteswest;
     int tz_dsttime;
 };
+
+struct utimbuf
+{
+    time_t actime;  // Access
+    time_t modtime; // Modification
+};

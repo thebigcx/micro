@@ -33,5 +33,10 @@ extern int errno;
 #define EDOM            28
 #define EFBIG           29
 #define ENOSPC          30
+#define ENOTSUP         31
+#define EAFNOSUPPORT    32
+#define EXDEV           33
 
-#define EMAXERRNO       31
+#define EMAXERRNO       34
+
+#define EOPNOTSUPP      ENOTSUP

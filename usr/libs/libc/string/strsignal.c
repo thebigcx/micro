@@ -37,8 +37,18 @@ static char* __libc_signal_strings[] =
 
 char* strsignal(int sig)
 {
-    if (sig < 0 || sig >= sizeof(__libc_signal_strings) / sizeof(char*))
+    if (sig < 0 || (size_t)sig >= sizeof(__libc_signal_strings) / sizeof(char*))
         return NULL;
 
     return __libc_signal_strings[sig];
+}
+
+const char* sigdescr_np(int sig)
+{
+    return strsignal(sig);
+}
+
+const char* sigabbrev_np(int sig)
+{
+    return strsignal(sig) + 3;
 }

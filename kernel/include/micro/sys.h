@@ -2,6 +2,7 @@
 
 #include <micro/errno.h>
 #include <micro/task.h>
+#include <micro/time.h>
 
 #define FDVALID(fd)\
     { if (fd < 0 || fd >= FD_MAX || !task_curr()->fds[fd]) return -EBADF; }
@@ -21,8 +22,6 @@
     long sys_##name(__VA_ARGS__)
 
 struct dirent;
-struct timeval;
-struct timezone;
 struct stat;
 struct sigaction;
 struct utsname;
@@ -88,6 +87,8 @@ SYSCALL_DEFINE(mknod,        const char* path, mode_t mode, dev_t dev);
 SYSCALL_DEFINE(setuid,       uid_t uid);
 SYSCALL_DEFINE(setgid,       gid_t gid);
 SYSCALL_DEFINE(fcntl,        int fd, int cmd, unsigned long arg);
+SYSCALL_DEFINE(utime,        const char* path, const struct utimbuf* times);
+SYSCALL_DEFINE(utimes,       const char* path, const struct timeval times[2]);
 SYSCALL_DEFINE(getppid);
 SYSCALL_DEFINE(reboot);
 SYSCALL_DEFINE(sigreturn);

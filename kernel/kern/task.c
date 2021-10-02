@@ -78,7 +78,7 @@ struct task* task_init_creat()
     struct task* task = mktask(NULL, mmu_create_vmmap());
 
     struct file file;
-    TRY(vfs_open_new("/init", &file, O_RDONLY));
+    TRY(vfs_open("/init", &file, O_RDONLY));
 
     void* data = kmalloc(file.inode->size);
     vfs_read(&file, data, file.inode->size);
@@ -152,7 +152,7 @@ struct task* task_clone(struct task* src, struct thread* calling)
 int task_execve(struct task* task, const char* path, const char* argv[], const char* envp[])
 {
     struct file file;
-    TRY(vfs_open_new(path, &file, O_RDONLY));
+    TRY(vfs_open(path, &file, O_RDONLY));
 
     //CHECK_XPERM(file.inode->mode);
 
@@ -173,7 +173,7 @@ int task_execve(struct task* task, const char* path, const char* argv[], const c
         memcpy(&nargv[1], &argv[0], argc * sizeof(const char*));
 
         struct file interp;
-        TRY(vfs_open_new(nargv[0], &interp, O_RDONLY));
+        TRY(vfs_open(nargv[0], &interp, O_RDONLY));
 
         if (S_ISDIR(interp.inode->mode)) return -EISDIR;
         if (!S_ISREG(interp.inode->mode)) return -EACCES;

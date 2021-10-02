@@ -159,7 +159,7 @@ static void kmod_load(const char* path)
     //vfs_read(mod, buffer, 0, mod->size);
 
     struct file mod;
-    vfs_open_new(path, &mod, O_RDONLY);
+    vfs_open(path, &mod, O_RDONLY);
 
     void* buffer = kmalloc(mod.inode->size);
     vfs_read(&mod, buffer, mod.inode->size);

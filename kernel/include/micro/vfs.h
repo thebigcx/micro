@@ -32,6 +32,9 @@ struct inode_ops
     int (*readlink)(struct inode*, char*, size_t);
     int (*symlink)(struct inode*, const char*);
     int (*link)(struct inode*, const char*, struct inode*);
+
+    int (*set_atime)(struct inode*, time_t);
+    int (*set_mtime)(struct inode*, time_t);
 };
 
 #define S_IFMT   (0xf000)
@@ -145,7 +148,7 @@ int vfs_mount_fs(const char* dev, const char* mnt,
                  const char* fs, const void* data);
 int vfs_umount_fs(const char* mnt);
 
-int vfs_open_new(const char* path, struct file* file, uint32_t flags);
+int vfs_open(const char* path, struct file* file, uint32_t flags);
 
 void vfs_close(struct file* fd);
 

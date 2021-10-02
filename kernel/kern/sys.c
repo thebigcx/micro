@@ -214,7 +214,9 @@ static void* syscalls[] =
     &sys_mknod,
     &sys_setuid,
     &sys_setgid,
-    &sys_fcntl
+    &sys_fcntl,
+    &sys_utime,
+    &sys_utimes
 };
 
 void syscall_handler(struct regs* r)

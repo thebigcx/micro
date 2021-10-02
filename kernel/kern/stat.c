@@ -30,7 +30,7 @@ SYSCALL_DEFINE(stat, const char* path, struct stat* buf)
     char* canon = vfs_mkcanon(path, task_curr()->workd);
 
     struct file file;
-    TRY2(vfs_open_new(canon, &file, O_RDONLY), kfree(canon));
+    TRY2(vfs_open(canon, &file, O_RDONLY), kfree(canon));
 
     do_kstat(file.inode, buf);
     return 0;
@@ -53,7 +53,7 @@ SYSCALL_DEFINE(lstat, const char* path, struct stat* buf)
     char* canon = vfs_mkcanon(path, task_curr()->workd);
 
     struct file file;
-    TRY2(vfs_open_new(canon, &file, O_RDONLY | O_NOFOLLOW | O_PATH), kfree(canon));
+    TRY2(vfs_open(canon, &file, O_RDONLY | O_NOFOLLOW | O_PATH), kfree(canon));
 
     do_kstat(file.inode, buf);
     return 0;
@@ -67,8 +67,8 @@ SYSCALL_DEFINE(readlink, const char* pathname, char* buf, size_t n)
     char* canon = vfs_mkcanon(pathname, task_curr()->workd);
 
     struct file file;
-    TRY2(vfs_open_new(canon, &file, O_RDONLY | O_NOFOLLOW | O_PATH), kfree(canon));
-    
+    TRY2(vfs_open(canon, &file, O_RDONLY | O_NOFOLLOW | O_PATH), kfree(canon));
+
     if (!S_ISLNK(file.inode->mode)) return -EINVAL;
 
     return vfs_readlink(file.inode, buf, n);
