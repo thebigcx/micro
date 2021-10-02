@@ -7,6 +7,7 @@
 #include <micro/errno.h>
 #include <micro/fcntl.h>
 #include <arch/cmos.h>
+#include <micro/try.h>
 
 #define SUPER_BLK 1
 #define BGDS_BLK  2
@@ -827,9 +828,7 @@ static int ext2_mount(const char* dev, const void* data, struct inode* fsroot)
     struct ext2_volume* vol = kmalloc(sizeof(struct ext2_volume));
     vol->device = kmalloc(sizeof(struct file));
     
-    //int e;
-    //if ((e = vfs_resolve(dev, vol->device, 1))) return e;
-    int e = vfs_open_new(dev, vol->device, O_RDWR);
+    TRY(vfs_open_new(dev, vol->device, O_RDWR));
 
     void* buf = kmalloc(512);
 

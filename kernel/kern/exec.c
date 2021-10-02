@@ -4,6 +4,7 @@
 #include <micro/heap.h>
 #include <micro/sched.h>
 #include <micro/stdlib.h>
+#include <micro/try.h>
 
 SYSCALL_DEFINE(execve, const char* path, const char* argv[], const char* envp[])
 {
@@ -39,14 +40,8 @@ SYSCALL_DEFINE(execve, const char* path, const char* argv[], const char* envp[])
 
     char* canon = vfs_mkcanon(path, task_curr()->workd);
 
-    // TODO: return error code from task_execve
-    int e = task_execve(task_curr(), canon,
-                        (const char**)arg_copy,
-                        (const char**)env_copy);
-
-    kfree(canon);
-
-    if (e) return e;
+    TRY2(task_execve(task_curr(), canon, (const char**)arg_copy,
+                     (const char**)env_copy), kfree(canon));
         
     sched_yield();
     __builtin_unreachable();

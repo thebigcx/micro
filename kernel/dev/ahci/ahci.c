@@ -10,6 +10,7 @@
 #include <micro/stdlib.h>
 #include <micro/devfs.h>
 #include <micro/errno.h>
+#include <micro/try.h>
 
 struct ahci_port
 {
@@ -140,8 +141,7 @@ ssize_t port_read(struct file* file, void* buf, off_t off, size_t size)
     ssize_t read = 0;
     while (count)
     {
-        int e;
-        if ((e = port_access(port, lba, count, 0))) return e;
+        TRY(port_access(port, lba, count, 0));
 
         memcpy(buf, port->buffer, 512);
         buf = (void*)((uintptr_t)buf + 512);
@@ -165,8 +165,7 @@ ssize_t port_write(struct file* file, const void* buf, off_t off, size_t size)
     {
         memcpy(port->buffer, buf, 512);
 
-        int e;
-        if ((e = port_access(port, lba, count, 1))) return e;
+        TRY(port_access(port, lba, count, 1));
 
         buf = (void*)((uintptr_t)buf + 512);
         count--;

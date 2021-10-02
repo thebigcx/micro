@@ -9,6 +9,7 @@
 #include <micro/fcntl.h>
 #include <micro/stdlib.h>
 #include <micro/errno.h>
+#include <micro/try.h>
 
 // TODO: needs WAY more locking
 
@@ -77,8 +78,7 @@ struct task* task_init_creat()
     struct task* task = mktask(NULL, mmu_create_vmmap());
 
     struct file file;
-    int e = vfs_open_new("/init", &file, O_RDONLY);
-    if (e) return e;
+    TRY(vfs_open_new("/init", &file, O_RDONLY));
 
     void* data = kmalloc(file.inode->size);
     vfs_read(&file, data, file.inode->size);
@@ -87,8 +87,7 @@ struct task* task_init_creat()
     const char* envp[] = { NULL };
 
     uintptr_t entry;
-    if ((e = elf_load(task->vm_map, data, argv, envp, &entry)))
-        return e;
+    TRY(elf_load(task->vm_map, data, argv, envp, &entry));
 
     init_user_task(task, argv[0], argv, envp, entry);
 
@@ -153,8 +152,7 @@ struct task* task_clone(struct task* src, struct thread* calling)
 int task_execve(struct task* task, const char* path, const char* argv[], const char* envp[])
 {
     struct file file;
-    int e = vfs_open_new(path, &file, O_RDONLY);
-    if (e) return e;
+    TRY(vfs_open_new(path, &file, O_RDONLY));
 
     //CHECK_XPERM(file.inode->mode);
 
@@ -175,8 +173,7 @@ int task_execve(struct task* task, const char* path, const char* argv[], const c
         memcpy(&nargv[1], &argv[0], argc * sizeof(const char*));
 
         struct file interp;
-        int e = vfs_open_new(nargv[0], &interp, O_RDONLY);
-        if (e) return e;
+        TRY(vfs_open_new(nargv[0], &interp, O_RDONLY));
 
         if (S_ISDIR(interp.inode->mode)) return -EISDIR;
         if (!S_ISREG(interp.inode->mode)) return -EACCES;
@@ -187,8 +184,7 @@ int task_execve(struct task* task, const char* path, const char* argv[], const c
     struct vm_map* vm_map = mmu_create_vmmap();
 
     uintptr_t entry;
-    if ((e = elf_load(vm_map, data, argv, envp, &entry)))
-        return e;
+    TRY(elf_load(vm_map, data, argv, envp, &entry))
 
     // Only delete vm_map and set new one if elf_load passed
 

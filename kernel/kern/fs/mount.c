@@ -1,5 +1,6 @@
 #include <micro/sys.h>
 #include <micro/vfs.h>
+#include <micro/try.h>
 
 SYSCALL_DEFINE(mount, const char* src, const char* dst,
                       const char* fs, unsigned long flags,
@@ -12,8 +13,7 @@ SYSCALL_DEFINE(mount, const char* src, const char* dst,
     PTRVALIDNULL(data);
 
     struct inode target;
-    int e;
-    if ((e = vfs_resolve(dst, &target, 1))) return e;
+    TRY(vfs_resolve(dst, &target, 1));
 
     if (!S_ISDIR(target.mode)) return -ENOTDIR;
 

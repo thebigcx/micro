@@ -7,8 +7,7 @@
 #include <micro/debug.h>
 #include <micro/fcntl.h>
 #include <micro/task.h>
-
-//struct tree root;
+#include <micro/try.h>
 
 static struct list mounts;
 
@@ -114,9 +113,8 @@ static int get_parent_dir(const char* path, struct inode* out, char** name)
 {
     char* relat;
     struct inode* file = kmalloc(sizeof(struct inode));
-    int e = vfs_getmnt(path, &relat, file);
-
-    if (e) return e;
+    
+    TRY(vfs_getmnt(path, &relat, file));
 
     char* saveptr;
     char* token = strtok_r(relat, "/", &saveptr);
@@ -131,13 +129,9 @@ static int get_parent_dir(const char* path, struct inode* out, char** name)
         CHECK_RPERM(file);
 
         struct dentry dentry;
-        e = file->ops.lookup(file, token, &dentry);
-
-        kfree(file);
-        if (e) return e;
+        TRY2(file->ops.lookup(file, token, &dentry), kfree(file));
 
         file = dentry.file;
-
         token = next;
         next = strtok_r(NULL, "/", &saveptr);
     }
@@ -155,8 +149,7 @@ int vfs_mkdir(const char* path, mode_t mode, uid_t uid, gid_t gid)
 {
     struct inode dir;
     char* name;
-    int e;
-    if ((e = get_parent_dir(path, &dir, &name))) return e;
+    TRY(get_parent_dir(path, &dir, &name));
 
     if (dir.ops.mkdir)
         dir.ops.mkdir(&dir, name, mode, uid, gid);
@@ -169,8 +162,7 @@ int vfs_mknod(const char* path, mode_t mode, dev_t dev, uid_t uid, gid_t gid)
 {
     struct inode dir;
     char* name;
-    int e;
-    if ((e = get_parent_dir(path, &dir, &name))) return e;
+    TRY(get_parent_dir(path, &dir, &name));
 
     if (dir.ops.mknod)
         dir.ops.mknod(&dir, name, mode, dev, uid, gid);
@@ -189,11 +181,10 @@ int vfs_unlink(const char* pathname)
 {
     struct inode dir;
     char* name;
-    int e;
-    if ((e = get_parent_dir(pathname, &dir, &name))) return e;
+    TRY(get_parent_dir(pathname, &dir, &name));
 
     struct inode file;
-    if ((e = vfs_resolve(pathname, &file, 1))) return e;
+    TRY(vfs_resolve(pathname, &file, 1));
     if (S_ISDIR(file.mode)) return -EISDIR;
 
     vfs_do_unlink(&dir, name);
@@ -322,9 +313,7 @@ static int do_vfs_resolve(const char* path, struct inode* out, int symlinks, int
 
     char* relat;
     struct inode* file = kmalloc(sizeof(struct inode));
-    int e = vfs_getmnt(path, &relat, file); // TODO: getmnt() return error code
-
-    if (e) return e;
+    TRY(vfs_getmnt(path, &relat, file));
 
     char* saveptr;
     char* token = strtok_r(relat, "/", &saveptr);
@@ -342,10 +331,7 @@ static int do_vfs_resolve(const char* path, struct inode* out, int symlinks, int
         CHECK_RPERM(file);
 
         struct dentry dentry;
-        e = file->ops.lookup(file, token, &dentry);
-
-        kfree(file);
-        if (e) return e;
+        TRY2(file->ops.lookup(file, token, &dentry), kfree(file));
 
         file = dentry.file;
 
@@ -373,8 +359,7 @@ int vfs_resolve(const char* path, struct inode* out, int symlinks)
 int vfs_open_new(const char* path, struct file* file, uint32_t flags)
 {
     struct inode* inode = kcalloc(sizeof(struct inode));
-    int e = vfs_resolve(path, inode, !(flags & O_NOFOLLOW));
-    if (e) return e;
+    TRY(vfs_resolve(path, inode, !(flags & O_NOFOLLOW)));
 
     // Defaults
     file->inode  = inode;
@@ -404,8 +389,7 @@ void vfs_close(struct file* fd)
 int vfs_access(const char* path, int mode)
 {
     struct file file;
-    int e = vfs_open_new(path, &file, O_RDONLY);
-    if (e) return e;
+    TRY(vfs_open_new(path, &file, O_RDONLY));
 
     if (mode & R_OK) CHECK_RPERM(file.inode);
     if (mode & W_OK) CHECK_WPERM(file.inode);
@@ -452,8 +436,7 @@ int vfs_symlink(const char* target, const char* link)
 
     vfs_mknod(link, S_IFLNK | 0777, 0, task_curr()->euid, task_curr()->egid);
 
-    int e;
-    if ((e = vfs_resolve(link, &file, 0))) return e;
+    TRY(vfs_resolve(link, &file, 0));
 
     if (file.ops.symlink)
         return file.ops.symlink(&file, target);
@@ -464,12 +447,11 @@ int vfs_symlink(const char* target, const char* link)
 int vfs_link(const char* old, const char* new)
 {
     struct inode file;
-    int e;
-    if ((e = vfs_resolve(old, &file, 1))) return e;
+    TRY(vfs_resolve(old, &file, 1));
 
     struct inode dir;
     char* name;
-    if ((e = get_parent_dir(new, &dir, &name))) return e;
+    TRY(get_parent_dir(new, &dir, &name));
 
     if (file.ops.link)
         return file.ops.link(&file, name, &dir);
@@ -479,12 +461,11 @@ int vfs_link(const char* old, const char* new)
 
 int vfs_rename(const char* old, const char* new)
 {
-    int e;
-    if ((e = vfs_link(old, new))) return e;
+    TRY(vfs_link(old, new));
 
     struct inode dir;
     char* name;
-    if ((e = get_parent_dir(old, &dir, &name))) return e;
+    TRY(get_parent_dir(old, &dir, &name));
 
     vfs_do_unlink(&dir, name);
 
@@ -496,8 +477,7 @@ int vfs_rmdir(const char* path)
     // TODO: check empty
     struct inode dir;
     char* name;
-    int e;
-    if ((e = get_parent_dir(path, &dir, &name))) return e;
+    TRY(get_parent_dir(path, &dir, &name));
 
     vfs_do_unlink(&dir, name);
 
@@ -517,9 +497,7 @@ int vfs_mount_fs(const char* dev, const char* mnt,
             struct inode* fsroot = kcalloc(sizeof(struct inode));
 
             fsroot->mode = S_IFDIR;
-
-            int e;
-            if ((e = fs_types[i].mount(dev, data, fsroot))) return e;
+            TRY(fs_types[i].mount(dev, data, fsroot));
             
             struct mount* mount = kmalloc(sizeof(struct mount));
 
