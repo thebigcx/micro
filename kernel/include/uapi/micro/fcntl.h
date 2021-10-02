@@ -10,6 +10,8 @@
 #define O_TRUNC     0x020
 #define O_DIRECTORY 0x040
 #define O_EXCL      0x080
+#define O_PATH      0x100
+#define O_NOFOLLOW  0x200
 
 #define F_DUPFD         0
 #define F_DUPFD_CLOEXEC 1

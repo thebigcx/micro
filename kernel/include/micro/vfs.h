@@ -161,7 +161,7 @@ int vfs_chown(struct fd* file, uid_t uid, gid_t gid);
 
 int vfs_checkperm(struct file* file, unsigned int mask);
 
-int vfs_readlink(struct file* file, char* buf, size_t n);
+int vfs_readlink(struct file* inode, char* buf, size_t n);
 int vfs_symlink(const char* target, const char* link);
 int vfs_link(const char* old, const char* new);
 int vfs_rename(const char* old, const char* new);

@@ -315,7 +315,10 @@ static int do_vfs_resolve(const char* path, struct file* out, int symlinks, int 
     if (depth >= 8) return -ELOOP;
 
     char* relat;
-    struct file* file = vfs_getmnt(path, &relat);
+    struct file* file = vfs_getmnt(path, &relat); // TODO: getmnt() return error code
+
+    if (!file)
+        return -ENOENT;
 
     char* saveptr;
     char* token = strtok_r(relat, "/", &saveptr);
@@ -364,7 +367,7 @@ int vfs_resolve(const char* path, struct file* out, int symlinks)
 int vfs_open_new(const char* path, struct fd* file, uint32_t flags)
 {
     struct file* inode = kcalloc(sizeof(struct file));
-    int e = vfs_resolve(path, inode, 1);
+    int e = vfs_resolve(path, inode, !(flags & O_NOFOLLOW));
     if (e) return e;
 
     // Defaults
@@ -394,11 +397,6 @@ void vfs_close(struct fd* fd)
 
 int vfs_access(const char* path, int mode)
 {
-    //struct file* file = kmalloc(sizeof(struct file));
-    //int e = vfs_resolve(path, file, 1);
-
-    //if (e) return e;
-
     struct fd file;
     int e = vfs_open_new(path, &file, O_RDONLY);
     if (e) return e;
@@ -432,10 +430,10 @@ int vfs_chown(struct fd* file, uid_t uid, gid_t gid)
     return -ENOENT;
 }
 
-int vfs_readlink(struct file* file, char* buf, size_t n)
+int vfs_readlink(struct file* inode, char* buf, size_t n)
 {
-    if (file->ops.readlink)
-        return file->ops.readlink(file, buf, n);
+    if (inode->ops.readlink)
+        return inode->ops.readlink(inode, buf, n);
 
     return -EINVAL;
 }
