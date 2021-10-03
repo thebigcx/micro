@@ -17,7 +17,7 @@ $(TARG): $(OBJ)
 
 %.o: %.c
 	@echo "    CC $@"
-	@$(CC) -c $^ -o $@ $(CFLAGS)
+	@$(CC) -c $< -o $@ $(CFLAGS)
 
 install:
 	cp -f $(TARG) $(DESTDIR)/lib/

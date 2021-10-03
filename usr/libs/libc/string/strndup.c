@@ -3,10 +3,9 @@
 
 char* strndup(const char* str, size_t size)
 {
-    size = strlen(str) > size
-         ? size : strlen(str);
-
-    char* new = malloc(size);
-    strncpy(new, str, size - 1);
+    size_t n = strnlen(str, size);
+    char* new = malloc(n + 1);
+    memcpy(new, str, n);
+    new[n] = 0;
     return new;
 }

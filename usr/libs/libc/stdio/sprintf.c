@@ -6,8 +6,9 @@ int sprintf(char* str, const char* format, ...)
     va_start(list, format);
 
     // TODO
+    int ret = vsprintf(str, format, list);
 
     va_end(list);
 
-	return 0;
+	return ret;
 }

@@ -46,10 +46,12 @@ static void init_user_task(struct task* task, const char* path,
 
     // Top of canonical lower-half
     uintptr_t stack = 0x8000000000;
-    struct vm_area* area = vm_map_anon(task->vm_map, stack - 0x4000, 0x4000, 0);
+    size_t size = 0x16000; // TODO: dynamic stack size (can expand if necessary)
+    struct vm_area* area = vm_map_anon(task->vm_map, stack - 0x16000, 0x16000, 0);
 
-    // Allocate the first page
-    vm_map_anon_alloc(task->vm_map, area, area->base, 4 * PAGE4K);
+    // Allocate the first page for stack setup (args, environment, auxiliary)
+    // TODO: don't allocate the whole thing
+    vm_map_anon_alloc(task->vm_map, area, area->end - size, size);
 
     task->main->regs.rsp = stack;
     task->main->regs.rbp = stack;

@@ -10,6 +10,9 @@ SYSCALL_DEFINE(fcntl, int fdno, int cmd, unsigned long arg)
 
     switch (cmd)
     {
+        case F_GETFD:
+            printk("warning: F_GETFD returning 0\n");
+            return 0;
         case F_GETFL:
             return fd->flags;
         case F_SETFD:

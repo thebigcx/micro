@@ -116,6 +116,26 @@ found:
     close(fd);
 }
 
+void* dlopen(const char* filename, int flag)
+{
+
+}
+
+char* dlerror()
+{
+
+}
+
+void* dlsym(void* handle, const char* sym)
+{
+
+}
+
+int dlclose(void* handle)
+{
+
+}
+
 int main(int argc, char** argv)
 {
     if (argc < 2)
@@ -129,9 +149,10 @@ int main(int argc, char** argv)
     struct elf_info info;
     open_object(argv[1], &info, 0);
 
-    // Jump to the entry point
+    // Jump to the entry point (will call exit())
     void (*elf_start)(int, char**, char**) = info.entry;
-    //elf_start(argc - 1, &argv[1], environ);
+    elf_start(argc - 1, &argv[1], environ);
 
-    return 0;
+    __builtin_unreachable();
+    return;
 }

@@ -75,6 +75,7 @@ ssize_t readlink(const char* path, char* buf, size_t n);
 int pipe(int fds[2]);
 
 char* ttyname(int fd);
+char* getlogin();
 
 extern char* optarg;
 extern int optind, opterr, optopt;

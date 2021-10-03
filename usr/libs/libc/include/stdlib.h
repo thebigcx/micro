@@ -34,6 +34,7 @@ void exit(int status);
 int atexit(void (*function)(void));
 
 char* getenv(const char* name);
+int   putenv(char* string);
 
 void qsort(void* base, size_t nitems, size_t size,
            int (*compar)(const void*, const void*));

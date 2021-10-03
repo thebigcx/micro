@@ -41,6 +41,7 @@ SOURCES := internal/generic/init.c				\
 		   string/strsignal.c					\
 		   string/strncat.c						\
 		   string/strcoll.c						\
+		   string/strnlen.c						\
 		   stdlib/abs.c							\
 		   stdlib/atoi.c						\
 		   stdlib/atol.c						\
@@ -60,6 +61,7 @@ SOURCES := internal/generic/init.c				\
 		   stdlib/mktemp.c						\
 		   stdlib/mkdtemp.c						\
 		   stdlib/atof.c						\
+		   stdlib/putenv.c						\
 		   stdio/fprintf.c						\
 		   stdio/printf.c						\
 		   stdio/snprintf.c						\
@@ -145,6 +147,9 @@ SOURCES := internal/generic/init.c				\
 		   posix/generic/getgrent.c				\
 		   posix/generic/setgrent.c				\
 		   posix/generic/endgrent.c				\
+		   posix/generic/wait.c					\
+		   posix/generic/dlfcn.c				\
+		   posix/generic/getlogin.c				\
 		   sysdeps/micro/generic/open.c			\
 		   sysdeps/micro/generic/close.c		\
 		   sysdeps/micro/generic/read.c			\
