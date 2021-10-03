@@ -21,7 +21,7 @@ static struct task* mktask(struct task* parent, struct vm_map* vm_map)
 
     task->threads  = list_create();
     task->fds      = kmalloc(sizeof(struct file*) * FD_MAX);
-    task->id       = s_id++;
+    task->pid       = s_id++;
     task->vm_map   = vm_map;
     task->children = list_create();
     task->parent   = parent;
@@ -58,7 +58,8 @@ static void init_user_task(struct task* task, const char* path,
     task->main->regs.rip = entry;
 
     struct vm_area* sigstack = vm_map_anon(task->vm_map, 0, PAGE4K, 0);
-    task->sigstack = sigstack + PAGE4K;
+    vm_map_anon_alloc(task->vm_map, sigstack, sigstack->base, sigstack->end - sigstack->base);
+    task->sigstack = sigstack->end;
 
     setup_user_stack(task, argv, envp);
 
@@ -146,6 +147,7 @@ struct task* task_clone(struct task* src, struct thread* calling)
     }
 
     memcpy(task->signals, src->signals, sizeof(struct sigaction) * 32);
+    task->sigmask = src->sigmask;
 
     return task;
 }
@@ -280,7 +282,7 @@ void task_change(struct task* task, int state)
     struct task* parent = task->parent;
     task->state = state;
     
-    if (parent->waiting == task->id
+    if (parent->waiting == task->pid
      || parent->waiting == -1)
     {
         thread_unblock(parent->main);

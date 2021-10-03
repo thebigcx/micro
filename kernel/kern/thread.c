@@ -104,47 +104,51 @@ void thread_handle_contsig(struct thread* thread)
 
 void thread_handle_signals(struct thread* thread)
 {
-    int* sigptr = list_dequeue(&thread->parent->sigqueue);
-    int sig = *sigptr;
-    kfree(sigptr);
-
-    if (thread->parent->tracer)
-        handle_stopsig(thread, sig);
-
-    // Ignore signal if in the signal mask
-    if (sig != SIGKILL && sig != SIGSTOP && (thread->parent->sigmask & (1 << sig)))
-        return;
-
-    uintptr_t handler = thread->parent->signals[sig].sa_handler;
-
-    if (!handler || handler == SIG_DFL) // SIG_DFL is 0 anyway
+    while (thread->parent->sigqueue.size)
     {
-        switch (defaults[sig])
+        int* sigptr = list_dequeue(&thread->parent->sigqueue);
+        int sig = *sigptr;
+        kfree(sigptr);
+        printk("pid=%d handling signal %d\n", thread->parent->pid, sig);
+
+        if (thread->parent->tracer)
+            handle_stopsig(thread, sig);
+
+        // Ignore signal if in the signal mask
+        if (sig != SIGKILL && sig != SIGSTOP && (thread->parent->sigmask & (1 << sig)))
+            return;
+
+        uintptr_t handler = thread->parent->signals[sig].sa_handler;
+
+        if (!handler || handler == SIG_DFL) // SIG_DFL is 0 anyway
         {
-            case SIGDEF_TERM:
-                task_exit(sig);
-                break;
+            switch (defaults[sig])
+            {
+                case SIGDEF_TERM:
+                    task_exit(sig);
+                    break;
 
-            case SIGDEF_CORE:
-                task_exit(sig | 0x80); // Core flag 0x80
-                break;
+                case SIGDEF_CORE:
+                    task_exit(sig | 0x80); // Core flag 0x80
+                    break;
 
-            case SIGDEF_STOP:
-                handle_stopsig(thread, sig);
-                break;
-                
-            case SIGDEF_CONT:
-                thread_handle_contsig(thread);
-                break;
+                case SIGDEF_STOP:
+                    handle_stopsig(thread, sig);
+                    break;
+                    
+                case SIGDEF_CONT:
+                    thread_handle_contsig(thread);
+                    break;
+            }
         }
-    }
-    else if (handler == SIG_IGN)
-    {
-        /* Do nothing */
-    }
-    else
-    {
-        arch_enter_signal(thread, sig);
+        else if (handler == SIG_IGN)
+        {
+            /* Do nothing */
+        }
+        else
+        {
+            arch_enter_signal(thread, sig);
+        }
     }
 }
 

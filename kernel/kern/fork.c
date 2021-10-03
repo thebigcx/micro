@@ -14,5 +14,7 @@ SYSCALL_DEFINE(fork)
 
     sched_start(child);
 
-    return child->id;
+    printk("fork() of parent=%d, child=%d\n", task_curr()->pid, child->pid);
+
+    return child->pid;
 }

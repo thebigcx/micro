@@ -5,7 +5,7 @@ int sigaddset(sigset_t* set, int signum)
 {
     if (signum < 0 || signum >= 32)
     {
-        errno = -EINVAL;
+        errno = EINVAL;
         return -1;
     }
 

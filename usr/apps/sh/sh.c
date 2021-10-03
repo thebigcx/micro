@@ -57,6 +57,9 @@ int main(int argc, char** argv)
     //seteuid(1000);
     //setegid(1000);
 
+    putenv("HOME=/home/anon");
+    chdir(getenv("HOME"));
+
     while (1)
     {
         char cwd[128];

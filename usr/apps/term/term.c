@@ -6,6 +6,7 @@
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 #include <sys/wait.h>
+#include <signal.h>
 
 #include <micro/fb.h>
 
@@ -30,6 +31,8 @@ static void*           fbend;
 
 static unsigned int cx = 0;
 static unsigned int cy = 0;
+
+static pid_t sh_pid;
 
 static char linebuffer[128];
 static int lineidx = 0;
@@ -183,7 +186,7 @@ static char ascii[] =
     '6', '7', '8', '9', '0', '-', '=',
     '\b', '\t', 'q', 'w', 'e', 'r', 't',
     'y', 'u', 'i', 'o', 'p', '[', ']',
-    '\n', '~', 'a', 's', 'd', 'f', 'g',
+    '\n', '^', 'a', 's', 'd', 'f', 'g',
     'h', 'j', 'k', 'l', ';', '\'', '`',
     '~', '\\', 'z', 'x', 'c', 'v', 'b',
     'n', 'm', ',', '.', '/', '~', '*',
@@ -205,7 +208,7 @@ static char shift_ascii[] =
     '^', '&', '*', '(', ')', '_', '+',
     '\b', '\t', 'Q', 'W', 'E', 'R', 'T',
     'Y', 'U', 'U', 'O', 'P', '{', '}',
-    '\n', '~', 'A', 'S', 'D', 'F', 'G',
+    '\n', '^', 'A', 'S', 'D', 'F', 'G',
     'H', 'J', 'K', 'L', ':', '"', '~',
     '~', '|', 'Z', 'X', 'C', 'V', 'B',
     'N', 'M', '<', '>', '?', '~', '*',
@@ -226,7 +229,7 @@ static int shift = 0;
 
 void handle_kb(int sc)
 {
-    if (sc == 29)
+    /*if (sc == 29)
     {
         ctrl = 1;
         return;
@@ -235,6 +238,10 @@ void handle_kb(int sc)
     {
         ctrl = 0;
         return;
+    }*/
+    if (sc == 29)
+    {
+        kill(sh_pid, SIGINT);
     }
 
     if (sc == 0x2a)
@@ -258,17 +265,18 @@ void handle_kb(int sc)
     {
         char ch = shift ? shift_ascii[sc] : ascii[sc];
 
+        /*if (ctrl)
+        {
+            ch = toupper(ch);
+            char seq[] = { '^', ch };
+            write(ptm, seq, 2);
+            return;
+        }*/
+
         putch(ch, 0xffffffff, 0);
 
         linebuffer[lineidx++] = ch;
 
-        /*if (ctrl)
-        {
-            write(ptm, "^[", 2);
-            write(ptm, &ch, 1);
-        }
-        else
-            write(ptm, &ch, 1);*/
         if (ch == '\n')
         {
             write(ptm, linebuffer, lineidx);
@@ -312,10 +320,10 @@ int main(int argc, char** argv)
     dup2(pts, 1);
     dup2(pts, 2);
 
-    pid_t child = fork();
-    if (child == 0)
+    sh_pid = fork();
+    if (sh_pid == 0)
     {
-        const char* argv[] = { "/usr/bin/sh", NULL };
+        const char* argv[] = { "/usr/bin/bash", NULL };
         const char* envp[] =
         {
             //"HOME=/root",
@@ -342,7 +350,7 @@ int main(int argc, char** argv)
         }
 
         int status;
-        if (waitpid(child, &status, WNOHANG) > 0)
+        if (waitpid(sh_pid, &status, WNOHANG) > 0)
             break;
     }
 

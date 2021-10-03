@@ -140,7 +140,7 @@ static void gp(struct regs* regs, uint32_t e)
     {
         printk("general protection fault\n");
         dump(regs);
-        //backtrace(regs->rip, regs->rbp, 32);
+        backtrace(regs->rip, regs->rbp, 32);
         thread_curr()->syscall_regs = *regs;
         task_send(task_curr(), SIGSEGV);
         return;
@@ -159,9 +159,9 @@ static void pf(struct regs* regs, uint32_t e)
         //if (vm_map_handle_fault(task_curr()->vm_map, rcr2()) == -1)
         {
             printk("page fault\n");
-            printk("pid=%d\n", task_curr()->id);
+            printk("pid=%d\n", task_curr()->pid);
             dump(regs);
-            //backtrace(regs->rip, regs->rbp, 32);
+            backtrace(regs->rip, regs->rbp, 32);
             thread_curr()->regs = *regs;
             task_send(task_curr(), SIGSEGV); // Could not handle
         }

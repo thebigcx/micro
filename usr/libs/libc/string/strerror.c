@@ -32,8 +32,6 @@ static const char* errno_strs[] =
 
 char* strerror(int errnum)
 {
-    errnum = -errnum; // Reverse sign
-
     if (errnum < 0 || errnum >= EMAXERRNO)
         return "unknown error code";
 
@@ -42,11 +40,9 @@ char* strerror(int errnum)
 
 char* strerror_r(int errnum, char* buf, size_t len)
 {
-    errnum = -errnum; // Reverse sign
-
     if (errnum < 0 || errnum >= EMAXERRNO)
     {
-        errno = -EINVAL;
+        errno = EINVAL;
         return NULL;
     }
 

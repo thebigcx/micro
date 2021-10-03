@@ -14,7 +14,7 @@ struct thread;
 
 struct task
 {
-    unsigned int id;
+    unsigned int pid, pgid, sid;
 
     struct list threads;  // struct thread*[]
     struct list children; // struct task*[]

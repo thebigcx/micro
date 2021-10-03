@@ -9,7 +9,7 @@ inline int __syscall_err(int ret)
 {
     if (ret < 0)
     {
-        errno = ret;
+        errno = -ret;
         return -1;
     }
     return ret;
@@ -21,7 +21,7 @@ inline unsigned long __syscall_err_null(long ret)
 {
     if (ret < 0)
     {
-        errno = ret;
+        errno = -ret;
         return 0;
     }
     return ret;

@@ -140,7 +140,7 @@ struct task* sched_task_fromid(int id)
     {
         struct task* task = node->data;
 
-        if (task->id == (unsigned int)id) return task;
+        if (task->pid == (unsigned int)id) return task;
     }
 
     return NULL;

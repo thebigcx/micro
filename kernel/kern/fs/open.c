@@ -109,7 +109,7 @@ SYSCALL_DEFINE(getcwd, char* buf, size_t size)
 
     strcpy(buf, task->workd);
 
-    return size;
+    return buf;
 }
 
 SYSCALL_DEFINE(chmod, const char* pathname, mode_t mode)

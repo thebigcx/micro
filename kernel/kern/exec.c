@@ -8,6 +8,7 @@
 
 SYSCALL_DEFINE(execve, const char* path, const char* argv[], const char* envp[])
 {
+    printk("execve(%s) of pid=%d\n", path, task_curr()->pid);
     PTRVALID(path);
     PTRVALID(argv);
     PTRVALID(envp);

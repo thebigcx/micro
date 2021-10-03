@@ -60,5 +60,6 @@ SYSCALL_DEFINE(sigprocmask, int how, const sigset_t* set, sigset_t* oldset)
 
 SYSCALL_DEFINE(sigreturn)
 {
-    return -1; // Won't return
+    sched_yield();
+    __builtin_unreachable();
 }

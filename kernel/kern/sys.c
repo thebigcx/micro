@@ -11,7 +11,7 @@
 
 SYSCALL_DEFINE(getpid)
 {
-    return task_curr()->id;
+    return task_curr()->pid;
 }
 
 SYSCALL_DEFINE(getuid)
@@ -36,7 +36,7 @@ SYSCALL_DEFINE(getegid)
 
 SYSCALL_DEFINE(getppid)
 {
-    return task_curr()->parent->id;
+    return task_curr()->parent->pid;
 }
 
 SYSCALL_DEFINE(setreuid, uid_t ruid, uid_t euid)
