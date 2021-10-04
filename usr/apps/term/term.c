@@ -323,7 +323,7 @@ int main(int argc, char** argv)
     sh_pid = fork();
     if (sh_pid == 0)
     {
-        const char* argv[] = { "/usr/bin/bash", NULL };
+        const char* argv[] = { "/usr/bin/sh", NULL };
         const char* envp[] =
         {
             //"HOME=/root",

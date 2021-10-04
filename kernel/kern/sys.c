@@ -8,6 +8,7 @@
 #include <micro/heap.h>
 #include <micro/utsname.h>
 #include <micro/stdlib.h>
+#include <micro/sched.h>
 
 SYSCALL_DEFINE(getpid)
 {
@@ -37,6 +38,55 @@ SYSCALL_DEFINE(getegid)
 SYSCALL_DEFINE(getppid)
 {
     return task_curr()->parent->pid;
+}
+
+SYSCALL_DEFINE(getpgid, pid_t pid)
+{
+    struct task* task = sched_task_fromid(pid);
+    if (!task) return -ESRCH;
+    return task->pgid;
+}
+
+// TODO: more error checking
+SYSCALL_DEFINE(setpgid, pid_t pid, pid_t pgid)
+{
+    if (pgid < 0) return -EINVAL;
+
+    if (!pid) pid = task_curr()->pid;
+
+    struct task* task = sched_task_fromid(pid);
+    if (!task || (task != task_curr() && task->parent != task_curr()))
+        return -ESRCH;
+    
+    // Session leader
+    if (task->sid == task->pid)
+        return -EPERM;
+
+    if (!pgid) pgid = pid;
+
+    task->pgid = pgid;
+    return 0;
+}
+
+SYSCALL_DEFINE(getsid, pid_t pid)
+{
+    struct task* task = sched_task_fromid(pid);
+    if (!task) return -ESRCH;
+    return task->sid;
+}
+
+SYSCALL_DEFINE(setsid)
+{
+    struct task* task = task_curr();
+
+    // Already a process group leader
+    if (task->pgid == task->pid)
+        return -EPERM;
+
+    task->sid  = task->pid;
+    task->pgid = task->pid;
+
+    return task->sid;
 }
 
 SYSCALL_DEFINE(setreuid, uid_t ruid, uid_t euid)
@@ -216,7 +266,11 @@ static void* syscalls[] =
     &sys_setgid,
     &sys_fcntl,
     &sys_utime,
-    &sys_utimes
+    &sys_utimes,
+    &sys_getpgid,
+    &sys_setpgid,
+    &sys_getsid,
+    &sys_setsid
 };
 
 void syscall_handler(struct regs* r)

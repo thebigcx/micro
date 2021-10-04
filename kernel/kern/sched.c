@@ -40,6 +40,8 @@ void sched_init()
     ready_queue = list_create();
 
     idt_set_handler(IPI_SCHED, switch_task);
+    
+    struct task* init = task_init_creat();
 
     for (unsigned int i = 0; i < g_cpu_cnt; i++)
     {
@@ -48,7 +50,7 @@ void sched_init()
     }
 
     // /init process
-    sched_start(task_init_creat());
+    sched_start(init);
     
     ready = 1;
     for(;;);

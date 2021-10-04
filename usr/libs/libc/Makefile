@@ -226,6 +226,10 @@ SOURCES := internal/generic/init.c				\
 		   sysdeps/micro/generic/mknod.c		\
 		   sysdeps/micro/generic/utime.c		\
 		   sysdeps/micro/generic/utimes.c		\
+		   sysdeps/micro/generic/getpgid.c		\
+		   sysdeps/micro/generic/setpgid.c		\
+		   sysdeps/micro/generic/getsid.c		\
+		   sysdeps/micro/generic/setsid.c		\
 
 ASM :=     sysdeps/micro/generic/syscall.S		\
 		   arch/x86_64/setjmp.S					\

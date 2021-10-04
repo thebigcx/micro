@@ -13,7 +13,7 @@
 
 // TODO: needs WAY more locking
 
-static unsigned int s_id = 1;
+static unsigned int s_pid = 1;
 
 static struct task* mktask(struct task* parent, struct vm_map* vm_map)
 {
@@ -21,7 +21,7 @@ static struct task* mktask(struct task* parent, struct vm_map* vm_map)
 
     task->threads  = list_create();
     task->fds      = kmalloc(sizeof(struct file*) * FD_MAX);
-    task->pid       = s_id++;
+    task->pid      = s_pid++;
     task->vm_map   = vm_map;
     task->children = list_create();
     task->parent   = parent;
@@ -137,6 +137,9 @@ struct task* task_clone(struct task* src, struct thread* calling)
     task->ruid = src->ruid;
     task->rgid = src->rgid;
 
+    task->pgid = src->pgid;
+    task->sid  = src->sid;
+
     if (src->groupcnt)
     {
         task->groupcnt = src->groupcnt;
@@ -216,6 +219,7 @@ int task_execve(struct task* task, const char* path, const char* argv[], const c
 
 void task_exit(int status)
 {
+    printk("task pid=%d exited\n", task_curr()->pid);
     struct task* task = task_curr();
 
     LIST_FOREACH(&task->threads)
@@ -223,6 +227,15 @@ void task_exit(int status)
         struct thread* thread = node->data;
         thread->state = THREAD_DEAD;
     }
+
+    struct task* init = sched_task_fromid(1);
+
+    LIST_FOREACH(&task->children)
+    {
+        struct task* child = node->data;
+        list_enqueue(&init->children, child);
+    }
+    list_clear(&task->children);
 
     for (unsigned int i = 0; i < FD_MAX; i++)
     {

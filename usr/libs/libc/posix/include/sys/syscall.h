@@ -65,5 +65,9 @@
 #define SYS_fcntl           62
 #define SYS_utime           63
 #define SYS_utimes          64
+#define SYS_getpgid         65
+#define SYS_setpgid         66
+#define SYS_getsid          67
+#define SYS_setsid          68
 
 extern long syscall(long sysno, ...);

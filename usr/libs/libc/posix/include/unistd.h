@@ -68,6 +68,12 @@ uid_t geteuid();
 gid_t getgid();
 gid_t getegid();
 
+int setpgid(pid_t pid, pid_t pgid);
+pid_t getpgid(pid_t pid);
+
+pid_t setsid();
+pid_t getsid(pid_t pid);
+
 int getgroups(int size, gid_t list[]);
 
 ssize_t readlink(const char* path, char* buf, size_t n);
