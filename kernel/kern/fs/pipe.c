@@ -11,14 +11,25 @@ struct pipe
 
     struct inode* reader;
     struct inode* writer;
+
+    int closed;
 };
 
-ssize_t pipe_read(struct inode* file, void* buf, off_t off, size_t size)
+ssize_t pipe_read(struct file* file, void* buf, off_t off, size_t size)
 {
-    struct pipe* pipe = file->priv;
+    struct pipe* pipe = file->inode->priv;
 
     ssize_t bytes;
-    while (!(bytes = ringbuf_size(pipe->buffer))) sched_yield();
+    while (!(bytes = ringbuf_size(pipe->buffer)))
+    {
+        if (pipe->closed)
+        {
+            task_send(task_curr(), SIGPIPE);
+            return -EINTR;
+        }
+
+        sched_yield();
+    }
 
     bytes = bytes < size ? bytes : size;
 
@@ -27,36 +38,53 @@ ssize_t pipe_read(struct inode* file, void* buf, off_t off, size_t size)
     return bytes;
 }
 
-ssize_t pipe_write(struct inode* file, const void* buf, off_t off, size_t size)
+ssize_t pipe_write(struct file* file, const void* buf, off_t off, size_t size)
 {
-    struct pipe* pipe = file->priv;
+    struct pipe* pipe = file->inode->priv;
 
-    ssize_t bytes = size;
-    //ssize_t bytes;
-    //while (!(bytes = ringbuf_size(pipe->buffer))) sched_yield();
+    // TODO: use thread_block()
+    while (pipe->buffer->full)
+    {
+        if (pipe->closed)
+        {
+            task_send(task_curr(), SIGPIPE);
+            return -EINTR;
+        }
 
+        sched_yield();
+    }
+
+    ssize_t empty = pipe->buffer->size - ringbuf_size(pipe->buffer);
+
+    ssize_t bytes = size < empty ? size : empty;
     ringbuf_write(pipe->buffer, buf, bytes);
 
     return bytes;
 }
 
+// TODO: release resources and stuff
+int pipe_close(struct file* file)
+{
+    struct pipe* pipe = file->inode->priv;
+    pipe->closed = 1;
+    return 0;
+}
+
 int pipe_create(struct inode* files[2])
 {
-    struct pipe* pipe = kmalloc(sizeof(struct pipe));
+    struct pipe* pipe = kcalloc(sizeof(struct pipe));
 
     pipe->buffer = ringbuf_create(4096);
 
-    files[0] = kmalloc(sizeof(struct inode));
-    files[1] = kmalloc(sizeof(struct inode));
-
-    memset(files[0], 0, sizeof(struct inode));
-    memset(files[1], 0, sizeof(struct inode));
+    files[0] = kcalloc(sizeof(struct inode));
+    files[1] = kcalloc(sizeof(struct inode));
 
     files[0]->mode = files[1]->mode = S_IFIFO | 0777;
     files[0]->priv = files[1]->priv = pipe;
 
     files[0]->fops.read = pipe_read;
     files[1]->fops.write = pipe_write;
+    files[0]->fops.close = files[1]->fops.close = pipe_close;
 
     files[0]->uid = files[1]->uid = task_curr()->euid;
     files[0]->gid = files[1]->gid = task_curr()->egid;
@@ -98,17 +126,18 @@ SYSCALL_DEFINE(pipe, int fds[2])
 
     if (find_slots(fds, 2)) return -EMFILE;
 
-    /*struct file* fd1 = vfs_open(files[0], O_RDONLY);
-    struct file* fd2 = vfs_open(files[1], O_WRONLY);
+    struct file* fd1 = kcalloc(sizeof(struct file));
+    struct file* fd2 = kcalloc(sizeof(struct file));
 
-    task_curr()->fds[fds[0]] = fd1;
-    task_curr()->fds[fds[1]] = fd2;*/
+    fd1->inode = files[0];
+    fd1->off   = 0;
+    fd1->ops   = files[0]->fops;
+    fd1->flags = O_RDONLY;
 
-    struct file* fd1 = kmalloc(sizeof(struct file));
-    struct file* fd2 = kmalloc(sizeof(struct file));
-
-    files[0]->fops.open(files[0], fd1);
-    files[1]->fops.open(files[1], fd2);
+    fd2->inode = files[1];
+    fd2->off   = 0;
+    fd2->ops   = files[1]->fops;
+    fd2->flags = O_WRONLY;
 
     task_curr()->fds[fds[0]] = fd1;
     task_curr()->fds[fds[1]] = fd2;

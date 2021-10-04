@@ -373,6 +373,7 @@ int vfs_open(const char* path, struct file* file, uint32_t flags)
     return 0;
 }
 
+// TODO: return int
 void vfs_close(struct file* fd)
 {
     if (fd->ops.close)

@@ -454,7 +454,7 @@ ssize_t ext2_write(struct file* file, const void* buf, off_t off, size_t size)
 
     if (file->inode->size < off + size)
     {
-        ext2_resize(file, off + size);
+        ext2_resize(file->inode, off + size);
     }
 
     struct ext2_inode ino;
@@ -479,10 +479,10 @@ ssize_t ext2_write(struct file* file, const void* buf, off_t off, size_t size)
         if (i == startblk)
         {
             start = modoff;
-            wsize = vol->blksize - start;
+            wsize -= start;
         }
         if (i == endblk)
-            wsize = modend;
+            wsize -= vol->blksize - modend;
 
         memcpy(fullbuf + start, (void*)((uintptr_t)buf + ptroff), wsize);
 
@@ -570,13 +570,13 @@ void ext2_init_inode(struct ext2_volume* vol, struct ext2_inode* ino, struct ino
     ino->gid    = file->gid;
 
     ino->size    = file->size;
-    ino->sectors = vol->blksize / 512;
+    ino->sectors = 0;
     ino->nlink   = 1;
     ino->ctime   = time_getepoch();
     ino->atime   = ino->ctime;
     ino->mtime   = ino->ctime;
     
-    ext2_set_inode_blk(vol, ino, 0, ext2_alloc_blk(vol)); // One block to start off with
+    //ext2_set_inode_blk(vol, ino, 0, ext2_alloc_blk(vol)); // One block to start off with
 }
 
 static void ext2_append_dirent(struct inode* dir, struct ext2_dirent* dirent)

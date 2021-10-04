@@ -7,15 +7,7 @@ extern int main(int, void**, char**);
 char** environ;
 char* __progname;
 
-// Need to forward-declare
-void libc_start_main(int, void**, char**);
-
-void _start(int argc, void** argv, char** envp)
-{
-    libc_start_main(argc, argv, envp);
-}
-
-void libc_start_main(int argc, void** argv, char** envp)
+void __libc_start_main(int argc, void** argv, char** envp)
 {
     __libc_init();
 
@@ -35,4 +27,5 @@ void libc_start_main(int argc, void** argv, char** envp)
     int ret = main(argc, argv, envp);
 
     exit(ret);
+    __builtin_unreachable();
 }

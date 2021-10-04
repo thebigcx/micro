@@ -55,6 +55,11 @@ void setup_user_stack(struct task* task, const char* argv[], const char* envp[])
 
     uintptr_t envp_ptr = task->main->regs.rsp;
 
+    // Assure 16-byte alignment
+    task->main->regs.rsp -= task->main->regs.rsp % 16;
+    
+    
+
     lcr3(cr3);
 
     task->main->regs.rdi = argc;

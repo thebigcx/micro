@@ -7,6 +7,7 @@
 #include <sys/mman.h>
 #include <sys/wait.h>
 #include <signal.h>
+#include <stdlib.h>
 
 #include <micro/fb.h>
 
@@ -33,9 +34,6 @@ static unsigned int cx = 0;
 static unsigned int cy = 0;
 
 static pid_t sh_pid;
-
-static char linebuffer[128];
-static int lineidx = 0;
 
 static int ptm, pts;
 
@@ -95,16 +93,11 @@ void tab()
 
 void backspace()
 {
-    if (lineidx)
-    {
-        lineidx--;
+    drawch(' ', 0x0, 0x0);
+    cx--;
+    drawch(' ', 0x0, 0x0);
 
-        drawch(' ', 0x0, 0x0);
-        cx--;
-        drawch(' ', 0x0, 0x0);
-
-        draw_cursor();
-    }
+    draw_cursor();
 }
 
 void draw_cursor()
@@ -139,14 +132,14 @@ void putch(char c, uint32_t fg, uint32_t bg)
 
     if (c < 32)
     {
-        drawch(' ', 0, 0);
+        /*drawch(' ', 0, 0);
         cx++;
         if (cx == info.xres / 8)
         {
             cx = 0;
             newline();
         }
-        draw_cursor();
+        draw_cursor();*/
         return;
     }
 
@@ -229,7 +222,7 @@ static int shift = 0;
 
 void handle_kb(int sc)
 {
-    /*if (sc == 29)
+    if (sc == 29)
     {
         ctrl = 1;
         return;
@@ -238,10 +231,6 @@ void handle_kb(int sc)
     {
         ctrl = 0;
         return;
-    }*/
-    if (sc == 29)
-    {
-        kill(sh_pid, SIGINT);
     }
 
     if (sc == 0x2a)
@@ -255,33 +244,19 @@ void handle_kb(int sc)
         return;
     }
 
-    if (ascii[sc] == '\b')
-    {
-        backspace();
-        return;
-    }
-
     if (sc < 88)
     {
         char ch = shift ? shift_ascii[sc] : ascii[sc];
 
-        /*if (ctrl)
+        if (ctrl)
         {
-            ch = toupper(ch);
-            char seq[] = { '^', ch };
-            write(ptm, seq, 2);
+            char c = '^';
+            write(ptm, &c, 1);
+            write(ptm, &ch, 1);
             return;
-        }*/
-
-        putch(ch, 0xffffffff, 0);
-
-        linebuffer[lineidx++] = ch;
-
-        if (ch == '\n')
-        {
-            write(ptm, linebuffer, lineidx);
-            lineidx = 0;
         }
+
+        write(ptm, &ch, 1);
     }
 
 }
@@ -290,7 +265,8 @@ int main(int argc, char** argv)
 {
     load_font();
 
-    lineidx = 0;
+    //putenv("HOME=/root");
+
     shift = 0;
 
     fb = open("/dev/fb0", O_RDWR, 0);
@@ -323,14 +299,9 @@ int main(int argc, char** argv)
     sh_pid = fork();
     if (sh_pid == 0)
     {
-        const char* argv[] = { "/usr/bin/sh", NULL };
-        const char* envp[] =
-        {
-            //"HOME=/root",
-            NULL
-        };
+        const char* argv[] = { "/usr/bin/bash", NULL };
 
-        execve(argv[0], argv, envp);
+        execv(argv[0], argv);
     }
 
     int kb = open("/dev/keyboard", O_RDONLY, 0);

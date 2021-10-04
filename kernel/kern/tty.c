@@ -37,7 +37,7 @@ ssize_t pts_write(struct file* file, const void* buf, off_t off, size_t size)
     return size;
 }
 
-int pts_ioctl(struct file* file, unsigned long req, void* argp)
+int pt_ioctl(struct file* file, unsigned long req, void* argp)
 {
     struct pt* pt = file->inode->priv;
 
@@ -50,11 +50,26 @@ int pts_ioctl(struct file* file, unsigned long req, void* argp)
         }
         case TIOCSWINSZ:
         {
-            memcpy(&pt->size, argp, sizeof(struct winsize)); // TODO: generate SIGWINCH
+            memcpy(&pt->size, argp, sizeof(struct winsize));
+            //task_send(task_curr(), SIGWINCH);
+            return 0;
+        }
+        case TCGETS:
+        {
+            memcpy(argp, &pt->termios, sizeof(struct termios));
+            return 0;
+        }
+
+        case TCSETS:
+        case TCSETSF:
+        case TCSETSW:
+        {
+            memcpy(&pt->termios, argp, sizeof(struct termios));
             return 0;
         }
     }
 
+    printk("warning: ioctl request=%d of TTY not implemented!\n", req);
     return -EINVAL;
 }
 
@@ -77,6 +92,9 @@ ssize_t ptm_write(struct file* file, const void* buf, off_t off, size_t size)
     struct pt* pt = file->inode->priv;
 
     ringbuf_write(pt->inbuf, buf, size);
+
+    //if (pt->termios.c_iflag & ECHO)
+        ringbuf_write(pt->outbuf, buf, size);
 
     return size;
 }
@@ -120,6 +138,7 @@ struct inode* ptm_open(struct pt* pt)
 
     ptm->fops.read    = ptm_read;
     ptm->fops.write   = ptm_write;
+    ptm->fops.ioctl   = pt_ioctl;
     ptm->mode         = S_IFCHR | 0620;
     ptm->priv         = pt;
     
@@ -132,6 +151,7 @@ struct inode* pts_open(struct pt* pt)
 
     pts->fops.read  = pts_read;
     pts->fops.write = pts_write;
+    pts->fops.ioctl = pt_ioctl;
     pts->mode       = S_IFCHR | 0620;
     pts->priv       = pt;
 
@@ -149,7 +169,7 @@ struct inode* pts_open(struct pt* pt)
 
 int ptmx_open_new(struct inode* inode, struct file* file)
 {
-    struct pt* pt = kmalloc(sizeof(struct pt));
+    struct pt* pt = kcalloc(sizeof(struct pt));
     memset(pt, 0, sizeof(struct pt));
 
     pt->inbuf  = ringbuf_create(1024);

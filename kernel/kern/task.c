@@ -282,6 +282,9 @@ void task_send(struct task* task, int signal)
     int* sig = kmalloc(sizeof(int));
     *sig = signal;
     list_enqueue(&task->sigqueue, sig);
+
+    if (task == task_curr())
+        sched_yield();
 }
 
 struct task* task_curr()

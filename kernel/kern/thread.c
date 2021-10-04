@@ -119,6 +119,7 @@ void thread_handle_signals(struct thread* thread)
             return;
 
         uintptr_t handler = thread->parent->signals[sig].sa_handler;
+        printk("%x\n", handler);
 
         if (!handler || handler == SIG_DFL) // SIG_DFL is 0 anyway
         {

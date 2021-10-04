@@ -1,5 +1,5 @@
 SOURCES := internal/generic/init.c				\
-		   internal/generic/crt0.c  			\
+		   internal/generic/start.c  			\
 		   ctype/isalnum.c						\
 		   ctype/isalpha.c						\
 		   ctype/isdigit.c						\
@@ -232,6 +232,7 @@ SOURCES := internal/generic/init.c				\
 		   sysdeps/micro/generic/setsid.c		\
 
 ASM :=     sysdeps/micro/generic/syscall.S		\
+		   internal/generic/crt0.S				\
 		   arch/x86_64/setjmp.S					\
 		   arch/x86_64/longjmp.S				\
 
@@ -239,7 +240,7 @@ OBJS := $(patsubst %.c, %.o, $(SOURCES)) $(patsubst %.S, %.o, $(ASM))
 AR := libc.a
 SO := libc.so
 CRT0 := crt0.o
-CFLAGS := -fPIC -fno-omit-frame-pointer -ffreestanding -fno-stack-protector -O3 -Wall -Wextra -Wno-unused-parameter -Wno-unused-variable -Iansi/include -Iinternal/include -Iposix/include -Isysdeps/micro/include
+CFLAGS := -fPIC -fno-omit-frame-pointer -ffreestanding -nostdlib -fno-stack-protector -O3 -Wall -Wextra -Wno-unused-parameter -Wno-unused-variable -Iansi/include -Iinternal/include -Iposix/include -Isysdeps/micro/include
 
 all: $(AR) $(SO) $(CRT0)
 

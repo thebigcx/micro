@@ -1,6 +1,7 @@
 #include <micro/signal.h>
 #include <micro/sys.h>
 #include <micro/sched.h>
+#include <micro/stdlib.h>
 
 #include <arch/cpu.h>
 
@@ -13,16 +14,28 @@ SYSCALL_DEFINE(kill, int pid, int sig)
     if (!task) return -ESRCH;
     task_send(task, sig);
 
-    if (task_curr() == task) sched_yield();
-
     return 0;
 }
 
 SYSCALL_DEFINE(sigaction, int signum, const struct sigaction* act,
                struct sigaction* oldact)
 {
-    // TODO: proper implementation
-    task_curr()->signals[signum] = *act;
+    if (signum < 0 || signum >= 32
+     || signum == SIGKILL || signum == SIGSTOP) return -EINVAL;
+
+    struct task* task = task_curr();
+
+    if (oldact)
+    {
+        PTRVALID(oldact);
+        memcpy(oldact, &task->signals[signum], sizeof(struct sigaction));
+    }
+
+    if (act)
+    {
+        PTRVALID(act);
+        task->signals[signum] = *act;
+    }
 
     return 0;
 }

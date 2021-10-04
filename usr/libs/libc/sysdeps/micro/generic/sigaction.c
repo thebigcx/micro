@@ -12,8 +12,13 @@ static void __libc_sig_restorer()
 
 int sigaction(int signum, const struct sigaction* act, struct sigaction* old)
 {
-    struct sigaction ksigact = *act;
-    ksigact.sa_restorer = __libc_sig_restorer;
+    if (act && act->sa_handler > SIG_IGN)
+    {
+        struct sigaction ksigact = *act;
+        ksigact.sa_restorer = __libc_sig_restorer;
 
-    return SYSCALL_ERR(sigaction, signum, &ksigact, old);
+        return SYSCALL_ERR(sigaction, signum, &ksigact, old);
+    }
+    else
+        return SYSCALL_ERR(sigaction, signum, act, old);
 }

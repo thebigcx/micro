@@ -51,12 +51,12 @@ void backtrace(uintptr_t rip, uintptr_t rbp, uint32_t maxframes)
     struct frame* frame = (struct frame*)rbp;
 
     printk("Stack trace:\n");
-    printk("    %x\n", rip);
+    printk("    rip=%x rbp=%x\n", rip, rbp);
 
     for (uint32_t i = 0; i < maxframes; i++)
     {
         if (frame == NULL) return;
-        printk("    %x\n", frame->rip);
+        printk("    rip=%x rbp=%x\n", frame->rip, frame->rbp);
         frame = frame->rbp;
     }
 }
@@ -138,7 +138,7 @@ static void gp(struct regs* regs, uint32_t e)
 {
     if (regs->cs & 3)
     {
-        printk("general protection fault\n");
+        printk("general protection fault pid=%d\n", task_curr()->pid);
         dump(regs);
         backtrace(regs->rip, regs->rbp, 32);
         thread_curr()->syscall_regs = *regs;
@@ -158,7 +158,7 @@ static void pf(struct regs* regs, uint32_t e)
     {
         //if (vm_map_handle_fault(task_curr()->vm_map, rcr2()) == -1)
         {
-            printk("page fault\n");
+            printk("page fault pid=%d\n", task_curr()->pid);
             printk("pid=%d\n", task_curr()->pid);
             dump(regs);
             backtrace(regs->rip, regs->rbp, 32);
