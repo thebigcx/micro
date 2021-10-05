@@ -24,6 +24,7 @@ int abs(int n);
 unsigned long strtoul(const char* str, char** endptr, int base);
 unsigned long long strtoull(const char* str, char** endptr, int base);
 long int strtol(const char* str, char** endptr, int base);
+double strtod(const char* str, char** endptr);
 
 int rand();
 void srand(unsigned int seed);

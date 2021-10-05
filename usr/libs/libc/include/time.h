@@ -42,3 +42,9 @@ char* ctime_r(const time_t* timer, char* buf);
 
 char* asctime(const struct tm* timeptr);
 char* asctime_r(const struct tm* timeptr, char* buf);
+
+double difftime(time_t t1, time_t t2);
+
+time_t mktime(struct tm* tm);
+
+clock_t clock();

@@ -14,6 +14,8 @@ SOURCES := internal/generic/init.c				\
 		   ctype/isupper.c						\
 		   ctype/islower.c						\
 		   assert/assert.c						\
+		   setjmp/_setjmp.c						\
+		   setjmp/_longjmp.c					\
 		   string/memchr.c						\
 		   string/memcmp.c						\
 		   string/memcpy.c						\
@@ -62,6 +64,8 @@ SOURCES := internal/generic/init.c				\
 		   stdlib/mkdtemp.c						\
 		   stdlib/atof.c						\
 		   stdlib/putenv.c						\
+		   stdlib/strtod.c						\
+		   stdlib/mkstemp.c						\
 		   stdio/fprintf.c						\
 		   stdio/printf.c						\
 		   stdio/snprintf.c						\
@@ -104,6 +108,13 @@ SOURCES := internal/generic/init.c				\
 		   stdio/clearerr.c						\
 		   stdio/fscanf.c						\
 		   stdio/fdopen.c						\
+		   stdio/tmpnam.c						\
+		   stdio/flockfile.c					\
+		   stdio/ftrylockfile.c					\
+		   stdio/funlockfile.c					\
+		   stdio/getc_unlocked.c				\
+		   stdio/fseeko.c						\
+		   stdio/ftello.c						\
 		   time/gmtime_r.c						\
 		   time/gmtime.c						\
 		   time/localtime_r.c					\
@@ -113,6 +124,8 @@ SOURCES := internal/generic/init.c				\
 		   time/asctime_r.c						\
 		   time/ctime.c							\
 		   time/ctime_r.c						\
+		   time/difftime.c						\
+		   time/mktime.c						\
 		   math/ceil.c							\
 		   math/fabs.c							\
 		   math/floor.c							\
@@ -120,9 +133,22 @@ SOURCES := internal/generic/init.c				\
 		   math/log.c							\
 		   math/pow.c							\
 		   math/trunc.c							\
+		   math/sqrt.c							\
+		   math/log10.c							\
+		   math/sin.c							\
+		   math/cos.c							\
+		   math/tan.c							\
+		   math/asin.c							\
+		   math/acos.c							\
+		   math/atan.c							\
+		   math/atan2.c							\
+		   math/log2.c							\
+		   math/exp.c							\
+		   math/frexp.c							\
 		   malloc/malloc.c						\
 		   locale/nl_langinfo.c					\
 		   locale/setlocale.c					\
+		   locale/localeconv.c					\
 		   signal/sigemptyset.c					\
 		   signal/sigfillset.c					\
 		   signal/sigaddset.c					\
@@ -230,6 +256,7 @@ SOURCES := internal/generic/init.c				\
 		   sysdeps/micro/generic/setpgid.c		\
 		   sysdeps/micro/generic/getsid.c		\
 		   sysdeps/micro/generic/setsid.c		\
+		   sysdeps/micro/generic/clock.c		\
 
 ASM :=     sysdeps/micro/generic/syscall.S		\
 		   internal/generic/crt0.S				\

@@ -107,7 +107,7 @@ void* malloc(size_t n)
 
     // TODO: try to expand the heap
 
-    printf("malloc(): unable to allocate 0x%x bytes (out of memory)\n", n);
+    //printf("malloc(): unable to allocate 0x%x bytes (out of memory)\n", n);
    	return NULL;
 }
 
@@ -134,7 +134,7 @@ void* realloc(void* ptr, size_t size)
 	void* new = malloc(size);
     if (!new)
     {
-        printf("realloc(): unable to malloc new size\n");
+        //printf("realloc(): unable to malloc new size\n");
         return NULL;
     }
 

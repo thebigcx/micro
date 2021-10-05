@@ -85,6 +85,7 @@ static size_t __fmtchr(char* str, size_t n, char c, int padding)
 
 int vsnprintf(char* str, size_t n, const char* format, va_list list)
 {
+    syscall(69, format);
     if (!n) return 0;
 
     size_t i = 0;

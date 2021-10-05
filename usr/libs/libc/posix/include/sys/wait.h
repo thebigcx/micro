@@ -6,6 +6,7 @@
 #define WTERMSIG(stat) ((stat) & 0x7f)
 #define WSTOPSIG(stat) WEXITSTATUS(stat)
 #define WIFEXITED(stat) (WTERMSIG(stat) == 0)
+#define WIFSIGNALED(stat) (((char)(((stat) & 0x7f) + 1) >> 1) > 0)
 
 #define WNOHANG   1
 #define WUNTRACED 2

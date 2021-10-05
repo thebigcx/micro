@@ -198,6 +198,13 @@ SYSCALL_DEFINE(uname, struct utsname* buf)
     return 0;
 }
 
+SYSCALL_DEFINE(printk, const char* str)
+{
+    PTRVALID(str);
+    printk("%s", str);
+    return 0;
+}
+
 typedef uintptr_t (*syscall_t)();
 
 static void* syscalls[] =
@@ -270,7 +277,8 @@ static void* syscalls[] =
     &sys_getpgid,
     &sys_setpgid,
     &sys_getsid,
-    &sys_setsid
+    &sys_setsid,
+    &sys_printk
 };
 
 void syscall_handler(struct regs* r)

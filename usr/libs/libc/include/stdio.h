@@ -9,6 +9,9 @@
 
 #define BUFSIZ 4096
 
+// Maximum length of tmpnam() buffer
+#define L_tmpnam 20
+
 #define _IOFBF 0
 #define _IOLBF 1
 #define _IONBF 2
@@ -87,8 +90,18 @@ void perror(const char* s);
 int remove(const char* filename);
 
 FILE* tmpfile();
+char* tmpnam(char* str);
 
 FILE* popen(const char* command, const char* type);
 int pclose(FILE* stream);
 
 int rename(const char* old, const char* new);
+
+void flockfile(FILE* file);
+int ftrylockfile(FILE* file);
+void funlockfile(FILE* file);
+
+int getc_unlocked(FILE* file);
+
+int fseeko(FILE* stream, off_t off, int whence);
+off_t ftello(FILE* stream);

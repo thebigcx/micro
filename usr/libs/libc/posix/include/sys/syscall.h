@@ -69,5 +69,6 @@
 #define SYS_setpgid         66
 #define SYS_getsid          67
 #define SYS_setsid          68
+#define SYS_printk          69
 
 extern long syscall(long sysno, ...);
