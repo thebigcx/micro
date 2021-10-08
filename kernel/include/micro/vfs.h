@@ -14,7 +14,7 @@ struct file_ops
     int     (*close)(struct file*);
     ssize_t (*read)(struct file*, void*, off_t, size_t);
     ssize_t (*write)(struct file*, const void*, off_t, size_t);
-    int     (*ioctl)(struct file*, unsigned long, void*);
+    int     (*ioctl)(struct file*, int, void*);
     int     (*mmap)(struct file*, struct vm_area*);
     int     (*chmod)(struct file*, mode_t);
     int     (*chown)(struct file*, uid_t, gid_t);
@@ -140,7 +140,7 @@ int vfs_mknod(const char* path, mode_t mode, dev_t dev, uid_t uid, gid_t gid);
 
 int vfs_unlink(const char* pathname);
 
-int vfs_ioctl(struct file* file, unsigned long req, void* argp);
+int vfs_ioctl(struct file* file, int req, void* argp);
 
 int vfs_getmnt(const char* path, char** relat, struct inode* out);
 

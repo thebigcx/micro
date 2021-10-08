@@ -17,3 +17,9 @@ struct dirent
     unsigned char  d_type;
     char           d_name[256];
 };
+
+struct iovec
+{
+    void*  iov_base;
+    size_t iov_len;
+};

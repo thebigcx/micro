@@ -14,7 +14,8 @@ unsigned long ksys_do_mmap(void* addr, size_t length, int prot, int flags, int f
         if (flags & MAP_SHARED) return (unsigned long)-EINVAL;
 
         struct vm_area* area = vm_map_anon(task_curr()->vm_map, addr, length, flags & MAP_FIXED);
-        vm_map_anon_alloc(task_curr()->vm_map, area, addr, length); // TODO: TEMP (SHOULD NOT ALLOCATE)
+        vm_map_anon_alloc(task_curr()->vm_map, area, area->base, length); // TODO: TEMP (SHOULD NOT ALLOCATE)
+        return area->base;
     }
     else
     {
@@ -35,8 +36,9 @@ unsigned long ksys_do_mmap(void* addr, size_t length, int prot, int flags, int f
         {
             if (!S_ISREG(fd->inode->mode)) return (unsigned long)-EACCES;
 
-            unsigned int mmu_flags = PAGE_PR;
-            mmu_flags |= prot & PROT_WRITE ? PAGE_RW : 0;
+            //unsigned int mmu_flags = PAGE_PR;
+            //mmu_flags |= prot & PROT_WRITE ? PAGE_RW : 0;
+            unsigned int mmu_flags = PAGE_PR | PAGE_RW; // TODO: this is dangerous
 
             for (uintptr_t i = (uintptr_t)addr; i < (uintptr_t)addr + length; i += PAGE4K)
             {
@@ -63,5 +65,15 @@ SYSCALL_DEFINE(munmap, void* addr, size_t length)
     if ((uintptr_t)addr % PAGE4K != 0) return -EINVAL;
 
     // TODO: unmap the physical blocks if anonymous
+    return 0;
+}
+
+SYSCALL_DEFINE(brk, void* addr)
+{
+    return 0;
+}
+
+SYSCALL_DEFINE(mprotect, void* addr, size_t len, int prot)
+{
     return 0;
 }

@@ -6,7 +6,7 @@
 #include <sys/wait.h>
 #include <string.h>
 
-void dump_regs(struct user_regs* regs)
+void dump_regs(struct user_regs_struct* regs)
 {
     printf("rax=%x\n", regs->rax);
     printf("rbx=%x\n", regs->rbx);
@@ -22,7 +22,7 @@ void dump_regs(struct user_regs* regs)
     printf("ds=%x\n", regs->ds);
     printf("es=%x\n", regs->es);
     printf("fs=%x\n", regs->fs);
-    printf("rflags=%x\n", regs->rflags);
+    printf("rflags=%x\n", regs->eflags);
     printf("fs_base=%x\n", regs->fs_base);
     printf("gs_base=%x\n", regs->gs_base);
     printf("r8=%x\n", regs->r8);
@@ -77,7 +77,7 @@ int main(int argc, char** argv)
         {
             printf("Process received signal %d, %s\n", WSTOPSIG(status), strsignal(WSTOPSIG(status)));
 
-            struct user_regs regs;
+            struct user_regs_struct regs;
             ptrace(PTRACE_GETREGS, pid, NULL, &regs);
 
             dump_regs(&regs);

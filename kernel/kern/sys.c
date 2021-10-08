@@ -9,6 +9,7 @@
 #include <micro/utsname.h>
 #include <micro/stdlib.h>
 #include <micro/sched.h>
+#include <micro/syscall.h>
 
 SYSCALL_DEFINE(getpid)
 {
@@ -205,87 +206,113 @@ SYSCALL_DEFINE(printk, const char* str)
     return 0;
 }
 
+SYSCALL_DEFINE(prctl, int option, unsigned long arg2, unsigned long arg3,
+               unsigned long arg4, unsigned long arg5)
+{
+    return 0;
+}
+
+SYSCALL_DEFINE(gettid)
+{
+    return task_curr()->pid;
+}
+
+SYSCALL_DEFINE(set_tid_address, int* tidptr)
+{
+    *tidptr = 0;
+    return task_curr()->pid;
+}
+
 typedef uintptr_t (*syscall_t)();
 
 static void* syscalls[] =
 {
-    &sys_open,
-    &sys_close,
-    &sys_read,
-    &sys_write,
-    &sys_fork,
-    &sys_execve,
-    &sys_exit,
-    &sys_kill,
-    &sys_getpid,
-    &sys_access,
-    &sys_lseek,
-    &sys_waitpid,
-    &sys_mmap,
-    &sys_munmap,
-    &sys_chdir,
-    &sys_getcwd,
-    &sys_getdents,
-    &sys_mkdir,
-    &sys_ioctl,
-    &sys_time,
-    &sys_dup,
-    &sys_dup2,
-    &sys_insmod,
-    &sys_rmmod,
-    &sys_mount,
-    &sys_umount,
-    &sys_pread,
-    &sys_pwrite,
-    &sys_ptsname,
-    &sys_gettimeofday,
-    &sys_ptrace,
-    &sys_stat,
-    &sys_fstat,
-    &sys_lstat,
-    &sys_unlink,
-    &sys_chmod,
-    &sys_setreuid,
-    &sys_chown,
-    &sys_readlink,
-    &sys_getuid,
-    &sys_geteuid,
-    &sys_getgid,
-    &sys_getegid,
-    &sys_getgroups,
-    &sys_setgroups,
-    &sys_setregid,
-    &sys_symlink,
-    &sys_link,
-    &sys_sigaction,
-    &sys_sigreturn,
-    &sys_sigprocmask,
-    &sys_umask,
-    &sys_pipe,
-    &sys_rename,
-    &sys_rmdir,
-    &sys_reboot,
-    &sys_uname,
-    &sys_getppid,
-    &sys_fchmod,
-    &sys_mknod,
-    &sys_setuid,
-    &sys_setgid,
-    &sys_fcntl,
-    &sys_utime,
-    &sys_utimes,
-    &sys_getpgid,
-    &sys_setpgid,
-    &sys_getsid,
-    &sys_setsid,
-    &sys_printk
+    [SYS_open] = &sys_open,
+    [SYS_close] = &sys_close,
+    [SYS_read] = &sys_read,
+    [SYS_write] = &sys_write,
+    [SYS_fork] = &sys_fork,
+    [SYS_execve] = &sys_execve,
+    [SYS_exit] = &sys_exit,
+    [SYS_kill] = &sys_kill,
+    [SYS_getpid] = &sys_getpid,
+    [SYS_access] = &sys_access,
+    [SYS_lseek] = &sys_lseek,
+    //[SYS_waitpid] = &sys_waitpid,
+    [SYS_mmap] = &sys_mmap,
+    [SYS_munmap] = &sys_munmap,
+    [SYS_chdir] = &sys_chdir,
+    [SYS_getcwd] = &sys_getcwd,
+    [SYS_getdents64] = &sys_getdents,
+    [SYS_mkdir] = &sys_mkdir,
+    [SYS_ioctl] = &sys_ioctl,
+    [SYS_time] = &sys_time,
+    [SYS_dup] = &sys_dup,
+    [SYS_dup2] = &sys_dup2,
+    [SYS_init_module] = &sys_insmod,
+    [SYS_delete_module] = &sys_rmmod,
+    [SYS_mount] = &sys_mount,
+    [SYS_umount2] = &sys_umount,
+    [SYS_pread64] = &sys_pread,
+    [SYS_pwrite64] = &sys_pwrite,
+    //[SYS_ptsname] = &sys_ptsname,
+    [SYS_gettimeofday] = &sys_gettimeofday,
+    [SYS_ptrace] = &sys_ptrace,
+    [SYS_stat] = &sys_stat,
+    [SYS_fstat] = &sys_fstat,
+    [SYS_lstat] = &sys_lstat,
+    [SYS_unlink] = &sys_unlink,
+    [SYS_chmod] = &sys_chmod,
+    [SYS_setreuid] = &sys_setreuid,
+    [SYS_chown] = &sys_chown,
+    [SYS_readlink] = &sys_readlink,
+    [SYS_getuid] = &sys_getuid,
+    [SYS_geteuid] = &sys_geteuid,
+    [SYS_getgid] = &sys_getgid,
+    [SYS_getegid] = &sys_getegid,
+    [SYS_getgroups] = &sys_getgroups,
+    [SYS_setgroups] = &sys_setgroups,
+    [SYS_setregid] = &sys_setregid,
+    [SYS_symlink] = &sys_symlink,
+    [SYS_link] = &sys_link,
+    [SYS_rt_sigaction] = &sys_sigaction,
+    [SYS_rt_sigreturn] = &sys_sigreturn,
+    [SYS_rt_sigprocmask] = &sys_sigprocmask,
+    [SYS_umask] = &sys_umask,
+    [SYS_pipe] = &sys_pipe,
+    [SYS_rename] = &sys_rename,
+    [SYS_rmdir] = &sys_rmdir,
+    [SYS_reboot] = &sys_reboot,
+    [SYS_uname] = &sys_uname,
+    [SYS_getppid] = &sys_getppid,
+    [SYS_fchmod] = &sys_fchmod,
+    [SYS_mknod] = &sys_mknod,
+    [SYS_setuid] = &sys_setuid,
+    [SYS_setgid] = &sys_setgid,
+    [SYS_fcntl] = &sys_fcntl,
+    [SYS_utime] = &sys_utime,
+    [SYS_utimes] = &sys_utimes,
+    [SYS_getpgid] = &sys_getpgid,
+    [SYS_setpgid] = &sys_setpgid,
+    [SYS_getsid] = &sys_getsid,
+    [SYS_setsid] = &sys_setsid,
+    [SYS_arch_prctl] = &sys_prctl,
+    [SYS_wait4] = &sys_wait4,
+    [SYS_gettid] = &sys_gettid,
+    [SYS_readv] = &sys_readv,
+    [SYS_writev] = &sys_writev,
+    [SYS_tkill] = &sys_tkill,
+    [SYS_brk] = &sys_brk,
+    [SYS_mprotect] = &sys_mprotect,
+    [SYS_set_tid_address] = &sys_set_tid_address
 };
 
 void syscall_handler(struct regs* r)
 {
     uintptr_t n = arch_syscall_num(r);
-    if (n >= sizeof(syscalls) / sizeof(syscall_t))
+    if (n >= sizeof(syscalls) / sizeof(syscall_t) || !syscalls[n])
     {
+        printk("nosys: %d\n", n);
         arch_syscall_ret(r, -ENOSYS);
         return;
     }

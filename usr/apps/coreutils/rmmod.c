@@ -10,7 +10,7 @@ int main(int argc, char** argv)
         return 0;
     }
 
-    int err = (int)syscall(SYS_rmmod, argv[1]);
+    int err = (int)syscall(SYS_delete_module, argv[1]);
 
     if (err != 0)
     {

@@ -1,10 +1,11 @@
 #include <micro/sys.h>
 #include <micro/vfs.h>
 
-SYSCALL_DEFINE(ioctl, int fdno, unsigned long req, void* argp)
+SYSCALL_DEFINE(ioctl, int fdno, int req, void* argp)
 {
+    printk("ioctl(%d, %x)\n", fdno, req);
     FDVALID(fdno);
-    PTRVALID(argp);
+    PTRVALIDNULL(argp);
     
     struct file* fd = task_curr()->fds[fdno];
 

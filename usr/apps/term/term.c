@@ -296,18 +296,23 @@ int main(int argc, char** argv)
     dup2(pts, 1);
     dup2(pts, 2);
 
+    setvbuf(stdout, NULL, _IONBF, 0);
+
     sh_pid = fork();
     if (sh_pid == 0)
     {
-        const char* argv[] = { "/usr/bin/bash", NULL };
+        const char* argv[] = { "/usr/bin/sh", NULL };
+        const char* envp[] = { NULL };
 
-        execv(argv[0], argv);
+        execve(argv[0], argv, envp);
+        for (;;);
     }
 
     int kb = open("/dev/keyboard", O_RDONLY, 0);
 
     while (1)
     {
+        //printf("psadas");
         char c;
         if (read(ptm, &c, 1))
         {

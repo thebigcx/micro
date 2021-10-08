@@ -10,6 +10,13 @@
 
 #define PATH "/usr/bin/"
 
+void* xmalloc(size_t n)
+{
+    void* p = malloc(n);
+    if (!p) abort();
+    return p;
+}
+
 int exitcode = 0;
 
 int get_command(char* str, char** bin, char*** argv)
@@ -17,17 +24,19 @@ int get_command(char* str, char** bin, char*** argv)
     char* saveptr;
     char* token = strtok_r(str, " \0\n", &saveptr);
 
+    printf("command\n");
+
     if (!token)
         return -1;
 
     if (token[0] == '/')
     {
-        *bin = malloc(strlen(token) + 1);
+        *bin = xmalloc(strlen(token) + 1);
         (*bin)[0] = 0;
     }
     else
     {
-        *bin = malloc(strlen(token) + strlen(PATH) + 1);
+        *bin = xmalloc(strlen(token) + strlen(PATH) + 1);
         strcpy(*bin, PATH);
     }
     
@@ -54,6 +63,8 @@ int main(int argc, char** argv)
 {
     exitcode = 0;
 
+    setvbuf(stdout, NULL, _IONBF, 0);
+
     //seteuid(1000);
     //setegid(1000);
 
@@ -67,7 +78,7 @@ int main(int argc, char** argv)
 
         printf("%d>root@micro:%s$ ", exitcode, cwd);
 
-        char* line = malloc(256);
+        /*char* line = xmalloc(256);
         size_t lineptr = 0;
         for (;;)
         {
@@ -79,7 +90,9 @@ int main(int argc, char** argv)
         line[lineptr] = 0;
 
         if (lineptr == 1)
-            continue;
+            continue;*/
+        char line[256];
+        fgets(line, 256, stdin);
 
         char* ptr = strchr(line, '\n');
         if (ptr) *ptr = 0;

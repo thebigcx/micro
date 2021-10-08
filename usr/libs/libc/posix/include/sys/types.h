@@ -28,6 +28,8 @@ typedef int                 bits32_t;
 typedef unsigned int        u_bits32_t;
 typedef char*               bits64_t;
 
+typedef int                 wchar_t;
+
 typedef unsigned long       rlim_t;
 
 // Technically not part of POSIX, but bash requires it

@@ -45,10 +45,11 @@ int do_sys_open(const char* path, uint32_t flags, mode_t mode)
 // TODO: make opening files better and more organized
 SYSCALL_DEFINE(open, const char* path, uint32_t flags, mode_t mode)
 {
+    printk("open(%s)\n", path);
     PTRVALID(path);
 
     // Must specify an access mode
-    if (!(flags & 3)) return -EINVAL;
+    if ((flags & 3) > 2) return -EINVAL;
 
     struct task* task = task_curr();
     char* canon = vfs_mkcanon(path, task->workd);

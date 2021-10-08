@@ -6,6 +6,7 @@
 #include <micro/stdlib.h>
 #include <micro/debug.h>
 #include <micro/heap.h>
+#include <micro/sys.h>
 
 static void init_thread_meta(struct thread* thread, struct task* parent)
 {
@@ -162,4 +163,9 @@ void thread_block()
 void thread_unblock(struct thread* thread)
 {
     sched_spawnthread(thread);
+}
+
+SYSCALL_DEFINE(tkill, pid_t tid, int sig)
+{
+    return 0;
 }

@@ -128,3 +128,8 @@ SYSCALL_DEFINE(waitpid, int pid, int* wstatus, int options)
 
     return 0;
 }
+
+SYSCALL_DEFINE(wait4, pid_t pid, int* wstatus, int options, struct rusage* rusage)
+{
+    return sys_waitpid(pid, wstatus, options);
+}

@@ -115,8 +115,8 @@ static void invalid_opcode(struct regs* regs)
 {
     if (regs->cs & 3)
     {
-        //dump(regs);
-        //backtrace(regs->rip, regs->rbp, 32);
+        dump(regs);
+        backtrace(regs->rip, regs->rbp, 32);
         task_send(task_curr(), SIGILL);
         return;
     }

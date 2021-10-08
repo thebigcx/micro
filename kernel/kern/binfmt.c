@@ -38,6 +38,14 @@ void setup_user_stack(struct task* task, const char* argv[], const char* envp[])
     // Pointer-align the stack for char* argv[]
     task->main->regs.rsp -= (task->main->regs.rsp % 8);
 
+    // Null-terminate the envp[] array (reverse-order)
+    PUSH(task->main->regs.rsp, uintptr_t, (uintptr_t)NULL);
+
+    for (int i = envc - 1; i >= 0; i--)
+        PUSH(task->main->regs.rsp, uintptr_t, envs[i]);
+
+    uintptr_t envp_ptr = task->main->regs.rsp;
+
     // Null-terminate the argv[] array (reverse-order)
     PUSH(task->main->regs.rsp, uintptr_t, (uintptr_t)NULL);
 
@@ -47,24 +55,21 @@ void setup_user_stack(struct task* task, const char* argv[], const char* envp[])
 
     uintptr_t argv_ptr = task->main->regs.rsp;
 
-    // Null-terminate the envp[] array (reverse-order)
-    PUSH(task->main->regs.rsp, uintptr_t, (uintptr_t)NULL);
-
-    for (int i = envc - 1; i >= 0; i--)
-        PUSH(task->main->regs.rsp, uintptr_t, envs[i]);
-
-    uintptr_t envp_ptr = task->main->regs.rsp;
-
     // Assure 16-byte alignment
-    task->main->regs.rsp -= task->main->regs.rsp % 16;
-    
-    
+    //task->main->regs.rsp -= task->main->regs.rsp % 16;
+
+    PUSH(task->main->regs.rsp, uintptr_t, envp_ptr);
+    PUSH(task->main->regs.rsp, uintptr_t, argv_ptr);
+    PUSH(task->main->regs.rsp, uintptr_t, argc);
+
+    task->main->regs.rdi = task->main->regs.rsp;
+    task->main->regs.rdx = argv_ptr;
 
     lcr3(cr3);
 
-    task->main->regs.rdi = argc;
-    task->main->regs.rsi = argv_ptr;
-    task->main->regs.rdx = envp_ptr;
+    //task->main->regs.rdi = argc;
+    //task->main->regs.rsi = argv_ptr;
+    //task->main->regs.rdx = envp_ptr;
 }
 
 // TODO: this is very architecture-dependent

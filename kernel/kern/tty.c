@@ -37,7 +37,7 @@ ssize_t pts_write(struct file* file, const void* buf, off_t off, size_t size)
     return size;
 }
 
-int pt_ioctl(struct file* file, unsigned long req, void* argp)
+int pt_ioctl(struct file* file, int req, void* argp)
 {
     struct pt* pt = file->inode->priv;
 
@@ -65,6 +65,15 @@ int pt_ioctl(struct file* file, unsigned long req, void* argp)
         case TCSETSW:
         {
             memcpy(&pt->termios, argp, sizeof(struct termios));
+            return 0;
+        }
+        case TIOCGPTN:
+        {
+            *((unsigned int*)argp) = pt->num;
+            return 0;
+        }
+        case TIOCSPTLCK:
+        {
             return 0;
         }
     }
@@ -176,6 +185,7 @@ int ptmx_open_new(struct inode* inode, struct file* file)
     pt->outbuf = ringbuf_create(1024);
     pt->ptm    = ptm_open(pt);
     pt->pts    = pts_open(pt);
+    pt->num    = 0; // TODO: allocate
 
     file->ops = pt->ptm->fops;
     file->inode->priv = pt;

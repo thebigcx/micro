@@ -53,7 +53,7 @@ ssize_t fb_write(struct file* file, const void* buf, off_t off, size_t size)
     return size;
 }
 
-int fb_ioctl(struct file* file, unsigned long req, void* argp)
+int fb_ioctl(struct file* file, int req, void* argp)
 {
     switch (req)
     {

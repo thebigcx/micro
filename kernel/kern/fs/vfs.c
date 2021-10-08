@@ -193,7 +193,7 @@ int vfs_unlink(const char* pathname)
     return 0;
 }
 
-int vfs_ioctl(struct file* file, unsigned long req, void* argp)
+int vfs_ioctl(struct file* file, int req, void* argp)
 {
     if (file && file->ops.ioctl)
         return file->ops.ioctl(file, req, argp);

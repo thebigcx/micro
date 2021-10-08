@@ -30,7 +30,8 @@ int main(int argc, char** argv)
 
     close(fd);
 
-    syscall(SYS_insmod, data, len);
+    //syscall(SYS_insmod, data, len);
+    syscall(SYS_init_module, data, len);
 
     return 0;
 }

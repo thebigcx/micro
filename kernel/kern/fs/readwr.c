@@ -10,8 +10,6 @@ SYSCALL_DEFINE(read, int fdno, void* buf, size_t size)
     struct task* task = task_curr();
     
     struct file* fd = task->fds[fdno];
-    //ssize_t ret = vfs_read(fd->inode, buf, fd->off, size);
-    //fd->off += size;
     return vfs_read(fd, buf, size);
 }
 
@@ -20,18 +18,12 @@ SYSCALL_DEFINE(write, int fdno, const void* buf, size_t size)
     FDVALID(fdno);
     PTRVALID(buf);
 
-    //printk("write: ");
-    //for (size_t i = 0; i < size; i++) printk("%c", ((char*)buf)[i]);
-    //printk("\n");
-
     struct task* task = task_curr();
     
     struct file* fd = task->fds[fdno];
 
     if (fd->flags & O_APPEND) fd->off = fd->inode->size;
 
-    //ssize_t ret = vfs_write(fd->inode, buf, fd->off, size);
-    //fd->off += size;
     return vfs_write(fd, buf, size);
 }
 
@@ -79,4 +71,53 @@ SYSCALL_DEFINE(lseek, int fdno, off_t offset, int whence)
     }
 
     return -EINVAL;
+}
+
+SYSCALL_DEFINE(readv, int fd, const struct iovec* iov, int iovcnt)
+{
+    FDVALID(fd);
+    PTRVALID(iov);
+
+    if (iovcnt < 0) return -EINVAL;
+
+    struct file* file = task_curr()->fds[fd];
+    
+    ssize_t bytes = 0;
+    for (int i = 0; i < iovcnt; i++)
+    {
+        PTRVALID(iov + i);
+        
+        ssize_t ret = vfs_read(file, iov[i].iov_base, iov[i].iov_len);
+        if (ret < 0)
+            return ret;
+
+        bytes += ret;
+    }
+
+    return bytes;
+}
+
+SYSCALL_DEFINE(writev, int fd, const struct iovec* iov, int iovcnt)
+{
+    FDVALID(fd);
+    PTRVALID(iov);
+
+    if (iovcnt < 0) return -EINVAL;
+
+    struct file* file = task_curr()->fds[fd];
+    
+    ssize_t bytes = 0;
+    for (int i = 0; i < iovcnt; i++)
+    {
+        PTRVALID(iov + i);
+        PTRVALID(iov[i].iov_base);
+        
+        ssize_t ret = vfs_write(file, iov[i].iov_base, iov[i].iov_len);
+        if (ret < 0)
+            return ret;
+
+        bytes += ret;
+    }
+
+    return bytes;
 }

@@ -32,7 +32,7 @@ dev:
 	@gcc $(CFLAGS) -c $< -o $@
 
 install:
-	cp -r include/uapi/* $(DESTDIR)/usr/include/
+	cp -r include/uapi/* $(DESTDIR)/usr/include/micro/
 	$(MAKE) -C dev install
 
 clean:

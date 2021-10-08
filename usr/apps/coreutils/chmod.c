@@ -1,5 +1,6 @@
 #include <sys/stat.h>
 #include <stdio.h>
+#include <stdint.h>
 
 #define ADD    0
 #define REMOVE 1

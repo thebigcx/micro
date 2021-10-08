@@ -2,6 +2,9 @@
 
 #include <sys/types.h>
 
+typedef unsigned long wctype_t;
+typedef long int wint_t;
+
 typedef struct
 {
     unsigned char bytes[4];

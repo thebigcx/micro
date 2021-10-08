@@ -13,6 +13,8 @@ struct pt
     struct winsize  size;
 
     struct termios  termios;
+
+    unsigned int    num;
 };
 
 void tty_init();
