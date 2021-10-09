@@ -8,6 +8,7 @@
 #include <sys/wait.h>
 #include <signal.h>
 #include <stdlib.h>
+#include <ansi.h>
 
 #include <micro/fb.h>
 
@@ -35,7 +36,10 @@ static unsigned int cy = 0;
 
 static pid_t sh_pid;
 
-static int ptm, pts;
+static int ptmfd, ptsfd;
+static FILE* ptm, *pts;
+
+static ansi_t ansi;
 
 static void load_font()
 {
@@ -217,6 +221,14 @@ static char shift_ascii[] =
     'c', 'c', 'c', 'c', 'c', 'c', 'c'
 };
 
+static const char* escapes[] =
+{
+    [0x48] = "\033OA", // Up
+    [0x50] = "\033OB", // Down
+    [0x4d] = "\033OC", // Right
+    [0x4b] = "\033OD", // Left
+};
+
 static int ctrl = 0;
 static int shift = 0;
 
@@ -244,25 +256,41 @@ void handle_kb(int sc)
         return;
     }
 
+    if (sc < sizeof(escapes) / sizeof(escapes[0]) && escapes[sc])
+    {
+        fputs(escapes[sc], ptm);
+        return;
+    }
+
     if (sc < 88)
     {
         char ch = shift ? shift_ascii[sc] : ascii[sc];
 
         if (ctrl)
         {
-            char c = '^';
-            write(ptm, &c, 1);
-            write(ptm, &ch, 1);
+            ch = toupper(ch) - 64;
+            //char c = '^';
+            //fputc(c, ptm);
+            //fputc(ch, ptm);
+            //fprintf(ptm, "\033OA");
+            fprintf(ptm, "%c", ch);
             return;
         }
 
-        write(ptm, &ch, 1);
+        fputc(ch, ptm);
     }
 
 }
 
+struct ansicbs cbs =
+{
+       
+};
+
 int main(int argc, char** argv)
 {
+    ansi = ansi_init(&cbs);
+
     load_font();
 
     //putenv("HOME=/root");
@@ -280,7 +308,10 @@ int main(int argc, char** argv)
     fbend = (void*)((uintptr_t)fbaddr + size);
 
     char pts_name[128];
-    openpty(&ptm, &pts, pts_name, NULL, NULL);
+    openpty(&ptmfd, &ptsfd, pts_name, NULL, NULL);
+
+    ptm = fdopen(ptmfd, "r+");
+    pts = fdopen(ptsfd, "r+");
 
     struct winsize winsize =
     {
@@ -292,11 +323,12 @@ int main(int argc, char** argv)
 
     ioctl(pts, TIOCSWINSZ, &winsize);
 
-    dup2(pts, 0);
-    dup2(pts, 1);
-    dup2(pts, 2);
+    dup2(ptsfd, 0);
+    dup2(ptsfd, 1);
+    dup2(ptsfd, 2);
 
-    setvbuf(stdout, NULL, _IONBF, 0);
+    setvbuf(ptm, NULL, _IONBF, 0);
+    setvbuf(pts, NULL, _IONBF, 0);
 
     sh_pid = fork();
     if (sh_pid == 0)
@@ -314,9 +346,13 @@ int main(int argc, char** argv)
     {
         //printf("psadas");
         char c;
-        if (read(ptm, &c, 1))
+        if (read(ptmfd, &c, 1))
         {
-            putch(c, 0xffffffff, 0);
+            if (c == '\033')
+            {
+                ansi_parse(ansi);    
+            }
+            else putch(c, 0xffffffff, 0);
         }
 
         int sc;

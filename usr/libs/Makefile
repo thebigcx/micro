@@ -1,2 +1,2 @@
-SUBDIRS = #libc
+SUBDIRS = ansi #libc
 include subdir.mk

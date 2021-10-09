@@ -17,7 +17,6 @@ unsigned long ksys_do_mmap(void* addr, size_t length, int prot, int flags, int f
             addr = task_curr()->brk;
 
         struct vm_area* area = vm_map_anon(task_curr()->vm_map, addr, length, flags & MAP_FIXED);
-        printk("%x, %x\n", area->base, area->end);
         vm_map_anon_alloc(task_curr()->vm_map, area, area->base, length); // TODO: TEMP (SHOULD NOT ALLOCATE)
         return area->base;
     }
@@ -60,7 +59,6 @@ unsigned long ksys_do_mmap(void* addr, size_t length, int prot, int flags, int f
 // TODO: use the 'offset' parameter
 SYSCALL_DEFINE(mmap, void* addr, size_t length, int prot, int flags, int fdno, off_t offset)
 {
-    printk("mmap(%x, %x, %d, %d, %d, %x)\n", addr, length, prot, flags, fdno, offset);
     return ksys_do_mmap(addr, length, prot, flags, fdno, offset);
 }
 
@@ -76,7 +74,6 @@ SYSCALL_DEFINE(munmap, void* addr, size_t length)
 // TODO: reduce program break
 SYSCALL_DEFINE(brk, void* addr)
 {
-    printk("brk(%x) old=%x\n", addr, task_curr()->brk);
     if (!addr)
         return task_curr()->brk;
    

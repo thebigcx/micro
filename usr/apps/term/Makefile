@@ -3,6 +3,7 @@ SOURCES := term.c
 OBJS := $(patsubst %.c, %.o, $(SOURCES))
 TARG = term
 CFLAGS := -O3 -ffreestanding -fno-stack-protector -Wall -Wextra -Wno-unused-parameter -Wno-unused-variable
+LDFLAGS := -lansi
 
 CC = x86_64-micro-gcc
 
@@ -10,7 +11,7 @@ all: $(TARG)
 
 $(TARG): $(OBJS)
 	@echo "    LD    $@"
-	@$(CC) -static -o $@ $^
+	@$(CC) -static -o $@ $^ $(LDFLAGS)
 
 %.o: %.c
 	@echo "    CC    $@"
