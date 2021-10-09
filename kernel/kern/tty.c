@@ -76,6 +76,22 @@ int pt_ioctl(struct file* file, int req, void* argp)
         {
             return 0;
         }
+        case TIOCGPGRP:
+        {
+            // TODO: this is bad
+            return task_curr()->pgid;
+        }
+        case TIOCSPGRP:
+        {
+            // TODO: this is bad - add a 'struct pt' to the task for the controlling terminal
+            task_curr()->pgid = *(pid_t*)argp;
+            return 0;
+        }
+        case FIONREAD:
+        {
+            *(int*)argp = 0;
+            return 0;
+        }
     }
 
     printk("warning: ioctl request=%d of TTY not implemented!\n", req);

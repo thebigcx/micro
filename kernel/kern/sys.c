@@ -43,7 +43,7 @@ SYSCALL_DEFINE(getppid)
 
 SYSCALL_DEFINE(getpgid, pid_t pid)
 {
-    struct task* task = sched_task_fromid(pid);
+    struct task* task = pid ? sched_task_fromid(pid) : task_curr();
     if (!task) return -ESRCH;
     return task->pgid;
 }
@@ -219,6 +219,7 @@ SYSCALL_DEFINE(gettid)
 
 SYSCALL_DEFINE(set_tid_address, int* tidptr)
 {
+    printk("set_tid_address()\n");
     *tidptr = 0;
     return task_curr()->pid;
 }
