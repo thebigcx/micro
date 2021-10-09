@@ -24,8 +24,6 @@ int get_command(char* str, char** bin, char*** argv)
     char* saveptr;
     char* token = strtok_r(str, " \0\n", &saveptr);
 
-    printf("command\n");
-
     if (!token)
         return -1;
 
@@ -78,21 +76,9 @@ int main(int argc, char** argv)
 
         printf("%d>root@micro:%s$ ", exitcode, cwd);
 
-        /*char* line = xmalloc(256);
-        size_t lineptr = 0;
-        for (;;)
-        {
-            char c;
-            while (read(STDIN_FILENO, &c, 1) == 0);
-            line[lineptr++] = c;
-            if (c == '\n') break;
-        }
-        line[lineptr] = 0;
-
-        if (lineptr == 1)
-            continue;*/
         char line[256];
         fgets(line, 256, stdin);
+        if (line[0] == '\n') continue;
 
         char* ptr = strchr(line, '\n');
         if (ptr) *ptr = 0;

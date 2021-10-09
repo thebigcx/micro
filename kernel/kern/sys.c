@@ -223,6 +223,11 @@ SYSCALL_DEFINE(set_tid_address, int* tidptr)
     return task_curr()->pid;
 }
 
+SYSCALL_DEFINE(exit_group, int status)
+{
+	return sys_exit(status);
+}
+
 typedef uintptr_t (*syscall_t)();
 
 static void* syscalls[] =
@@ -304,7 +309,8 @@ static void* syscalls[] =
     [SYS_tkill] = &sys_tkill,
     [SYS_brk] = &sys_brk,
     [SYS_mprotect] = &sys_mprotect,
-    [SYS_set_tid_address] = &sys_set_tid_address
+    [SYS_set_tid_address] = &sys_set_tid_address,
+    [SYS_exit_group] = &sys_exit_group
 };
 
 void syscall_handler(struct regs* r)

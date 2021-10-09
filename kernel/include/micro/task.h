@@ -52,7 +52,9 @@ struct task
     struct task* tracer;
 
     mode_t umask; // File creation mask
-};
+    
+    uintptr_t brk;
+};  
 
 struct thread;
 

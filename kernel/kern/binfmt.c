@@ -11,10 +11,32 @@
 #define PUSH_STR(stack, x) { stack -= strlen(x) + 1; strcpy((char*)stack, x); }
 #define PUSH(stack, type, x) { stack -= sizeof(type); *((type*)stack) = x; }
 
+void gen_auxv(auxv_t* aux, struct task* task)
+{
+    size_t i = 0;
+    
+    aux[i++] = (auxv_t) { .a_type = AT_PAGESZ,
+        .a_un.a_val = 0x1000 };
+    aux[i++] = (auxv_t) { .a_type = AT_UID,
+        .a_un.a_val = task->ruid };
+    aux[i++] = (auxv_t) { .a_type = AT_EUID,
+        .a_un.a_val = task->euid };
+    aux[i++] = (auxv_t) { .a_type = AT_GID,
+        .a_un.a_val = task->rgid };
+    aux[i++] = (auxv_t) { .a_type = AT_EGID,
+        .a_un.a_val = task->egid };
+    aux[i++] = (auxv_t) { .a_type = AT_SECURE,
+        .a_un.a_val = task->euid != task->ruid || task->egid != task->rgid };
+    aux[i++] = (auxv_t) { .a_type = AT_NULL };
+}
+
 void setup_user_stack(struct task* task, const char* argv[], const char* envp[])
 {
-    int argc = 0, envc = 0;
-    uintptr_t args[64], envs[64];
+    int argc = 0, envc = 0, auxc = 0;
+    uintptr_t args[64], envs[64], aux_ptrs[64];
+
+    auxv_t auxv[64];
+    gen_auxv(auxv, task);
 
     uintptr_t cr3 = rcr3();
 
@@ -34,17 +56,22 @@ void setup_user_stack(struct task* task, const char* argv[], const char* envp[])
         envs[envc] = task->main->regs.rsp;
         envc++;
     }
-
+    
     // Pointer-align the stack for char* argv[]
     task->main->regs.rsp -= (task->main->regs.rsp % 8);
+
+    // Auxiliary vector
+    size_t auxv_len = 0;
+    while (auxv[auxv_len].a_type != AT_NULL) auxv_len++;
+
+    for (int i = auxv_len; i >= 0; i--)
+        PUSH(task->main->regs.rsp, auxv_t, auxv[i]);
 
     // Null-terminate the envp[] array (reverse-order)
     PUSH(task->main->regs.rsp, uintptr_t, (uintptr_t)NULL);
 
     for (int i = envc - 1; i >= 0; i--)
         PUSH(task->main->regs.rsp, uintptr_t, envs[i]);
-
-    uintptr_t envp_ptr = task->main->regs.rsp;
 
     // Null-terminate the argv[] array (reverse-order)
     PUSH(task->main->regs.rsp, uintptr_t, (uintptr_t)NULL);
@@ -53,17 +80,9 @@ void setup_user_stack(struct task* task, const char* argv[], const char* envp[])
     for (int i = argc - 1; i >= 0; i--)
         PUSH(task->main->regs.rsp, uintptr_t, args[i]);
 
-    uintptr_t argv_ptr = task->main->regs.rsp;
-
-    // Assure 16-byte alignment
-    //task->main->regs.rsp -= task->main->regs.rsp % 16;
-
-    PUSH(task->main->regs.rsp, uintptr_t, envp_ptr);
-    PUSH(task->main->regs.rsp, uintptr_t, argv_ptr);
     PUSH(task->main->regs.rsp, uintptr_t, argc);
 
     task->main->regs.rdi = task->main->regs.rsp;
-    task->main->regs.rdx = argv_ptr;
 
     lcr3(cr3);
 
@@ -86,8 +105,10 @@ int valid_elf(struct elf_hdr* header)
 }
 
 int elf_load(struct vm_map* vm_map, void* data, const char* argv[],
-             const char* envp[], uintptr_t* rip)
+             const char* envp[], uintptr_t* rip, uintptr_t* brk)
 {
+    *brk = 0;
+
     struct elf_hdr* header = (struct elf_hdr*)data;
     
     if (!valid_elf(header))
@@ -115,6 +136,9 @@ int elf_load(struct vm_map* vm_map, void* data, const char* argv[],
             memset((void*)begin, 0, memsize);
             memcpy((void*)begin, (void*)((uintptr_t)data + phdr->offset), filesize);
             lcr3(cr3);
+        
+            if (*brk < page_begin + page_cnt)
+                *brk = page_begin + page_cnt;
         }
     }
 

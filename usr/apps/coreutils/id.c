@@ -85,7 +85,7 @@ void readfile(const char* path, char** data, size_t* size)
 int main(int argc, char** argv)
 {
     //readfile("/etc/passwd", &passwd, &passwd_size);
-    readfile("/etc/group", &group, &group_size);
+    /*readfile("/etc/group", &group, &group_size);
 
     uid_t uid = geteuid();
     gid_t gid = getegid();
@@ -108,7 +108,11 @@ int main(int argc, char** argv)
         printf(",%d", gids[i]);
     }
 
-    printf("\n");
+    printf("\n");*/
+
+    struct passwd* passwd = getpwuid(getuid());
+
+    printf("%s", passwd->pw_name);
 
     return 0;
 }

@@ -125,7 +125,7 @@ void* list_back(struct list* self)
     return self->tail->data;
 }
 
-void* list_insert(struct list* self, unsigned int i, void* data)
+void* list_insert_after(struct list* self, unsigned int i, void* data)
 {
     struct lnode* node = self->head;
     while (i--) node = node->next;
@@ -147,6 +147,32 @@ void* list_insert(struct list* self, unsigned int i, void* data)
         new->prev->next = new;
     else
         self->head = new; // Set head if new->prev == NULL
+
+    return data;
+}
+
+void* list_insert_before(struct list* self, unsigned int i, void* data)
+{
+    struct lnode* node = self->head;
+    while (i--) node = node->next;
+
+    struct lnode* new = kmalloc(sizeof(struct lnode));
+    
+    new->prev = node->prev;
+    new->next = node;
+    new->data = data;
+
+    // Try to set new next previous
+    if (new->prev)
+        new->prev->next = new;
+    else
+        self->head = new; // Set tail if new->next == NULL
+
+    // Try to set new previous next
+    if (new->next)
+        new->next->prev = new;
+    else
+        self->tail = new; // Set head if new->prev == NULL
 
     return data;
 }

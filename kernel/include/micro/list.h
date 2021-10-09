@@ -27,4 +27,5 @@ void* list_get(struct list* self, size_t i);
 void* list_set(struct list* self, size_t i, void* data);
 void* list_remove(struct list* self, size_t i);
 void* list_back(struct list* self);
-void* list_insert(struct list* self, unsigned int i, void* data);
+void* list_insert_after(struct list* self, unsigned int i, void* data);
+void* list_insert_before(struct list* self, unsigned int i, void* data);

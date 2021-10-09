@@ -459,7 +459,8 @@ struct vm_area* vm_map_alloc(struct vm_map* map, size_t size)
 
         if (area->base >= end)
         {
-            return list_insert(&map->vm_areas, i, vm_area_create(base, end, NULL));
+            printk("alloc before: %x-%x\n", area->base, area->end);
+            return list_insert_before(&map->vm_areas, i, vm_area_create(base, end, NULL));
         }
 
         // Intersects/Encapsulates
@@ -491,15 +492,26 @@ struct vm_area* vm_map_allocat(struct vm_map* map, uintptr_t base, size_t size)
     {
         struct vm_area* area = node->data;
 
+        printk("try: %x-%x\n", area->base, area->end);
+        // Intersects/Encapsulates
+        if ((base >= area->base && base <  area->end)
+         || (end  >  area->base && end  <= area->end)
+         || (base <  area->base && end  >  area->end))
+        {
+            return NULL;
+        }
+        
+        // Lower down
         if (area->end <= base)
         {
             i++;
             continue;
         }
-
+        
         if (area->base >= end)
         {
-            return list_insert(&map->vm_areas, i, vm_area_create(base, end, NULL));
+            printk("allocat: %x, %x\n", area->base, end);
+            return list_insert_before(&map->vm_areas, i, vm_area_create(base, end, NULL));
         }
     }
 
@@ -507,6 +519,7 @@ struct vm_area* vm_map_allocat(struct vm_map* map, uintptr_t base, size_t size)
     if (!map->vm_areas.size
      ||((struct vm_area*)list_back(&map->vm_areas))->end <= base)
     {
+        printk("push back: %x-%x\n", base, end);
         return list_enqueue(&map->vm_areas, vm_area_create(base, end, NULL));
     }
 

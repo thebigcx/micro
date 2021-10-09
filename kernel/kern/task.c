@@ -40,7 +40,7 @@ static struct task* mktask(struct task* parent, struct vm_map* vm_map)
 // TODO: fix this up - should move into a more syscall-oriented approach, as this
 // is never called from the kernel (execept for /bin/init)
 static void init_user_task(struct task* task, const char* path,
-                          const char* argv[], const char* envp[], uintptr_t entry)
+                          const char* argv[], const char* envp[], uintptr_t entry, uintptr_t brk)
 {
     task->main = thread_creat(task, 0, 1);
 
@@ -62,6 +62,10 @@ static void init_user_task(struct task* task, const char* path,
     task->sigstack = sigstack->end;
 
     setup_user_stack(task, argv, envp);
+
+    // FIXME: this whole system is silly. ELF loading should be integrated 
+    // into task creation, rather than all of this parameter-passing garbage
+    task->brk = brk;
 
     list_enqueue(&task->threads, task->main);
 }
@@ -89,10 +93,10 @@ struct task* task_init_creat()
     const char* argv[] = { "/init", NULL };
     const char* envp[] = { NULL };
 
-    uintptr_t entry;
-    TRY(elf_load(task->vm_map, data, argv, envp, &entry));
+    uintptr_t entry, brk;
+    TRY(elf_load(task->vm_map, data, argv, envp, &entry, &brk));
 
-    init_user_task(task, argv[0], argv, envp, entry);
+    init_user_task(task, argv[0], argv, envp, entry, brk);
 
     return task;
 }
@@ -190,8 +194,8 @@ int task_execve(struct task* task, const char* path, const char* argv[], const c
 
     struct vm_map* vm_map = mmu_create_vmmap();
 
-    uintptr_t entry;
-    TRY(elf_load(vm_map, data, argv, envp, &entry))
+    uintptr_t entry, brk;
+    TRY(elf_load(vm_map, data, argv, envp, &entry, &brk))
 
     // Only delete vm_map and set new one if elf_load passed
 
@@ -211,7 +215,7 @@ int task_execve(struct task* task, const char* path, const char* argv[], const c
     }
     list_clear(&task->threads);
     
-    init_user_task(task, path, argv, envp, entry);
+    init_user_task(task, path, argv, envp, entry, brk);
 
     sched_start(task); // Start the new main thread
     return 0;

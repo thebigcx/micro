@@ -25,7 +25,7 @@ ssize_t pts_read(struct file* file, void* buf, off_t off, size_t size)
 
     ringbuf_read(pt->inbuf, buf, bytes);
 
-    return size;
+    return bytes;
 }
 
 ssize_t pts_write(struct file* file, const void* buf, off_t off, size_t size)

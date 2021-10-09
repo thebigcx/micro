@@ -11,6 +11,8 @@ int main(int argc, char** argv)
         return -1;
     }
 
+    printf("%lx\n", argv[1]);
+
     struct stat buf;
     if (lstat(argv[1], &buf))
     {
@@ -62,7 +64,7 @@ int main(int argc, char** argv)
     else if (S_ISFIFO(buf.st_mode)) printf("f");
     else if (S_ISLNK(buf.st_mode))  printf("l");
     else if (S_ISSOCK(buf.st_mode)) printf("s");
-    else printf("u\n");
+    else printf("u");
 
     if (buf.st_mode & S_IRUSR) printf("r");
     else printf("-");
