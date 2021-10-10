@@ -108,6 +108,7 @@ void update()
             cells[i].dirty = 0;
         }
     }
+    draw_cursor();
 }
 
 void update_all()
