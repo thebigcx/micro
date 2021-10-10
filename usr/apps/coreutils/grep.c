@@ -22,7 +22,7 @@ int main(int argc, char** argv)
         FILE* file = fopen(argv[2], "r");
         if (!file)
         {
-            perror("grep: ");
+            perror("grep");
             return -1;
         }
         

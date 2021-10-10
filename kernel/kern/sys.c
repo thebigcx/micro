@@ -10,6 +10,7 @@
 #include <micro/stdlib.h>
 #include <micro/sched.h>
 #include <micro/syscall.h>
+#include <micro/debug.h>
 
 SYSCALL_DEFINE(getpid)
 {
@@ -199,13 +200,6 @@ SYSCALL_DEFINE(uname, struct utsname* buf)
     return 0;
 }
 
-SYSCALL_DEFINE(printk, const char* str)
-{
-    PTRVALID(str);
-    printk("%s", str);
-    return 0;
-}
-
 SYSCALL_DEFINE(prctl, int option, unsigned long arg2, unsigned long arg3,
                unsigned long arg4, unsigned long arg5)
 {
@@ -219,7 +213,6 @@ SYSCALL_DEFINE(gettid)
 
 SYSCALL_DEFINE(set_tid_address, int* tidptr)
 {
-    printk("set_tid_address()\n");
     *tidptr = 0;
     return task_curr()->pid;
 }

@@ -78,7 +78,7 @@ int main(int argc, char** argv)
 
     if (rmfile(argv[i]))
     {
-        perror("rm: ");
+        perror("rm");
         return -1;
     }
 

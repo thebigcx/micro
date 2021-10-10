@@ -14,7 +14,7 @@ int main(int argc, char** argv)
 
     if (readlink(argv[1], link, 60) < 0)
     {
-        perror("readlink: ");
+        perror("readlink");
         return -1;
     }
 

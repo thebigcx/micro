@@ -95,7 +95,7 @@ int main(int argc, char** argv)
         if (!strncmp(line, "cd", 2))
         {
             if (chdir(argv[1]) != 0)
-                perror("cd: ");
+                perror("cd");
             continue;
         }
 
@@ -109,7 +109,7 @@ int main(int argc, char** argv)
             
             if (execve(bin, (const char**)argv, envp))
             {
-                perror("sh: ");
+                perror("sh");
                 continue;
             }
         }

@@ -48,7 +48,7 @@ int main(int argc, char** argv)
 
     if (res)
     {
-        perror("ln: ");
+        perror("ln");
         return -1;
     }
 

@@ -92,7 +92,7 @@ int main(int argc, char** argv)
 
     if (chmod(argv[2], mode))
     {
-        perror("chmod: ");
+        perror("chmod");
         return -1;
     }
 

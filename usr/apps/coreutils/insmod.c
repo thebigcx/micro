@@ -14,7 +14,7 @@ int main(int argc, char** argv)
     int fd;
     if ((fd = open(argv[1], O_RDONLY, 0)) == -1)
     {
-        perror("insmod: ");
+        perror("insmod");
         return 0;
     }
     
@@ -24,7 +24,7 @@ int main(int argc, char** argv)
     void* data = malloc(len);
     if (read(fd, data, len) == -1)
     {
-        perror("insmod: ");
+        perror("insmod");
         return 0;
     }
 

@@ -16,7 +16,7 @@ int main(int argc, char** argv)
     struct stat buf;
     if (lstat(argv[1], &buf))
     {
-        perror("stat: ");
+        perror("stat");
         return -1;
     }
 

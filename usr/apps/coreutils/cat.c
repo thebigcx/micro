@@ -15,7 +15,7 @@ int main(int argc, char** argv)
     int fd;
     if ((fd = open(argv[1], O_RDONLY, 0)) < 0)
     {
-        perror("cat: ");
+        perror("cat");
         return 0;
     }
 

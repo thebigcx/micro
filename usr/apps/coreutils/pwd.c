@@ -6,7 +6,7 @@ int main(int argc, char** argv)
     char buf[64];
     if (getcwd(buf, 64) == -1)
     {
-        perror("pwd: ");
+        perror("pwd");
         return -1;
     }
 

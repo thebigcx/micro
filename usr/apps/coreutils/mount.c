@@ -11,7 +11,7 @@ int main(int argc, char** argv)
 
     if (mount(argv[1], argv[2], argv[3], 0, NULL) == -1)
     {
-        perror("mount: ");
+        perror("mount");
         return -1;
     }
 

@@ -11,7 +11,7 @@ int main(int argc, char** argv)
 
     if (rmdir(argv[1]))
     {
-        perror("rmdir: ");
+        perror("rmdir");
         return -1;
     }
 

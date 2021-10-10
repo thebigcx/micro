@@ -4,6 +4,7 @@
 #include <micro/list.h>
 #include <micro/ringbuf.h>
 #include <micro/stdlib.h>
+#include <micro/sched.h>
 
 struct pipe
 {
@@ -31,7 +32,7 @@ ssize_t pipe_read(struct file* file, void* buf, off_t off, size_t size)
         sched_yield();
     }
 
-    bytes = bytes < size ? bytes : size;
+    bytes = bytes < (ssize_t)size ? bytes : (ssize_t)size;
 
     ringbuf_read(pipe->buffer, buf, bytes);
 
@@ -56,7 +57,7 @@ ssize_t pipe_write(struct file* file, const void* buf, off_t off, size_t size)
 
     ssize_t empty = pipe->buffer->size - ringbuf_size(pipe->buffer);
 
-    ssize_t bytes = size < empty ? size : empty;
+    ssize_t bytes = (ssize_t)size < empty ? (ssize_t)size : empty;
     ringbuf_write(pipe->buffer, buf, bytes);
 
     return bytes;

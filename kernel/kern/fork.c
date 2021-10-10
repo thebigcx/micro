@@ -2,6 +2,7 @@
 #include <micro/sched.h>
 #include <micro/thread.h>
 #include <micro/stdlib.h>
+#include <micro/debug.h>
 
 SYSCALL_DEFINE(fork)
 {

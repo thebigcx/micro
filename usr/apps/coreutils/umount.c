@@ -11,7 +11,7 @@ int main(int argc, char** argv)
 
     if (umount(argv[1]) == -1)
     {
-        perror("umount: ");
+        perror("umount");
         return -1;
     }
 

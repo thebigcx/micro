@@ -125,18 +125,6 @@ static void inode2file(struct ext2_volume* vol, unsigned int inonum,
     file->blocks  = ino->sectors * (vol->blksize / 512);
 }
 
-static void dirent2file(struct ext2_volume* vol, struct ext2_dirent* dirent,
-                        struct inode* file)
-{
-    struct ext2_inode ino;
-    ext2_read_inode(vol, dirent->inode, &ino);
-    
-    char* name = kmalloc(dirent->name_len + 1);
-    strncpy(name, dirent->name, dirent->name_len);
-
-    inode2file(vol, dirent->inode, &ino, file);
-}
-
 #define INO_SIND 12 // Singly indirect
 #define INO_DIND 13 // Doubly indirect
 #define INO_TIND 14 // Triply indirect
@@ -332,6 +320,8 @@ static int todenttype(int type)
         case DIRENT_SOCKET:   return DT_SOCK;
         case DIRENT_SYMLINK:  return DT_LNK;
     }
+    
+    return DT_UNKNOWN;
 }
 
 ssize_t ext2_getdents(struct inode* dir, off_t off, size_t n, struct dirent* dirp)
@@ -416,7 +406,7 @@ void ext2_resize(struct inode* file, size_t size)
 
 ssize_t ext2_read(struct file* file, void* buf, off_t off, size_t size)
 {
-    if (off > file->inode->size) return 0;
+    if ((size_t)off > file->inode->size) return 0;
     if (off + size > file->inode->size)
     {
         size = file->inode->size - off;
@@ -578,6 +568,8 @@ int ext2_set_mtime(struct inode* ino, time_t mtime)
 
 void ext2_init_inode(struct ext2_volume* vol, struct ext2_inode* ino, struct inode* file)
 {
+    (void)vol;
+    
     memset(ino, 0, sizeof(struct ext2_inode));
 
     ino->mode   = file->mode;
@@ -590,8 +582,6 @@ void ext2_init_inode(struct ext2_volume* vol, struct ext2_inode* ino, struct ino
     ino->ctime   = time_getepoch();
     ino->atime   = ino->ctime;
     ino->mtime   = ino->ctime;
-    
-    //ext2_set_inode_blk(vol, ino, 0, ext2_alloc_blk(vol)); // One block to start off with
 }
 
 static void ext2_append_dirent(struct inode* dir, struct ext2_dirent* dirent)
@@ -675,7 +665,7 @@ void ext2_mkentry(struct inode* dir, struct inode* file, const char* name)
     ext2_append_dirent(dir, dirent);
 }
 
-void ext2_mkdir(struct inode* dir, const char* name, mode_t mode, uid_t uid, gid_t gid)
+int ext2_mkdir(struct inode* dir, const char* name, mode_t mode, uid_t uid, gid_t gid)
 {
     struct inode file;
     memset(&file, 0, sizeof(struct inode));
@@ -723,9 +713,11 @@ void ext2_mkdir(struct inode* dir, const char* name, mode_t mode, uid_t uid, gid
     memcpy(buf + dotsize, parent, parent->size);
 
     write_blocks(vol, buf, ext2_inode_blk(vol, &ino, 0), 1);
+
+    return 0;
 }
 
-void ext2_mknod(struct inode* dir, const char* name, mode_t mode, dev_t dev, uid_t uid, gid_t gid)
+int ext2_mknod(struct inode* dir, const char* name, mode_t mode, dev_t dev, uid_t uid, gid_t gid)
 {
     struct inode file;
     memset(&file, 0, sizeof(struct inode));
@@ -738,10 +730,12 @@ void ext2_mknod(struct inode* dir, const char* name, mode_t mode, dev_t dev, uid
         file.rdev = dev;
 
     ext2_mkentry(dir, &file, name);
+
+    return 0;
 }
 
 // TODO: error code
-void ext2_unlink(struct inode* dir, const char* name)
+int ext2_unlink(struct inode* dir, const char* name)
 {
     struct ext2_volume* vol = dir->priv;
 
@@ -767,7 +761,8 @@ void ext2_unlink(struct inode* dir, const char* name)
             entry->size = size;
 
             write_blocks(vol, buf, ext2_inode_blk(vol, &ino, blk), 1);
-            return;
+            kfree(buf);
+            return 0;
         }
 
         if (offset >= vol->blksize)
@@ -778,6 +773,7 @@ void ext2_unlink(struct inode* dir, const char* name)
     }
 
     kfree(buf);
+    return -ENOENT;
 }
 
 int ext2_chmod(struct file* file, mode_t mode)
@@ -816,7 +812,7 @@ int ext2_readlink(struct inode* file, char* buf, size_t n)
 
     n = INOSIZE(ino) < n ? INOSIZE(ino) : n;
 
-    char* link = ino.blocks;
+    char* link = (char*)ino.blocks;
     memcpy(buf, link, n);
 
     return n;
@@ -842,6 +838,7 @@ int ext2_symlink(struct inode* file, const char* link)
 int ext2_link(struct inode* old, const char* name, struct inode* dir)
 {
     struct ext2_volume* vol = old->priv;
+    (void)vol;
 
     size_t size = sizeof(struct ext2_dirent) + strlen(name);
 

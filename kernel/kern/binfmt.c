@@ -30,10 +30,10 @@ void gen_auxv(auxv_t* aux, struct task* task)
     aux[i++] = (auxv_t) { .a_type = AT_NULL };
 }
 
-void setup_user_stack(struct task* task, const char* argv[], const char* envp[])
+void setup_user_stack(struct task* task, char* const argv[], char* const envp[])
 {
-    int argc = 0, envc = 0, auxc = 0;
-    uintptr_t args[64], envs[64], aux_ptrs[64];
+    int argc = 0, envc = 0;
+    uintptr_t args[64], envs[64];
 
     auxv_t auxv[64];
     gen_auxv(auxv, task);
@@ -104,8 +104,8 @@ int valid_elf(struct elf_hdr* header)
         && header->ident[EI_VERSION] == EV_CURRENT;
 }
 
-int elf_load(struct vm_map* vm_map, void* data, const char* argv[],
-             const char* envp[], uintptr_t* rip, uintptr_t* brk)
+int elf_load(struct vm_map* vm_map, void* data, char* const argv[],
+             char* const envp[], uintptr_t* rip, uintptr_t* brk)
 {
     *brk = 0;
 

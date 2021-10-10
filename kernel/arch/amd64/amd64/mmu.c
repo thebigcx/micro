@@ -560,7 +560,7 @@ void vm_map_anon_alloc(struct vm_map* map, struct vm_area* area, uintptr_t base,
 {
     base -= area->base;
 
-    struct anon_vmo* anon = area->obj;
+    struct anon_vmo* anon = (struct anon_vmo*)area->obj;
 
     for (uintptr_t i = base / PAGE4K; i < (base + size) / PAGE4K; i++)
     {
@@ -585,7 +585,7 @@ int vm_map_handle_fault(struct vm_map* map, uintptr_t addr)
         {
             if (area->obj->type == VMO_ANON)
             {
-                struct anon_vmo* anon = area->obj;
+                struct anon_vmo* anon = (struct anon_vmo*)area->obj;
                 
                 unsigned int i = (addr - area->base) / PAGE4K;
                 anon->pages[i] = mmu_alloc_phys();

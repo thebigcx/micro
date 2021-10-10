@@ -14,7 +14,7 @@ struct task;
 
 struct thread
 {
-    unsigned int id;
+    pid_t id;
     int state;
     struct regs regs;
     struct task* parent;

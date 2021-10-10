@@ -3,6 +3,8 @@
 #include <micro/try.h>
 #include <micro/fcntl.h>
 #include <micro/time.h>
+#include <micro/heap.h>
+#include <micro/debug.h>
 
 int do_utime(const char* path, const struct utimbuf* times)
 {
@@ -23,6 +25,8 @@ int do_utime(const char* path, const struct utimbuf* times)
 
     TRY(file.inode->ops.set_atime(file.inode, times->actime));
     TRY(file.inode->ops.set_atime(file.inode, times->modtime));
+
+    return 0;
 }
 
 // TODO: implement

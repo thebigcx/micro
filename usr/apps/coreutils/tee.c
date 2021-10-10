@@ -5,7 +5,7 @@ int main(int argc, char** argv)
     FILE* file = argv[1] ? fopen(argv[1], "w+") : stderr;
     if (!file)
     {
-        perror("tee: ");
+        perror("tee");
         return -1;
     }
 

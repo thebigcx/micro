@@ -52,7 +52,7 @@ int main(int argc, char** argv)
         const char** args = &argv[1];
         if (execv(args[0], args) == -1)
         {
-            perror("db: ");
+            perror("db");
             return -1;
         }
     }

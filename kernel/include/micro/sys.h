@@ -49,8 +49,8 @@ SYSCALL_DEFINE(waitpid,      int pid, int* wstatus, int options);
 SYSCALL_DEFINE(kill,         int pid, int sig);
 SYSCALL_DEFINE(insmod,       void* data, size_t len);
 SYSCALL_DEFINE(rmmod,        const char* name);
-SYSCALL_DEFINE(execve,       const char* path, const char* argv[],
-                             const char* envp[]);
+SYSCALL_DEFINE(execve,       const char* path, char* const argv[],
+                             char* const envp[]);
 SYSCALL_DEFINE(time,         time_t* time);
 SYSCALL_DEFINE(ptsname,      int fdno, char* buf, size_t n);
 SYSCALL_DEFINE(getdents,     int fdno, struct dirent* dirp, size_t n);

@@ -13,10 +13,10 @@ unsigned long ksys_do_mmap(void* addr, size_t length, int prot, int flags, int f
         // TEMP
         if (flags & MAP_SHARED) return (unsigned long)-EINVAL;
         
-        if (addr < task_curr()->brk)
-            addr = task_curr()->brk;
+        if ((uintptr_t)addr < task_curr()->brk)
+            addr = (void*)task_curr()->brk;
 
-        struct vm_area* area = vm_map_anon(task_curr()->vm_map, addr, length, flags & MAP_FIXED);
+        struct vm_area* area = vm_map_anon(task_curr()->vm_map, (uintptr_t)addr, length, flags & MAP_FIXED);
         vm_map_anon_alloc(task_curr()->vm_map, area, area->base, length); // TODO: TEMP (SHOULD NOT ALLOCATE)
         return area->base;
     }
@@ -31,7 +31,7 @@ unsigned long ksys_do_mmap(void* addr, size_t length, int prot, int flags, int f
 
         if (fd->ops.mmap)
         {
-            struct vm_area* area = vm_map_anon(task_curr()->vm_map, addr, length, flags & MAP_FIXED);
+            struct vm_area* area = vm_map_anon(task_curr()->vm_map, (uintptr_t)addr, length, flags & MAP_FIXED);
             
             vfs_mmap(fd, area);
         }
@@ -78,9 +78,9 @@ SYSCALL_DEFINE(brk, void* addr)
         return task_curr()->brk;
    
     uintptr_t old = task_curr()->brk;
-    ksys_do_mmap(old, addr - old, 0, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+    ksys_do_mmap((void*)old, (size_t)(addr - old), 0, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
 
-    return task_curr()->brk = addr;
+    return task_curr()->brk = (uintptr_t)addr;
 }
 
 SYSCALL_DEFINE(mprotect, void* addr, size_t len, int prot)

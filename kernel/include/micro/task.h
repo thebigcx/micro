@@ -14,7 +14,7 @@ struct thread;
 
 struct task
 {
-    unsigned int pid, pgid, sid;
+    pid_t pid, pgid, sid;
 
     struct list threads;  // struct thread*[]
     struct list children; // struct task*[]
@@ -69,7 +69,7 @@ struct task* task_curr();
 
 void task_send(struct task* task, int signal);
 
-int task_execve(struct task* task, const char* path, const char* argv[], const char* envp[]);
+int task_execve(struct task* task, const char* path, char* const argv[], char* const envp[]);
 
 void task_exit(int val);
 void task_delete(struct task* task);

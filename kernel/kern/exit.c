@@ -2,6 +2,7 @@
 #include <micro/wait.h>
 #include <micro/thread.h>
 #include <micro/sched.h>
+#include <micro/debug.h>
 
 SYSCALL_DEFINE(exit, int stat)
 {

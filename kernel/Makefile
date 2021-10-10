@@ -1,5 +1,5 @@
 LDFLAGS = -Tkernel.ld -nostdlib -zmax-page-size=0x1000 -static -pie --no-dynamic-linker -ztext
-CFLAGS = -Wall -Wextra -Wno-unused-parameter -ffreestanding -fno-stack-protector -fno-pic -fpie -mno-red-zone -nostdinc -Iinclude -Iinclude/uapi
+CFLAGS = -Wall -Wextra -Wno-unused-parameter -Wno-unused-function -ffreestanding -fno-stack-protector -fno-pic -fpie -mno-red-zone -nostdinc -Iinclude -Iinclude/uapi
 
 include arch/amd64/amd64.mk
 include kern/kern.mk

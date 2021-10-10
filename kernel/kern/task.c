@@ -39,7 +39,7 @@ static struct task* mktask(struct task* parent, struct vm_map* vm_map)
 // TODO: fix this up - should move into a more syscall-oriented approach, as this
 // is never called from the kernel (execept for /bin/init)
 static void init_user_task(struct task* task, const char* path,
-                          const char* argv[], const char* envp[], uintptr_t entry, uintptr_t brk)
+                          char* const argv[], char* const envp[], uintptr_t entry, uintptr_t brk)
 {
     task->main = thread_creat(task, 0, 1);
 
@@ -80,16 +80,18 @@ struct task* task_init_creat()
     struct task* task = mktask(NULL, mmu_create_vmmap());
 
     struct file file;
-    TRY(vfs_open("/init", &file, O_RDONLY));
+    if (vfs_open("/init", &file, O_RDONLY))
+        return NULL; // Shits gonna hit the fan
 
     void* data = kmalloc(file.inode->size);
     vfs_read(&file, data, file.inode->size);
 
-    const char* argv[] = { "/init", NULL };
-    const char* envp[] = { NULL };
+    char* const argv[] = { "/init", NULL };
+    char* const envp[] = { NULL };
 
     uintptr_t entry, brk;
-    TRY(elf_load(task->vm_map, data, argv, envp, &entry, &brk));
+    if (elf_load(task->vm_map, data, argv, envp, &entry, &brk))
+        return NULL;
 
     init_user_task(task, argv[0], argv, envp, entry, brk);
 
@@ -154,7 +156,7 @@ struct task* task_clone(struct task* src, struct thread* calling)
 }
 
 // TODO: move into exec.c
-int task_execve(struct task* task, const char* path, const char* argv[], const char* envp[])
+int task_execve(struct task* task, const char* path, char* const argv[], char* const envp[])
 {
     struct file file;
     TRY(vfs_open(path, &file, O_RDONLY));
@@ -174,7 +176,7 @@ int task_execve(struct task* task, const char* path, const char* argv[], const c
         while (argv[argc - 1]) argc++;
 
         char* nargv[argc + 1];
-        nargv[0] = interp;
+        nargv[0] = strdup(interp);
         memcpy(&nargv[1], &argv[0], argc * sizeof(const char*));
 
         struct file interp;

@@ -126,13 +126,13 @@ void sched_yield()
     asm volatile ("int $0xfe");
 }
 
-struct task* sched_task_fromid(int id)
+struct task* sched_task_fromid(pid_t id)
 {
     LIST_FOREACH(&tasks)
     {
         struct task* task = node->data;
 
-        if (task->pid == (unsigned int)id) return task;
+        if (task->pid == id) return task;
     }
 
     return NULL;

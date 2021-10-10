@@ -45,7 +45,6 @@ int do_sys_open(const char* path, uint32_t flags, mode_t mode)
 // TODO: make opening files better and more organized
 SYSCALL_DEFINE(open, const char* path, uint32_t flags, mode_t mode)
 {
-    printk("open(%s)\n", path);
     PTRVALID(path);
 
     // Must specify an access mode
@@ -110,7 +109,7 @@ SYSCALL_DEFINE(getcwd, char* buf, size_t size)
 
     strcpy(buf, task->workd);
 
-    return buf;
+    return (uintptr_t)buf;
 }
 
 SYSCALL_DEFINE(chmod, const char* pathname, mode_t mode)

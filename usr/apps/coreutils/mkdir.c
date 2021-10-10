@@ -13,7 +13,7 @@ int main(int argc, char** argv)
 
     if (mkdir(argv[1], 0777) == -1)
     {
-        perror("mkdir: ");
+        perror("mkdir");
         return -1;
     }
 

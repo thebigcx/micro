@@ -9,6 +9,8 @@
 #include <micro/sys.h>
 #include <micro/stdlib.h>
 #include <micro/devfs.h>
+#include <micro/sched.h>
+#include <micro/debug.h>
 
 ssize_t pts_read(struct file* file, void* buf, off_t off, size_t size)
 {
@@ -246,21 +248,5 @@ SYSCALL_DEFINE(ptsname, int fdno, char* buf, size_t n)
 {
     // TODO: this is temporary!!
     strcpy(buf, "/dev/pts/0");
-    return 0;
-
-    PTRVALID(buf);
-    FDVALID(fdno);
-
-    struct file* fd = task_curr()->fds[fdno];
-
-    // TODO: struct inode should hold flags like MASTER_PTY, DEVICE, etc (for fcntl() calls)
-    // THIS IS DANGEROUS - IT MIGHT NOT BE A MASTER PTY
-    struct pt* pt = fd->inode->priv;
-
-    //if (strlen("/dev/pts/") + strlen(pt->pts->name) >= n) return -ERANGE;
-
-    strcpy(buf, "/dev/pts/");
-    //strcpy(buf + strlen(buf), pt->pts->name);
-
     return 0;
 }

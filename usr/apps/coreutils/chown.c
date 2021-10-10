@@ -32,7 +32,7 @@ int main(int argc, char** argv)
 
     if (chown(argv[2], uid, gid))
     {
-        perror("chown: ");
+        perror("chown");
         return -1;
     }
 

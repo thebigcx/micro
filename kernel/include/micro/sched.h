@@ -23,7 +23,7 @@ void sched_yield();
 
 void sched_spawnthread(struct thread* thread);
 
-struct task* sched_task_fromid(int id);
+struct task* sched_task_fromid(pid_t id);
 
 // sem.c - Semaphore functionality
 struct sem* sem_create(size_t max);

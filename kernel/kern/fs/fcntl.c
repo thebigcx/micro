@@ -1,6 +1,7 @@
 #include <micro/sys.h>
 #include <micro/vfs.h>
 #include <micro/fcntl.h>
+#include <micro/debug.h>
 
 SYSCALL_DEFINE(fcntl, int fdno, int cmd, unsigned long arg)
 {

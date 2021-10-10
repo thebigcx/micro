@@ -45,7 +45,6 @@ ssize_t fb_read(struct file* file, void* buf, off_t off, size_t size)
 
 ssize_t fb_write(struct file* file, const void* buf, off_t off, size_t size)
 {
-    printk("fb write\n");
     size = min(size, file->inode->size - off);
     
     memcpy((void*)((uintptr_t)fb.addr + off), buf, size);

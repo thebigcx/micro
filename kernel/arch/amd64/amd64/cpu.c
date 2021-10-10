@@ -42,14 +42,14 @@ void arch_enter_signal(struct thread* thread, int sig)
     r.cs     = GDT_CODE3 | 3;
     r.ss     = GDT_DATA3 | 3;
     r.rflags = 0x202;
-    r.rip    = thread->parent->signals[sig].sa_handler;
+    r.rip    = (uintptr_t)thread->parent->signals[sig].sa_handler;
     r.rsp    = thread->sigstack; // One thread per task to handle signal
 
     // Push the return address onto the task's signal stack
     lcr3(thread->parent->vm_map->pml4_phys);
 
     r.rsp -= 0x8;
-    *(uintptr_t*)r.rsp = thread->parent->signals[sig].sa_restorer;
+    *(uintptr_t*)r.rsp = (uintptr_t)thread->parent->signals[sig].sa_restorer;
 
     _switch_ctx(&r, thread->parent->vm_map->pml4_phys, r.ss);
 }

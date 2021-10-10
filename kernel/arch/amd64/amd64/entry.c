@@ -15,6 +15,7 @@
 #include <micro/task.h>
 #include <micro/sched.h>
 #include <micro/fbdev.h>
+#include <arch/fpu.h>
 
 static uint8_t stack[4096];
 

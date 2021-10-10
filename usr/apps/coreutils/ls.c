@@ -128,7 +128,7 @@ int main(int argc, char** argv)
     DIR* dir = opendir(path);
     if (!dir)
     {
-        perror("ls: ");
+        perror("ls");
         return -1;
     }
 

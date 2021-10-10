@@ -127,8 +127,7 @@ void thread_handle_signals(struct thread* thread)
         if (signo != SIGKILL && signo != SIGSTOP && (thread->sigmask & (1 << signo)))
             return;
 
-        uintptr_t handler = thread->parent->signals[signo].sa_handler;
-        printk("%x\n", handler);
+        sighandler_t handler = thread->parent->signals[signo].sa_handler;
 
         if (!handler || handler == SIG_DFL) // SIG_DFL is 0 anyway
         {
