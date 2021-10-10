@@ -17,6 +17,13 @@ static void init_thread_meta(struct thread* thread, struct task* parent)
     mmu_kmap(kstack, mmu_alloc_phys(), PAGE_PR | PAGE_RW);
 
     thread->kstack = kstack + PAGE4K;
+    
+    thread->sigqueue = list_create();
+    thread->sigmask  = 0;
+
+    struct vm_area* sigstack = vm_map_anon(parent->vm_map, 0, PAGE4K, 0);
+    vm_map_anon_alloc(parent->vm_map, sigstack, sigstack->base, sigstack->end - sigstack->base);
+    thread->sigstack = sigstack->end;
 }
 
 struct thread* thread_creat(struct task* parent, uintptr_t entry, int usr)
@@ -105,37 +112,38 @@ void thread_handle_contsig(struct thread* thread)
 
 void thread_handle_signals(struct thread* thread)
 {
-    while (thread->parent->sigqueue.size)
+    while (thread->sigqueue.size)
     {
-        int* sigptr = list_dequeue(&thread->parent->sigqueue);
-        int sig = *sigptr;
-        kfree(sigptr);
-        printk("pid=%d handling signal %d\n", thread->parent->pid, sig);
+        struct signal* sig = list_dequeue(&thread->sigqueue);
+        int signo = sig->num;
+        kfree(sig);
+        
+        printk("pid=%d handling signal %d\n", thread->parent->pid, signo);
 
         if (thread->parent->tracer)
-            handle_stopsig(thread, sig);
+            handle_stopsig(thread, signo);
 
         // Ignore signal if in the signal mask
-        if (sig != SIGKILL && sig != SIGSTOP && (thread->parent->sigmask & (1 << sig)))
+        if (signo != SIGKILL && signo != SIGSTOP && (thread->sigmask & (1 << signo)))
             return;
 
-        uintptr_t handler = thread->parent->signals[sig].sa_handler;
+        uintptr_t handler = thread->parent->signals[signo].sa_handler;
         printk("%x\n", handler);
 
         if (!handler || handler == SIG_DFL) // SIG_DFL is 0 anyway
         {
-            switch (defaults[sig])
+            switch (defaults[signo])
             {
                 case SIGDEF_TERM:
-                    task_exit(sig);
+                    task_exit(signo);
                     break;
 
                 case SIGDEF_CORE:
-                    task_exit(sig | 0x80); // Core flag 0x80
+                    task_exit(signo | 0x80); // Core flag 0x80
                     break;
 
                 case SIGDEF_STOP:
-                    handle_stopsig(thread, sig);
+                    handle_stopsig(thread, signo);
                     break;
                     
                 case SIGDEF_CONT:
@@ -149,7 +157,7 @@ void thread_handle_signals(struct thread* thread)
         }
         else
         {
-            arch_enter_signal(thread, sig);
+            arch_enter_signal(thread, signo);
         }
     }
 }

@@ -29,10 +29,7 @@ struct task
 
     char workd[64]; // Working directory
 
-    struct list  sigqueue;  // struct int[]
     struct sigaction signals[32];
-    uintptr_t    sigstack;
-    sigset_t     sigmask; // TODO: sigmask should be per-thread
 
     int status;
     int state;
@@ -55,6 +52,12 @@ struct task
     
     uintptr_t brk;
 };  
+
+struct signal
+{
+    int num;
+    struct thread* thr; // NULL if process-directed
+};
 
 struct thread;
 

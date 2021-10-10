@@ -64,7 +64,6 @@ void devfs_init()
     vfs_mount_fs("", "/dev", "devfs", NULL);
 }
 
-// TODO: remove 'new'
 static void devfs_register(struct file_ops* ops, const char* name, mode_t mode, void* priv)
 {
     struct inode* file = kcalloc(sizeof(struct inode));

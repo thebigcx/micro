@@ -59,27 +59,17 @@ void sched_init()
 void switch_next()
 {
     struct cpu_info* cpu = cpu_curr();
-    if (TEST_LOCK(cpu->lock)) return;
 
     do
     {
         cpu->current = next_ready(cpu);
     } while (cpu->current->state != THREAD_READY);
-
-    if (cpu->current == cpu->current->parent->main)
-    {
-        if (cpu->current->parent->sigqueue.size)
-        {
-            UNLOCK(cpu->lock); // In case of task switch
-            thread_handle_signals(cpu->current);
-            LOCK(cpu->lock);
-        }
-    }
+    
+    if (cpu->current->sigqueue.size)
+        thread_handle_signals(cpu->current); 
 
     cpu->current->state = THREAD_RUNNING;
     cpu_set_kstack(cpu, cpu->current->kstack);
-
-    UNLOCK(cpu->lock);
 
     arch_switch_ctx(cpu->current);
 }

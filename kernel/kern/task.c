@@ -25,7 +25,6 @@ static struct task* mktask(struct task* parent, struct vm_map* vm_map)
     task->vm_map   = vm_map;
     task->children = list_create();
     task->parent   = parent;
-    task->sigqueue = list_create();
     task->umask    = 0022;
     
     strcpy(task->workd, "/");
@@ -56,10 +55,6 @@ static void init_user_task(struct task* task, const char* path,
     task->main->regs.rsp = stack;
     task->main->regs.rbp = stack;
     task->main->regs.rip = entry;
-
-    struct vm_area* sigstack = vm_map_anon(task->vm_map, 0, PAGE4K, 0);
-    vm_map_anon_alloc(task->vm_map, sigstack, sigstack->base, sigstack->end - sigstack->base);
-    task->sigstack = sigstack->end;
 
     setup_user_stack(task, argv, envp);
 
@@ -154,7 +149,6 @@ struct task* task_clone(struct task* src, struct thread* calling)
     }
 
     memcpy(task->signals, src->signals, sizeof(struct sigaction) * 32);
-    task->sigmask = src->sigmask;
 
     return task;
 }
@@ -283,9 +277,10 @@ void task_delete(struct task* task)
 
 void task_send(struct task* task, int signal)
 {
-    int* sig = kmalloc(sizeof(int));
-    *sig = signal;
-    list_enqueue(&task->sigqueue, sig);
+    struct signal* sig = kcalloc(sizeof(struct signal));
+    sig->num = signal;
+    sig->thr = NULL;
+    list_enqueue(&task->main->sigqueue, sig);
 
     if (task == task_curr())
         sched_yield();

@@ -2,6 +2,7 @@
 #include <micro/sys.h>
 #include <micro/sched.h>
 #include <micro/stdlib.h>
+#include <micro/thread.h>
 
 #include <arch/cpu.h>
 
@@ -45,23 +46,23 @@ SYSCALL_DEFINE(sigprocmask, int how, const sigset_t* set, sigset_t* oldset)
     PTRVALIDNULL(set);
     PTRVALIDNULL(oldset);
 
-    struct task* task = task_curr();
+    struct thread* thread = thread_curr();
 
     if (oldset)
-        *oldset = task->sigmask;
+        *oldset = thread->sigmask;
 
     if (set)
     {
         switch (how)
         {
             case SIG_BLOCK:
-                task->sigmask |= *set;
+                thread->sigmask |= *set;
                 break;
             case SIG_UNBLOCK:
-                task->sigmask &= ~(*set);
+                thread->sigmask &= ~(*set);
                 break;
             case SIG_SETMASK:
-                task->sigmask = *set;
+                thread->sigmask = *set;
                 break;
             default:
                 return -EINVAL;

@@ -11,3 +11,8 @@ typedef volatile int lock_t;
 
 #define UNLOCK(name)\
 	__sync_lock_release(&name);
+
+#define SCOPELOCK(name, code)   \
+        LOCK(name);             \
+        code                    \
+        UNLOCK(name);

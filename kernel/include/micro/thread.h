@@ -2,6 +2,7 @@
 
 #include <arch/reg.h>
 #include <micro/signal.h>
+#include <micro/list.h>
 
 #define THREAD_RUNNING  0
 #define THREAD_READY    1
@@ -20,6 +21,10 @@ struct thread
     uintptr_t kstack;
 
     struct regs syscall_regs;
+    
+    struct list sigqueue;
+    uint32_t    sigmask;
+    uintptr_t   sigstack;
 };
 
 struct thread* thread_creat(struct task* parent, uintptr_t entry, int usr);
