@@ -23,7 +23,8 @@ SRCS := cat.c 		\
 		mv.c		\
 		rmdir.c		\
 		uname.c		\
-		grep.c
+		grep.c      \
+		clear.c
 
 OBJS := $(patsubst %.c, %.o, $(SRCS))
 TARGS := $(patsubst %.c, %, $(SRCS))

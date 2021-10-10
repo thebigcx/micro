@@ -77,12 +77,14 @@ static void movecurs(ansi_t ansi, int dx, int dy)
     ansi->cbs.gcurspos(&x, &y);
     
     if (x + dx >= 0)
-        ansi->cbs.scurspos(x + dx, y);
+        x += dx;
     if (y + dy >= 0)
-        ansi->cbs.scurspos(x, y + dy);
+        y += dy;
+    
+    ansi->cbs.scurspos(x, y);
 }
 
-ansi_t ansi_init(struct ansicbs* cbs)
+ansi_t ansi_init(struct ansicbs* cbs, struct winsize* sz)
 {
     struct ansistate* ansi = malloc(sizeof(struct ansistate));   
     
@@ -90,6 +92,7 @@ ansi_t ansi_init(struct ansicbs* cbs)
     
     ansi->fg = 0xffffffff;
     ansi->bg = 0x00000000;
+    ansi->sz = *sz;
 
     return (ansi_t)ansi;
 }
@@ -97,6 +100,8 @@ ansi_t ansi_init(struct ansicbs* cbs)
 int ansi_parse(ansi_t ansi)
 {
     ansi->cbs.tgetc(); // Skip '['
+
+    int n;
 
     char seq[32];
     int i = 0;
@@ -108,13 +113,42 @@ int ansi_parse(ansi_t ansi)
         case 'm':
             parse_gfx(ansi, seq);
             return 0;
-        case 'D':
-        {
+        case 'A':
             seq[i - 1] = 0;
-            int n = i - 1 == 0 ? 1 : atoi(seq); // Can omit # of cols
-            movecurs(ansi, -n, 0);
+            n = i - 1 == 0 ? -1 : -atoi(seq);
+            movecurs(ansi, 0, n);
             return 0;
+        case 'B':
+            seq[i - 1] = 0;
+            n = i - 1 == 0 ? 1 : atoi(seq);
+            movecurs(ansi, 0, n);
+            return 0;
+        case 'C':
+            seq[i - 1] = 0;
+            n = i - 1 == 0 ? 1 : atoi(seq);
+            movecurs(ansi, n, 0);
+            return 0;
+        case 'D':
+            seq[i - 1] = 0;
+            n = i - 1 == 0 ? -1 : -atoi(seq); // Can omit # of cols
+            movecurs(ansi, n, 0);
+            return 0;
+        case 'J':
+        {
+            if (i - 1 == 0)
+                ansi->cbs.clrsect(0, 0, ansi->sz.ws_col - 1, ansi->sz.ws_row - 1);
+            else
+            {
+                switch (seq[i - 2])
+                {
+                    
+                }
+            }
+            break;
         }
+        case 'H':
+            ansi->cbs.scurspos(0, 0);
+            break;
     }
 
     return 0;

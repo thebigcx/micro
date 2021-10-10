@@ -30,7 +30,7 @@ struct cell
     uint32_t fg, bg;
     char c;
     int dirty;
-}
+};
 
 static struct cell* cells;
 static int rows, cols;
@@ -65,14 +65,22 @@ static void load_font()
 
 struct cell* cellat(unsigned int x, unsigned int y)
 {
-    return &cells[y * rows + x];
+    return &cells[y * cols + x];
+}
+
+void setcell(struct cell* cell, char c, uint32_t fg, uint32_t bg)
+{
+    cell->c     = c;
+    cell->fg    = fg;
+    cell->bg    = bg;
+    cell->dirty = 1;
 }
 
 void draw_cell(unsigned int x, unsigned int y)
 {
     struct cell* cell = cellat(x, y);
 
-    char* face = (char*)font.buffer + (cell->ch * font.hdr.ch_size);
+    char* face = (char*)font.buffer + (cell->c * font.hdr.ch_size);
 
     for (uint64_t j = 0; j < 16; j++)
     {
@@ -102,6 +110,12 @@ void update()
     }
 }
 
+void update_all()
+{
+    for (size_t i = 0; i < rows * cols; i++)
+        draw_cell(i % cols, i / cols);
+}
+
 void clear()
 {
     uint32_t* p = fbaddr;
@@ -111,28 +125,30 @@ void clear()
 
 void scroll_down()
 {
-    // TODO
-    clear(0);
-    cy = 0;
+    for (size_t y = 1; y < rows; y++)
+    {
+        memcpy(&cells[(y - 1) * cols], &cells[y * cols], sizeof(struct cell) * cols);
+    }
+    memset(&cells[(rows - 1) * cols], 0, sizeof(struct cell) * cols);
+    
+    update_all();
+    cy = rows - 1;
 }
 
 void newline()
 {
-    drawch(' ');
     cy++;
     cx = 0;
 
-    if (cy == info.yres / 16)
-    {
+    if (cy == rows)
         scroll_down();
-    }
 }
 
 void tab()
 {
     for (size_t i = 0; i < 4 - (cx % 4); i++)
     {
-        drawch(' ');
+        //drawch(' ');
     }
 
     cx += 4 - (cx % 4);
@@ -146,15 +162,16 @@ void tab()
 
 void backspace()
 {
-    drawch(' ');
     cx--;
-    drawch(' ');
-
+    setcell(cellat(cx, cy), ' ', ansi->fg, ansi->bg);
     draw_cursor();
 }
 
 void draw_cursor()
 {
+    //return;
+    static int lx = 0, ly = 0;
+
     for (uint64_t j = 0; j < 16; j++)
     for (uint64_t i = 0; i < 8; i++)
     {
@@ -162,6 +179,11 @@ void draw_cursor()
         uint32_t y = (cy * 16) + j;
         *((uint32_t*)fbaddr + x + y * info.xres) = ansi->fg;
     }
+    
+    //setcell(cellat(lx, ly), ' ', ansi->fg, ansi->bg);
+    cellat(lx, ly)->dirty = 1;
+    lx = cx;
+    ly = cy;
 }
 
 void putch(char c)
@@ -196,34 +218,12 @@ void putch(char c)
         return;
     }
 
-    drawch(c);
+    setcell(cellat(cx, cy), c, ansi->fg, ansi->bg);
 
     cx++;
-    if (cx == info.xres / 8) newline();
+    if (cx == cols) newline();
 
     draw_cursor();
-}
-
-void drawch(char c)
-{
-    char* face = (char*)font.buffer + (c * font.hdr.ch_size);
-
-    uint32_t depth = info.bpp / 8;
-
-    for (uint64_t j = 0; j < 16; j++)
-    {
-        for (uint64_t i = 0; i < 8; i++)
-        {
-            uint32_t x = (cx * 8 ) + i;
-            uint32_t y = (cy * 16) + j;
-
-            uint32_t col = (*face & (0b10000000 >> i)) > 0
-                         ? ansi->fg : ansi->bg;
-
-            *((uint32_t*)fbaddr + x + y * info.xres) = col;
-        }
-        face++;
-    }
 }
 
 static char ascii[] =
@@ -331,6 +331,17 @@ void handle_kb(int sc)
 
 }
 
+static void clrsect(int fx, int fy, int tx, int ty)
+{
+    for (size_t i = fx + fy * cols; i < tx + ty * cols; i++)
+    {
+        memset(&cells[i], 0, sizeof(struct cell));
+        cells[i].dirty = 1;
+    }
+    
+    update();
+}
+
 static int tgetc(void) { return fgetc(ptm); }
 
 static void gcurspos(int* x, int* y)
@@ -348,13 +359,12 @@ struct ansicbs cbs =
 {
     .gcurspos = gcurspos,
     .scurspos = scurspos,
-    .tgetc    = tgetc
+    .tgetc    = tgetc,
+    .clrsect  = clrsect
 };
 
 int main(int argc, char** argv)
 {
-    ansi = ansi_init(&cbs);
-
     load_font();
 
     //putenv("HOME=/root");
@@ -392,6 +402,8 @@ int main(int argc, char** argv)
 
     ioctl(pts, TIOCSWINSZ, &winsize);
 
+    ansi = ansi_init(&cbs, &winsize);
+    
     dup2(ptsfd, 0);
     dup2(ptsfd, 1);
     dup2(ptsfd, 2);
@@ -421,6 +433,7 @@ int main(int argc, char** argv)
                 ansi_parse(ansi); 
             }
             else putch(c);
+            update();
         }
 
         int sc;
