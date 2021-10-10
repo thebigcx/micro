@@ -80,6 +80,17 @@ struct inode_ops
 #define CHECK_WPERM(file) if (vfs_checkperm(file, 02) == -1) return -EACCES;
 #define CHECK_XPERM(file) if (vfs_checkperm(file, 01) == -1) return -EACCES;
 
+#define DT_UNKNOWN 0
+#define DT_FIFO    1
+#define DT_CHR     2
+#define DT_DIR     4
+#define DT_BLK     6
+#define DT_REG     8
+#define DT_LNK     10
+#define DT_SOCK    12
+
+#define IFTODT(x) ((x) >> 12 & 017)
+
 // TODO: flags, modes, etc
 struct file // TODO: rename to 'file'
 {

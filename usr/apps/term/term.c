@@ -25,6 +25,16 @@ struct psf_font
     void*             buffer;
 };
 
+struct cell
+{
+    uint32_t fg, bg;
+    char c;
+    int dirty;
+}
+
+static struct cell* cells;
+static int rows, cols;
+
 static struct psf_font font;
 static struct fbinfo   info;
 static int             fb;
@@ -53,10 +63,49 @@ static void load_font()
     close(fnt);
 }
 
-void clear(uint32_t bg)
+struct cell* cellat(unsigned int x, unsigned int y)
+{
+    return &cells[y * rows + x];
+}
+
+void draw_cell(unsigned int x, unsigned int y)
+{
+    struct cell* cell = cellat(x, y);
+
+    char* face = (char*)font.buffer + (cell->ch * font.hdr.ch_size);
+
+    for (uint64_t j = 0; j < 16; j++)
+    {
+        for (uint64_t i = 0; i < 8; i++)
+        {
+            uint32_t nx = (x * 8 ) + i;
+            uint32_t ny = (y * 16) + j;
+
+            uint32_t color = (*face & (0b10000000 >> i)) > 0
+                           ? cell->fg : cell->bg;
+
+            *((uint32_t*)fbaddr + nx + ny * info.xres) = color;
+        }
+        face++;
+    }  
+}
+
+void update()
+{
+    for (size_t i = 0; i < rows * cols; i++)
+    {
+        if (cells[i].dirty)
+        {
+            draw_cell(i % cols, i / cols);
+            cells[i].dirty = 0;
+        }
+    }
+}
+
+void clear()
 {
     uint32_t* p = fbaddr;
-    do *p = bg;
+    do *p = ansi->bg;
     while ((uintptr_t)++p < (uintptr_t)fbend);
 }
 
@@ -69,7 +118,7 @@ void scroll_down()
 
 void newline()
 {
-    drawch(' ', 0, 0);
+    drawch(' ');
     cy++;
     cx = 0;
 
@@ -83,7 +132,7 @@ void tab()
 {
     for (size_t i = 0; i < 4 - (cx % 4); i++)
     {
-        drawch(' ', 0, 0);
+        drawch(' ');
     }
 
     cx += 4 - (cx % 4);
@@ -97,9 +146,9 @@ void tab()
 
 void backspace()
 {
-    drawch(' ', 0x0, 0x0);
+    drawch(' ');
     cx--;
-    drawch(' ', 0x0, 0x0);
+    drawch(' ');
 
     draw_cursor();
 }
@@ -111,11 +160,11 @@ void draw_cursor()
     {
         uint32_t x = (cx * 8 ) + i;
         uint32_t y = (cy * 16) + j;
-        *((uint32_t*)fbaddr + x + y * info.xres) = 0xffffffff;
+        *((uint32_t*)fbaddr + x + y * info.xres) = ansi->fg;
     }
 }
 
-void putch(char c, uint32_t fg, uint32_t bg)
+void putch(char c)
 {
     if (c == '\n')
     {
@@ -147,7 +196,7 @@ void putch(char c, uint32_t fg, uint32_t bg)
         return;
     }
 
-    drawch(c, fg, bg);
+    drawch(c);
 
     cx++;
     if (cx == info.xres / 8) newline();
@@ -155,7 +204,7 @@ void putch(char c, uint32_t fg, uint32_t bg)
     draw_cursor();
 }
 
-void drawch(char c, uint32_t fg, uint32_t bg)
+void drawch(char c)
 {
     char* face = (char*)font.buffer + (c * font.hdr.ch_size);
 
@@ -169,7 +218,7 @@ void drawch(char c, uint32_t fg, uint32_t bg)
             uint32_t y = (cy * 16) + j;
 
             uint32_t col = (*face & (0b10000000 >> i)) > 0
-                         ? fg : bg;
+                         ? ansi->fg : ansi->bg;
 
             *((uint32_t*)fbaddr + x + y * info.xres) = col;
         }
@@ -282,9 +331,24 @@ void handle_kb(int sc)
 
 }
 
+static int tgetc(void) { return fgetc(ptm); }
+
+static void gcurspos(int* x, int* y)
+{
+    *x = cx; *y = cy;
+}
+
+static void scurspos(int x, int y)
+{
+    cx = x; cy = y;
+    draw_cursor();
+}
+
 struct ansicbs cbs =
 {
-       
+    .gcurspos = gcurspos,
+    .scurspos = scurspos,
+    .tgetc    = tgetc
 };
 
 int main(int argc, char** argv)
@@ -301,11 +365,16 @@ int main(int argc, char** argv)
 
     ioctl(fb, FBIOGINFO, &info);
 
+    rows = info.yres / 16;
+    cols = info.xres / 8;
+
     size_t size = info.xres * info.yres * (info.bpp / 8);
 
     fbaddr = mmap(0x1000000, size, PROT_READ | PROT_WRITE,
                   MAP_PRIVATE, fb, 0);
     fbend = (void*)((uintptr_t)fbaddr + size);
+
+    cells = malloc(sizeof(struct cell) * rows * cols);
 
     char pts_name[128];
     openpty(&ptmfd, &ptsfd, pts_name, NULL, NULL);
@@ -315,8 +384,8 @@ int main(int argc, char** argv)
 
     struct winsize winsize =
     {
-        .ws_col = info.xres / 8,
-        .ws_row = info.yres / 16,
+        .ws_col = cols,
+        .ws_row = rows,
         .ws_xpixel = info.xres,
         .ws_ypixel = info.yres
     };
@@ -344,15 +413,14 @@ int main(int argc, char** argv)
 
     while (1)
     {
-        //printf("psadas");
         char c;
         if (read(ptmfd, &c, 1))
         {
             if (c == '\033')
             {
-                ansi_parse(ansi);    
+                ansi_parse(ansi); 
             }
-            else putch(c, 0xffffffff, 0);
+            else putch(c);
         }
 
         int sc;

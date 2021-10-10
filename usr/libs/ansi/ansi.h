@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdint.h>
+
 // ANSI callback functions
 struct ansicbs
 {
@@ -12,6 +14,8 @@ struct ansicbs
 struct ansistate
 {
     struct ansicbs cbs;
+
+    uint32_t fg, bg;
 };
 
 typedef struct ansistate* ansi_t;

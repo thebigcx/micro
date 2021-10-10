@@ -145,13 +145,19 @@ int ptsfs_lookup(struct inode* dir, const char* name, struct dentry* dentry)
 
 ssize_t ptsfs_getdents(struct inode* dir, off_t off, size_t size, struct dirent* dirp)
 {
-    size_t i;
+    size_t i, bytes = 0;
     for (i = 0; i < size; i++)
     {
         if (i + off == slaves.size) break;
 
         struct dentry* dev = list_get(&slaves, i + off);
+        
         strcpy(dirp[i].d_name, dev->name);
+        dirp[i].d_type = IFTODT(dev->file->mode & S_IFMT);
+        dirp[i].d_reclen = sizeof(struct dirent);
+        dirp[i].d_off    = sizeof(struct dirent) * (i + 1);
+        
+        bytes += sizeof(struct dirent);
     }
 
     return i;

@@ -20,3 +20,9 @@ struct utimbuf
     time_t actime;  // Access
     time_t modtime; // Modification
 };
+
+struct timespec
+{
+    time_t   tv_sec;
+    long int tv_nsec;
+};

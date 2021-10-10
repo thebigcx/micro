@@ -319,6 +319,21 @@ uint32_t ext2_alloc_inode(struct ext2_volume* vol)
     return 0;
 }
 
+static int todenttype(int type)
+{
+    switch (type)
+    {
+        case DIRENT_UNK:      return DT_UNKNOWN;
+        case DIRENT_FILE:     return DT_REG;
+        case DIRENT_DIR:      return DT_DIR;
+        case DIRENT_CHARDEV:  return DT_CHR;
+        case DIRENT_BLOCKDEV: return DT_BLK;
+        case DIRENT_FIFO:     return DT_FIFO;
+        case DIRENT_SOCKET:   return DT_SOCK;
+        case DIRENT_SYMLINK:  return DT_LNK;
+    }
+}
+
 ssize_t ext2_getdents(struct inode* dir, off_t off, size_t n, struct dirent* dirp)
 {
     struct ext2_volume* vol = dir->priv;
@@ -348,7 +363,7 @@ ssize_t ext2_getdents(struct inode* dir, off_t off, size_t n, struct dirent* dir
         dirp[dentidx].d_ino    = dirent->inode;
         dirp[dentidx].d_off    = sizeof(struct dirent) * (dentidx + 1);
         dirp[dentidx].d_reclen = sizeof(struct dirent);
-        dirp[dentidx].d_type   = dirent->type;
+        dirp[dentidx].d_type   = todenttype(dirent->type);
 
         strncpy(dirp[dentidx].d_name, dirent->name, dirent->name_len);
 

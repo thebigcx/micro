@@ -8,13 +8,19 @@
 int hidden = 0;
 int verbose = 0;
 
-void print_verbose(const char* path, const char* name)
+const char* mkfull(const char* path, const char* name)
 {
     char* full = malloc(strlen(path) + strlen(name) + 2);
     strcpy(full, path);
     strcat(full, "/");
     strcat(full, name);
 
+    return full;
+}
+
+void print_verbose(const char* path, const char* name)
+{
+    const char* full = mkfull(path, name);
     struct stat buf;
     lstat(full, &buf);
 
@@ -75,6 +81,23 @@ void print_verbose(const char* path, const char* name)
     free(full);
 }
 
+void print_normal(const char* path, struct dirent* dirent)
+{
+    switch (dirent->d_type)
+    {
+        case DT_DIR: printf("\033[94m"); break;
+        case DT_LNK: printf("\033[96m"); break;
+        case DT_CHR:
+        case DT_BLK: printf("\033[93;40m"); break;
+    }
+
+    printf("%s", dirent->d_name);
+  
+    printf("\033[0m");
+    if (dirent->d_type == DT_DIR) printf("/");
+    printf("\n");
+}
+
 int main(int argc, char** argv)
 {
     char opt;
@@ -116,7 +139,7 @@ int main(int argc, char** argv)
             continue;
 
         if (!verbose)
-            printf("%s\n", dirent->d_name);
+            print_normal(path, dirent);
         else
             print_verbose(path, dirent->d_name);
     }
