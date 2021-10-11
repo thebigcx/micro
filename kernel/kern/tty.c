@@ -80,13 +80,11 @@ int pt_ioctl(struct file* file, int req, void* argp)
         }
         case TIOCGPGRP:
         {
-            // TODO: this is bad
-            return task_curr()->pgid;
+            return pt->pgid;
         }
         case TIOCSPGRP:
         {
-            // TODO: this is bad - add a 'struct pt' to the task for the controlling terminal
-            task_curr()->pgid = *(pid_t*)argp;
+            pt->pgid = *(pid_t*)argp;
             return 0;
         }
         case FIONREAD:
@@ -214,9 +212,6 @@ int ptmx_open_new(struct inode* inode, struct file* file)
     file->ops = pt->ptm->fops;
     file->inode->priv = pt;
 
-    //file->inode->priv = pt;
-    //memcpy(file, pt->ptm, sizeof(struct inode));
-
     return 0;
 }
 
@@ -241,12 +236,4 @@ void tty_init()
     // Pseudoterminal slave filesystem
     vfs_register_fs("ptsfs", ptsfs_mount);
     vfs_mount_fs("", "/dev/pts", "ptsfs", NULL);
-}
-
-// TODO: use the /proc filesystem instead of this syscall
-SYSCALL_DEFINE(ptsname, int fdno, char* buf, size_t n)
-{
-    // TODO: this is temporary!!
-    strcpy(buf, "/dev/pts/0");
-    return 0;
 }

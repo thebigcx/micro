@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <signal.h>
+#include <stdlib.h>
 
 void usage()
 {
@@ -11,7 +12,6 @@ void usage()
 int main(int argc, char** argv)
 {
     struct sigaction act;
-    //memset(&act, 0, sizeof(struct sigaction));
     act.sa_handler = SIG_IGN;
     sigaction(SIGPIPE, &act, NULL);
 

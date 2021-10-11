@@ -631,6 +631,17 @@ static void ext2_append_dirent(struct inode* dir, struct ext2_dirent* dirent)
     }
 
     // TODO: allocate next block and write the dent there
+    
+    uint32_t i = pino.sectors / (vol->blksize / 512);
+    ext2_set_inode_blk(vol, &pino, i, ext2_alloc_blk(vol));
+
+    memset(buf, 0, vol->blksize);
+    memcpy(buf, dirent, dirent->size);
+    ((struct ext2_dirent*)buf)->size = vol->blksize;
+    write_blocks(vol, buf, ext2_inode_blk(vol, &pino, blk), 1);
+
+    ext2_write_inode(vol, dir->inode, &pino); 
+
     kfree(buf);
 }
 

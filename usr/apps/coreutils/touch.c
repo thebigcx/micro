@@ -1,6 +1,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <assert.h>
+#include <stdio.h>
 
 int main(int argc, char** argv)
 {

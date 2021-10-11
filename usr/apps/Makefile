@@ -1,2 +1,2 @@
-SUBDIRS = coreutils sh term test db
+SUBDIRS = init coreutils sh term test db
 include subdir.mk

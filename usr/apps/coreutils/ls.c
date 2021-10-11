@@ -4,11 +4,12 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <string.h>
+#include <time.h>
 
 int hidden = 0;
 int verbose = 0;
 
-const char* mkfull(const char* path, const char* name)
+char* mkfull(const char* path, const char* name)
 {
     char* full = malloc(strlen(path) + strlen(name) + 2);
     strcpy(full, path);
@@ -20,7 +21,7 @@ const char* mkfull(const char* path, const char* name)
 
 void print_verbose(const char* path, const char* name)
 {
-    const char* full = mkfull(path, name);
+    char* full = mkfull(path, name);
     struct stat buf;
     lstat(full, &buf);
 

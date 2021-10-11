@@ -10,8 +10,8 @@ int main(int argc, char** argv)
     if (pid == 0)
     {
         // Run the shell
-        const char* argv[] = { "/usr/bin/term", NULL };
-        const char* envp[] = { NULL };
+        char* const argv[] = { "/usr/bin/term", NULL };
+        char* const envp[] = { NULL };
         execve(argv[0], argv, envp);
     }
     else

@@ -32,11 +32,14 @@ unsigned long ksys_do_mmap(void* addr, size_t length, int prot, int flags, int f
         if (fd->ops.mmap)
         {
             struct vm_area* area = vm_map_anon(task_curr()->vm_map, (uintptr_t)addr, length, flags & MAP_FIXED);
-            
             vfs_mmap(fd, area);
+            return area->base;
         }
         else
         {
+            // TEMP
+            return 0;
+            
             if (!S_ISREG(fd->inode->mode)) return (unsigned long)-EACCES;
 
             //unsigned int mmu_flags = PAGE_PR;
@@ -51,8 +54,9 @@ unsigned long ksys_do_mmap(void* addr, size_t length, int prot, int flags, int f
             vfs_read(fd, addr, fd->inode->size);
         }
     }
-
-    return (unsigned long)addr;
+    
+    // Unreachable
+    return (unsigned long)-EINVAL;
 }
 
 // TODO: add support for shared memory

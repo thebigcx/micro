@@ -4,7 +4,7 @@
 int main(int argc, char** argv)
 {
     char buf[64];
-    if (getcwd(buf, 64) == -1)
+    if (!getcwd(buf, 64))
     {
         perror("pwd");
         return -1;

@@ -105,9 +105,9 @@ int main(int argc, char** argv)
         pid_t child = fork();
         if (child == 0)
         {
-            const char* envp[] = { NULL };
+            char* const envp[] = { NULL };
             
-            if (execve(bin, (const char**)argv, envp))
+            if (execve(bin, argv, envp))
             {
                 perror("sh");
                 continue;

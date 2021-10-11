@@ -1,2 +1,2 @@
-SUBDIRS = libs srv apps
+SUBDIRS = libs apps
 include subdir.mk

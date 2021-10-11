@@ -52,7 +52,6 @@ SYSCALL_DEFINE(rmmod,        const char* name);
 SYSCALL_DEFINE(execve,       const char* path, char* const argv[],
                              char* const envp[]);
 SYSCALL_DEFINE(time,         time_t* time);
-SYSCALL_DEFINE(ptsname,      int fdno, char* buf, size_t n);
 SYSCALL_DEFINE(getdents,     int fdno, struct dirent* dirp, size_t n);
 SYSCALL_DEFINE(mount,        const char* src, const char* dst,
                              const char* fs, unsigned long flags,

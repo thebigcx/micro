@@ -49,7 +49,7 @@ int main(int argc, char** argv)
         ptrace(PTRACE_TRACEME, 0, NULL, NULL);
         raise(SIGSTOP);
 
-        const char** args = &argv[1];
+        char** args = &argv[1];
         if (execv(args[0], args) == -1)
         {
             perror("db");

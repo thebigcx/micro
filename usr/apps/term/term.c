@@ -381,7 +381,8 @@ int main(int argc, char** argv)
 
     size_t size = info.xres * info.yres * (info.bpp / 8);
 
-    fbaddr = mmap(0x1000000, size, PROT_READ | PROT_WRITE,
+    // TODO: use '0' address
+    fbaddr = mmap(0x100000000, size, PROT_READ | PROT_WRITE,
                   MAP_PRIVATE, fb, 0);
     fbend = (void*)((uintptr_t)fbaddr + size);
 
@@ -401,7 +402,7 @@ int main(int argc, char** argv)
         .ws_ypixel = info.yres
     };
 
-    ioctl(pts, TIOCSWINSZ, &winsize);
+    ioctl(ptsfd, TIOCSWINSZ, &winsize);
 
     ansi = ansi_init(&cbs, &winsize);
     
@@ -415,8 +416,8 @@ int main(int argc, char** argv)
     sh_pid = fork();
     if (sh_pid == 0)
     {
-        const char* argv[] = { "/usr/bin/bash", NULL };
-        const char* envp[] = { NULL };
+        char* const argv[] = { "/usr/bin/bash", NULL };
+        char* const envp[] = { NULL };
 
         execve(argv[0], argv, envp);
         for (;;);

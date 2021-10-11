@@ -6,7 +6,7 @@
 
 int main(int argc, char** argv)
 {
-    struct passwd* p = getpwuid(1000);
+    struct passwd* p = getpwuid(getuid());
     if (!p)
     {
         printf("whoami: invalid user\n");
