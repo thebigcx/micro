@@ -3,6 +3,7 @@
 #include <micro/list.h>
 #include <micro/stdlib.h>
 #include <micro/errno.h>
+#include <micro/time.h>
 
 static struct list  devices;
 
@@ -64,13 +65,16 @@ void devfs_init()
     vfs_mount_fs("", "/dev", "devfs", NULL);
 }
 
-static void devfs_register(struct file_ops* ops, const char* name, mode_t mode, void* priv)
+void devfs_register(struct file_ops* ops, const char* name, mode_t mode, void* priv)
 {
     struct inode* file = kcalloc(sizeof(struct inode));
 
     file->fops = *ops;
     file->mode = mode;
     file->priv = priv;
+    file->atime = time_getepoch();
+    file->mtime = file->atime;
+    file->ctime = file->atime;
 
     struct dentry* dentry = kmalloc(sizeof(struct dentry));
 

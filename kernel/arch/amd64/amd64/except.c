@@ -170,8 +170,33 @@ static void pf(struct regs* regs, uint32_t e)
     }
 
     printk("Page fault\n");
+   
+    if (e & (1 << 1))
+        printk("Invalid read from ");
+    else
+        printk("Invalid write to ");
+    
+    printk("0x%x", rcr2());
+
+    if (e & 1)
+        printk(" (page-protection violation)");
+    else
+        printk(" (non-present page)");
+
+    if (e & (1 << 2))
+        printk(" while CPL=3 ");
+    
+    if (e & (1 << 4))
+        printk(" during instruction fetch");
+    
+    printk("\n");
+    
+    if (e & (1 << 3))
+        printk("Invalid paging structures\n");
+       
     dump(regs);
     backtrace(regs->rip, regs->rbp, 32);
+ 
     panic("Exception in Ring 3");
 }
 

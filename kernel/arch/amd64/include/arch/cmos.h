@@ -14,4 +14,3 @@ struct rtc_time
 
 void rtc_gettime(struct rtc_time* time);
 void rtc_init();
-unsigned long time_getepoch();

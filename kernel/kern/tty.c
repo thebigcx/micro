@@ -236,4 +236,7 @@ void tty_init()
     // Pseudoterminal slave filesystem
     vfs_register_fs("ptsfs", ptsfs_mount);
     vfs_mount_fs("", "/dev/pts", "ptsfs", NULL);
+
+    struct file_ops ptsops = { 0 };
+    devfs_register(&ptsops, "pts", S_IFDIR | 0755, NULL);
 }

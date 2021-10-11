@@ -17,11 +17,10 @@ static void do_kstat(struct inode* inode, struct stat* buf)
     buf->st_size    = inode->size;
     buf->st_blksize = inode->blksize;
     buf->st_blocks  = inode->blocks;
-    //buf->st_atime   = inode->atime;
-    //buf->st_mtime   = inode->mtime;
-    //buf->st_ctime   = inode->ctime;
-
     
+    buf->st_atim.tv_sec = inode->atime;
+    buf->st_mtim.tv_sec = inode->mtime;
+    buf->st_ctim.tv_sec = inode->ctime;
 }
 
 SYSCALL_DEFINE(stat, const char* path, struct stat* buf)

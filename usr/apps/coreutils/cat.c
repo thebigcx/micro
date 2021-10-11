@@ -9,10 +9,23 @@ int main(int argc, char** argv)
     if (argc < 2)
     {
         printf("cat: no file specified\n");
-        return 0;
+        return -1;
     }
+    
+    FILE* f = fopen(argv[1], "r");
+    if (!f)
+    {
+        perror("cat");
+        return -1;
+    }
+    
+    char c;
+    while ((c = fgetc(f)) != EOF)
+        printf("%c", c);
+    
+    return 0;
 
-    int fd;
+    /*int fd;
     if ((fd = open(argv[1], O_RDONLY, 0)) < 0)
     {
         perror("cat");
@@ -31,7 +44,7 @@ int main(int argc, char** argv)
     for (size_t i = 0; i < len; i++)
         printf("%c", buffer[i]);
 
-    free(buffer);
+    free(buffer);*/
     /*FILE* f = fopen(argv[1], "r");
     if (!f)
     {
