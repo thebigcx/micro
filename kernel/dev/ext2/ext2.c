@@ -907,6 +907,7 @@ static int ext2_mount(const char* dev, const void* data, struct inode* fsroot)
     struct ext2_inode ino;
     ext2_read_inode(vol, 2, &ino);
 
+    printk("mounted Ext2 filesystem on %s\n", dev);
     inode2file(vol, 2, &ino, fsroot);
     return 0;
 }

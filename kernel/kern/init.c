@@ -17,6 +17,8 @@
 #include <micro/procfs.h>
 #include <micro/dev.h>
 #include <micro/fcntl.h>
+#include <micro/gpt.h>
+#include <arch/panic.h>
 
 struct initrd
 {
@@ -191,8 +193,11 @@ void generic_init(struct genbootparams params)
     kmod_load("/ext2.ko");
     printk("mounting root filesystem\n");
 
+    gpt_init("/dev/sda");
+
     vfs_umount_fs("/"); // Unmount old initramfs
-    vfs_mount_fs("/dev/sda", "/", "ext2", NULL);
+    if (vfs_mount_fs("/dev/sda1", "/", "ext2", NULL))
+        panic("Could not mount root filesystem!");
 
     kmod_load("/lib/modules/ps2kb.ko");
 

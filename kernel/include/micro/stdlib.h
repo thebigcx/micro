@@ -128,6 +128,22 @@ FORCE_INLINE char* strdup(const char* s)
     return news;
 }
 
+FORCE_INLINE char* strcat(char* src, const char* dst)
+{
+    return strcpy(src + strlen(src), dst);   
+}
+
+FORCE_INLINE char* strrchr(const char* str, int ch)
+{
+    char* i = NULL;
+    while (*str)
+    {
+        if (*str == ch) i = str;
+        str++;
+    }
+    return i;
+}
+
 FORCE_INLINE void* memmove(void* dst, const void* src, size_t n)
 {
     void* imm = kmalloc(n);
