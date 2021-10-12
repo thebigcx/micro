@@ -91,19 +91,20 @@ SYSCALL_DEFINE(setsid)
     return task->sid;
 }
 
+// TODO: use the suid field in task
 SYSCALL_DEFINE(setreuid, uid_t ruid, uid_t euid)
 {
     struct task* task = task_curr();
 
-    if (ruid != -1)
+    if (ruid != (uid_t)-1)
     {
-        if (task->euid != 0) return -EPERM;
+        if (task->euid) return -EPERM;
         task->ruid = ruid;
     }
 
-    if (euid != -1)
+    if (euid != (uid_t)-1)
     {
-        if (task->euid != 0) return -EPERM;
+        if (task->euid) return -EPERM;
         task->euid = euid;
     }
 
@@ -114,15 +115,15 @@ SYSCALL_DEFINE(setregid, gid_t rgid, gid_t egid)
 {
     struct task* task = task_curr();
 
-    if (rgid != -1)
+    if (rgid != (gid_t)-1)
     {
-        if (task->egid != 0) return -EPERM;
+        if (task->egid) return -EPERM;
         task->rgid = rgid;
     }
 
-    if (egid != -1)
+    if (egid != (gid_t)-1)
     {
-        if (task->egid != 0) return -EPERM;
+        if (task->egid) return -EPERM;
         task->egid = egid;
     }
 
@@ -224,87 +225,91 @@ SYSCALL_DEFINE(exit_group, int status)
 
 typedef uintptr_t (*syscall_t)();
 
+// System call table
 static void* syscalls[] =
 {
-    [SYS_open] = &sys_open,
-    [SYS_close] = &sys_close,
-    [SYS_read] = &sys_read,
-    [SYS_write] = &sys_write,
-    [SYS_fork] = &sys_fork,
-    [SYS_execve] = &sys_execve,
-    [SYS_exit] = &sys_exit,
-    [SYS_kill] = &sys_kill,
-    [SYS_getpid] = &sys_getpid,
-    [SYS_access] = &sys_access,
-    [SYS_lseek] = &sys_lseek,
-    //[SYS_waitpid] = &sys_waitpid,
-    [SYS_mmap] = &sys_mmap,
-    [SYS_munmap] = &sys_munmap,
-    [SYS_chdir] = &sys_chdir,
-    [SYS_getcwd] = &sys_getcwd,
-    [SYS_getdents64] = &sys_getdents,
-    [SYS_mkdir] = &sys_mkdir,
-    [SYS_ioctl] = &sys_ioctl,
-    [SYS_time] = &sys_time,
-    [SYS_dup] = &sys_dup,
-    [SYS_dup2] = &sys_dup2,
-    [SYS_init_module] = &sys_insmod,
-    [SYS_delete_module] = &sys_rmmod,
-    [SYS_mount] = &sys_mount,
-    [SYS_umount2] = &sys_umount,
-    [SYS_pread64] = &sys_pread,
-    [SYS_pwrite64] = &sys_pwrite,
-    //[SYS_ptsname] = &sys_ptsname,
-    [SYS_gettimeofday] = &sys_gettimeofday,
-    [SYS_ptrace] = &sys_ptrace,
-    [SYS_stat] = &sys_stat,
-    [SYS_fstat] = &sys_fstat,
-    [SYS_lstat] = &sys_lstat,
-    [SYS_unlink] = &sys_unlink,
-    [SYS_chmod] = &sys_chmod,
-    [SYS_setreuid] = &sys_setreuid,
-    [SYS_chown] = &sys_chown,
-    [SYS_readlink] = &sys_readlink,
-    [SYS_getuid] = &sys_getuid,
-    [SYS_geteuid] = &sys_geteuid,
-    [SYS_getgid] = &sys_getgid,
-    [SYS_getegid] = &sys_getegid,
-    [SYS_getgroups] = &sys_getgroups,
-    [SYS_setgroups] = &sys_setgroups,
-    [SYS_setregid] = &sys_setregid,
-    [SYS_symlink] = &sys_symlink,
-    [SYS_link] = &sys_link,
-    [SYS_rt_sigaction] = &sys_sigaction,
-    [SYS_rt_sigreturn] = &sys_sigreturn,
-    [SYS_rt_sigprocmask] = &sys_sigprocmask,
-    [SYS_umask] = &sys_umask,
-    [SYS_pipe] = &sys_pipe,
-    [SYS_rename] = &sys_rename,
-    [SYS_rmdir] = &sys_rmdir,
-    [SYS_reboot] = &sys_reboot,
-    [SYS_uname] = &sys_uname,
-    [SYS_getppid] = &sys_getppid,
-    [SYS_fchmod] = &sys_fchmod,
-    [SYS_mknod] = &sys_mknod,
-    [SYS_setuid] = &sys_setuid,
-    [SYS_setgid] = &sys_setgid,
-    [SYS_fcntl] = &sys_fcntl,
-    [SYS_utime] = &sys_utime,
-    [SYS_utimes] = &sys_utimes,
-    [SYS_getpgid] = &sys_getpgid,
-    [SYS_setpgid] = &sys_setpgid,
-    [SYS_getsid] = &sys_getsid,
-    [SYS_setsid] = &sys_setsid,
-    [SYS_arch_prctl] = &sys_prctl,
-    [SYS_wait4] = &sys_wait4,
-    [SYS_gettid] = &sys_gettid,
-    [SYS_readv] = &sys_readv,
-    [SYS_writev] = &sys_writev,
-    [SYS_tkill] = &sys_tkill,
-    [SYS_brk] = &sys_brk,
-    [SYS_mprotect] = &sys_mprotect,
+    [SYS_open]            = &sys_open,
+    [SYS_close]           = &sys_close,
+    [SYS_read]            = &sys_read,
+    [SYS_write]           = &sys_write,
+    [SYS_fork]            = &sys_fork,
+    [SYS_execve]          = &sys_execve,
+    [SYS_exit]            = &sys_exit,
+    [SYS_kill]            = &sys_kill,
+    [SYS_getpid]          = &sys_getpid,
+    [SYS_access]          = &sys_access,
+    [SYS_lseek]           = &sys_lseek,
+    [SYS_mmap]            = &sys_mmap,
+    [SYS_munmap]          = &sys_munmap,
+    [SYS_chdir]           = &sys_chdir,
+    [SYS_getcwd]          = &sys_getcwd,
+    [SYS_getdents64]      = &sys_getdents,
+    [SYS_mkdir]           = &sys_mkdir,
+    [SYS_ioctl]           = &sys_ioctl,
+    [SYS_time]            = &sys_time,
+    [SYS_dup]             = &sys_dup,
+    [SYS_dup2]            = &sys_dup2,
+    [SYS_init_module]     = &sys_insmod,
+    [SYS_delete_module]   = &sys_rmmod,
+    [SYS_mount]           = &sys_mount,
+    [SYS_umount2]         = &sys_umount,
+    [SYS_pread64]         = &sys_pread,
+    [SYS_pwrite64]        = &sys_pwrite,
+    [SYS_gettimeofday]    = &sys_gettimeofday,
+    [SYS_ptrace]          = &sys_ptrace,
+    [SYS_stat]            = &sys_stat,
+    [SYS_fstat]           = &sys_fstat,
+    [SYS_lstat]           = &sys_lstat,
+    [SYS_unlink]          = &sys_unlink,
+    [SYS_chmod]           = &sys_chmod,
+    [SYS_setreuid]        = &sys_setreuid,
+    [SYS_chown]           = &sys_chown,
+    [SYS_readlink]        = &sys_readlink,
+    [SYS_getuid]          = &sys_getuid,
+    [SYS_geteuid]         = &sys_geteuid,
+    [SYS_getgid]          = &sys_getgid,
+    [SYS_getegid]         = &sys_getegid,
+    [SYS_getgroups]       = &sys_getgroups,
+    [SYS_setgroups]       = &sys_setgroups,
+    [SYS_setregid]        = &sys_setregid,
+    [SYS_symlink]         = &sys_symlink,
+    [SYS_link]            = &sys_link,
+    [SYS_rt_sigaction]    = &sys_sigaction,
+    [SYS_rt_sigreturn]    = &sys_sigreturn,
+    [SYS_rt_sigprocmask]  = &sys_sigprocmask,
+    [SYS_umask]           = &sys_umask,
+    [SYS_pipe]            = &sys_pipe,
+    [SYS_rename]          = &sys_rename,
+    [SYS_rmdir]           = &sys_rmdir,
+    [SYS_reboot]          = &sys_reboot,
+    [SYS_uname]           = &sys_uname,
+    [SYS_getppid]         = &sys_getppid,
+    [SYS_fchmod]          = &sys_fchmod,
+    [SYS_mknod]           = &sys_mknod,
+    [SYS_setuid]          = &sys_setuid,
+    [SYS_setgid]          = &sys_setgid,
+    [SYS_fcntl]           = &sys_fcntl,
+    [SYS_utime]           = &sys_utime,
+    [SYS_utimes]          = &sys_utimes,
+    [SYS_getpgid]         = &sys_getpgid,
+    [SYS_setpgid]         = &sys_setpgid,
+    [SYS_getsid]          = &sys_getsid,
+    [SYS_setsid]          = &sys_setsid,
+    [SYS_arch_prctl]      = &sys_prctl,
+    [SYS_wait4]           = &sys_wait4,
+    [SYS_gettid]          = &sys_gettid,
+    [SYS_readv]           = &sys_readv,
+    [SYS_writev]          = &sys_writev,
+    [SYS_tkill]           = &sys_tkill,
+    [SYS_brk]             = &sys_brk,
+    [SYS_mprotect]        = &sys_mprotect,
     [SYS_set_tid_address] = &sys_set_tid_address,
-    [SYS_exit_group] = &sys_exit_group
+    [SYS_exit_group]      = &sys_exit_group,
+    [SYS_socket]          = &sys_socket,
+    [SYS_bind]            = &sys_bind,
+    [SYS_accept]          = &sys_accept,
+    [SYS_fchown]          = &sys_fchown,
+    [SYS_lchown]          = &sys_lchown
 };
 
 void syscall_handler(struct regs* r)
@@ -329,5 +334,5 @@ void syscall_handler(struct regs* r)
 
 void sys_init()
 {
-    idt_set_handler(128, syscall_handler);
+    idt_set_handler(0x80, syscall_handler);
 }

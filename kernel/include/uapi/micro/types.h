@@ -31,6 +31,9 @@ typedef long				blkcnt_t;
 typedef long int            time_t;
 typedef uint32_t            sigset_t;
 
+typedef unsigned short      sa_family_t;
+typedef unsigned int        socklen_t;
+
 #define INT8_MAX  0x7F
 #define INT16_MAX 0x7FFF
 #define INT32_MAX 0x7FFFFFFF

@@ -121,28 +121,59 @@ SYSCALL_DEFINE(chmod, const char* pathname, mode_t mode)
     struct file file;
     TRY2(vfs_open(canon, &file, O_RDONLY), kfree(canon));
     
-    if (task_curr()->euid && file.inode->uid != task_curr()->euid) return -EPERM;
+    if (task_curr()->euid
+        && task_curr()->euid && file.inode->uid != task_curr()->euid) return -EPERM;
 
     return vfs_chmod(&file, mode);
 }
 
+// Change file permissions of file referred to by 'fd'
 SYSCALL_DEFINE(fchmod, int fd, mode_t mode)
 {
     FDVALID(fd);
 
-    if (task_curr()->fds[fd]->inode->uid != task_curr()->euid) return -EPERM;
+    // Must be the owner or root
+    if (task_curr()->euid
+        && task_curr()->fds[fd]->inode->uid != task_curr()->euid) return -EPERM;
+    
     return vfs_chmod(task_curr()->fds[fd], mode);
 }
 
-SYSCALL_DEFINE(chown, const char* pathname, uid_t uid, uid_t gid)
+int do_chown(const char* path, uid_t uid, gid_t gid, int symlinks)
 {
-    PTRVALID(pathname);
+    char* canon = vfs_mkcanon(path, task_curr()->workd);
 
-    char* canon = vfs_mkcanon(pathname, task_curr()->workd);
+    uint32_t mode = O_RDONLY;
+    if (!symlinks) mode |= O_PATH | O_NOFOLLOW;
 
     struct file file;
-    TRY2(vfs_open(canon, &file, O_RDONLY), kfree(canon));
+    TRY2(vfs_open(canon, &file, mode), kfree(canon));
     
-    if (task_curr()->euid) return -EPERM; // Must be root TODO: capabilities like Linux
+    // Must be root
+    if (task_curr()->euid) return -EPERM;
+    
     return vfs_chown(&file, uid, gid);
+}
+
+// Change ownership of file
+SYSCALL_DEFINE(chown, const char* path, uid_t uid, uid_t gid)
+{
+    PTRVALID(path);
+    return do_chown(path, uid, gid, 1);
+}
+
+// Change ownership of file referred to by 'fd'
+SYSCALL_DEFINE(fchown, int fd, uid_t owner, gid_t group)
+{
+    FDVALID(fd);
+    if (task_curr()->euid) return -EPERM;
+    
+    return vfs_chown(task_curr()->fds[fd], owner, group);
+}
+
+// Change ownership of file without following symlinks
+SYSCALL_DEFINE(lchown, const char* path, uid_t owner, gid_t group)
+{
+    PTRVALID(path);
+    return do_chown(path, owner, group, 0);
 }
