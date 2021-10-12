@@ -135,13 +135,13 @@ FORCE_INLINE char* strcat(char* src, const char* dst)
 
 FORCE_INLINE char* strrchr(const char* str, int ch)
 {
-    char* i = NULL;
+    const char* i = NULL;
     while (*str)
     {
         if (*str == ch) i = str;
         str++;
     }
-    return i;
+    return (char*)i;
 }
 
 FORCE_INLINE void* memmove(void* dst, const void* src, size_t n)

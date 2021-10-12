@@ -18,43 +18,6 @@ void printsub(const char* start, size_t n)
 
 int main(int argc, char** argv)
 {
-    /*struct sigaction act;
-    act.sa_handler = SIG_IGN;
-    sigaction(SIGPIPE, &act, NULL);
-
-    char* buffer = malloc(1024);
-    size_t size;
-    if (argc == 3)
-    {
-        FILE* file = fopen(argv[2], "r");
-        if (!file)
-        {
-            perror("grep");
-            return -1;
-        }
-        
-        fseek(file, 0, SEEK_END);
-        size = ftell(file);
-        fseek(file, 0, SEEK_SET);
-
-        fread(buffer, size, 1, file);
-    }
-    else if (argc == 2)
-    {
-        char c;
-        size_t i;
-        for (i = 0; (c = fgetc(stdin)) != EOF; i++)
-            buffer[i] = c;
-
-        size = i;
-    }
-    else
-    {
-        usage();
-        return -1;
-    }
-
-    char* pattern = argv[1];*/
     FILE* file = fopen(argv[2], "r");
 
     // Compile and execute the regex
@@ -89,31 +52,6 @@ int main(int argc, char** argv)
         
         lineno++;
     }
-
-    // TODO: regex instead of silly search
-    /*char* saveptr;
-    char* line = strtok_r(buffer, "\n", &saveptr);
-    size_t lineno = 1;
-
-    while (line)
-    {
-        for (size_t idx = 0; line[idx]; idx++)
-        {
-            if (!strncmp(pattern, line + idx, strlen(pattern)))
-            {
-                printf("\033[93m%d\033[00m ", lineno);
-                for (size_t i = 0; i < idx; i++)
-                    fputc(line[i], stdout);
-                printf("\033[91m");
-                printf("%s", pattern);
-                printf("\033[00m");
-                printf("%s\n", line + idx + strlen(pattern));
-            }
-        }
-
-        line = strtok_r(NULL, "\n", &saveptr);
-        lineno++;
-    }*/
-
+    
     return 0;
 }

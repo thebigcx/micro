@@ -7,7 +7,7 @@
 #include <micro/stdlib.h>
 #include <micro/devfs.h>
 #include <arch/descs.h>
-#include <arch/cmos.h>
+#include <micro/time.h>
 
 struct ksym
 {

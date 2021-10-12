@@ -83,6 +83,23 @@ int main(int argc, char** argv)
                 else
                     mode |= 0111 & mask;
                 break;
+            case 's':
+            {
+                uint32_t bit;
+                if (mask == 0700) bit = S_ISUID;
+                else if (mask == 0070) bit = S_ISGID;
+                if (remove)
+                    mode &= ~bit;
+                else
+                    mode |= bit;
+                break;
+            }
+            case 't':
+                if (remove)
+                    mode &= ~S_ISVTX;
+                else
+                    mode |= S_ISVTX;
+                break;
             default:
                 printf("chmod: invalid mode character '%c'\n", *modestr);
                 return -1;

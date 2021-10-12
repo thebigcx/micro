@@ -121,7 +121,7 @@ SYSCALL_DEFINE(chmod, const char* pathname, mode_t mode)
     struct file file;
     TRY2(vfs_open(canon, &file, O_RDONLY), kfree(canon));
     
-    if (file.inode->uid != task_curr()->euid) return -EPERM;
+    if (task_curr()->euid && file.inode->uid != task_curr()->euid) return -EPERM;
 
     return vfs_chmod(&file, mode);
 }

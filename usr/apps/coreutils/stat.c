@@ -2,7 +2,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <sys/syscall.h>
 #include <time.h>
+#include <stdint.h>
 
 int main(int argc, char** argv)
 {
@@ -12,14 +14,16 @@ int main(int argc, char** argv)
         return -1;
     }
 
-    printf("%lx\n", argv[1]);
-
     struct stat buf;
     if (lstat(argv[1], &buf))
     {
         perror("stat");
         return -1;
     }
+
+    printf("%lu\n", (uintptr_t)&buf.st_mode - (uintptr_t)&buf);
+
+    printf("%ld\n", buf.st_gid);
 
     printf("%s", realpath(argv[1], NULL));
 
@@ -71,8 +75,8 @@ int main(int argc, char** argv)
     else printf("-");
     if (buf.st_mode & S_IWUSR) printf("w");
     else printf("-");
-    if (buf.st_mode & S_IXUSR) printf("x");
-    else if (buf.st_mode & S_ISUID) printf("s");
+    if (buf.st_mode & S_ISUID) printf("s");
+    else if (buf.st_mode & S_IXUSR) printf("x");
     else printf("-");
     
 
@@ -80,16 +84,16 @@ int main(int argc, char** argv)
     else printf("-");
     if (buf.st_mode & S_IWGRP) printf("w");
     else printf("-");
-    if (buf.st_mode & S_IXGRP) printf("x");
-    else if (buf.st_mode & S_ISGID) printf("s");
+    if (buf.st_mode & S_ISGID) printf("s");
+    else if (buf.st_mode & S_IXGRP) printf("x");
     else printf("-");
 
     if (buf.st_mode & S_IROTH) printf("r");
     else printf("-");
     if (buf.st_mode & S_IWOTH) printf("w");
     else printf("-");
-    if (buf.st_mode & S_IXOTH) printf("x");
-    else if (buf.st_mode & S_ISUID) printf("t");
+    if (buf.st_mode & S_ISVTX) printf("t");
+    else if (buf.st_mode & S_IXOTH) printf("x");
     else printf("-");
 
     printf("\n");

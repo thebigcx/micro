@@ -5,6 +5,7 @@
 #include <sys/stat.h>
 #include <string.h>
 #include <time.h>
+#include <sys/syscall.h>
 
 int hidden = 0;
 int verbose = 0;
@@ -19,9 +20,49 @@ char* mkfull(const char* path, const char* name)
     return full;
 }
 
-void print_verbose(const char* path, const char* name)
+void print_name(const char* path, struct dirent* dirent)
 {
-    char* full = mkfull(path, name);
+    char* full = mkfull(path, dirent->d_name);
+    struct stat buf;
+    lstat(full, &buf);
+    free(full);
+    
+    switch (dirent->d_type)
+    {
+        case DT_DIR:
+        {
+            if (buf.st_mode & S_ISVTX)
+            {
+                if (buf.st_mode & S_IWOTH) printf("\033[102;30m%s/", dirent->d_name);
+                else printf("\033[104;97m%s/", dirent->d_name);
+            }
+            else printf("\033[94m%s\033[00m/", dirent->d_name);
+            break;
+        }
+        case DT_LNK: printf("\033[96m%s", dirent->d_name); break;
+        case DT_CHR:
+        case DT_BLK: printf("\033[93;40m%s", dirent->d_name); break;
+        case DT_REG:
+        {
+            if (buf.st_mode & S_ISUID) // Set-uid
+                printf("\033[101;97m%s", dirent->d_name);
+            else if (buf.st_mode & S_ISGID) // Set-gid
+                printf("\033[43;30m%s", dirent->d_name);
+            else if (buf.st_mode & S_IXUSR || buf.st_mode & S_IXGRP || buf.st_mode & S_IXOTH)
+                printf("\033[92m%s\033[0m*", dirent->d_name);
+            else
+                printf("%s", dirent->d_name);
+            break;
+        }
+        case DT_FIFO: printf("\033[33m%s", dirent->d_name); break;
+    }
+    
+    printf("\033[00m"); // Reset formatting
+}
+
+void print_verbose(const char* path, struct dirent* dirent)
+{
+    char* full = mkfull(path, dirent->d_name);
     struct stat buf;
     lstat(full, &buf);
 
@@ -67,36 +108,19 @@ void print_verbose(const char* path, const char* name)
     char timestr[32];
     strftime(timestr, 32, "%b %d %H:%M", localtime(&buf.st_mtime));
 
-    printf(" %s", timestr);
+    printf(" %s ", timestr);
 
-    printf(" %s", name);
+    print_name(path, dirent);
 
     if (S_ISLNK(buf.st_mode))
     {
         char link[128];
         readlink(full, link, 128);
-        printf(" -> %s", link);
+        printf(" -> %s", link); // TODO: formatting on the link target
     }
     printf("\n");
 
     free(full);
-}
-
-void print_normal(const char* path, struct dirent* dirent)
-{
-    switch (dirent->d_type)
-    {
-        case DT_DIR: printf("\033[94m"); break;
-        case DT_LNK: printf("\033[96m"); break;
-        case DT_CHR:
-        case DT_BLK: printf("\033[93;40m"); break;
-    }
-
-    printf("%s", dirent->d_name);
-  
-    printf("\033[0m");
-    if (dirent->d_type == DT_DIR) printf("/");
-    printf("\n");
 }
 
 int main(int argc, char** argv)
@@ -140,9 +164,12 @@ int main(int argc, char** argv)
             continue;
 
         if (!verbose)
-            print_normal(path, dirent);
+        {
+            print_name(path, dirent);
+            printf("\n");
+        }
         else
-            print_verbose(path, dirent->d_name);
+            print_verbose(path, dirent);
     }
 
     closedir(dir);
