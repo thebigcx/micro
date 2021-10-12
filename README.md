@@ -1,4 +1,4 @@
-# Chistian's Operating System
+# Christian's Operating System
 
 Includes the kernel and userspace libraries/applications.
 
