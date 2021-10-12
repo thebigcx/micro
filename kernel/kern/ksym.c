@@ -37,7 +37,6 @@ static struct ksym ksyms[] =
     { "vfs_write",             &vfs_write             },
     { "vfs_pread",             &vfs_pread             },
     { "vfs_pwrite",            &vfs_pwrite            },
-    { "vfs_create_file",       &vfs_create_file       },
     { "vfs_resolve",           &vfs_resolve           },
     { "vfs_register_fs",       &vfs_register_fs       },
     { "vfs_access",            &vfs_access            },

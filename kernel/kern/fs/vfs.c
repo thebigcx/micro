@@ -11,13 +11,6 @@
 
 static struct list mounts;
 
-struct inode* vfs_create_file()
-{
-    struct inode* file = kmalloc(sizeof(struct inode));
-    memset(file, 0, sizeof(struct inode));
-    return file;
-}
-
 int vfs_checkperm(struct inode* file, unsigned int mask)
 {
     if (task_curr() && task_curr()->euid != 0)
@@ -56,7 +49,6 @@ int vfs_checkperm(struct inode* file, unsigned int mask)
 void vfs_init()
 {
     mounts = list_create();
-    //root = tree_create();
 }
 
 ssize_t vfs_read(struct file* file, void* buf, size_t size)

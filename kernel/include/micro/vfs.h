@@ -135,8 +135,6 @@ struct mount
 
 struct dirent;
 
-struct inode* vfs_create_file();
-
 void vfs_init();
 
 ssize_t vfs_read(struct file* file, void* buf, size_t size);

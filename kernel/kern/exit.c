@@ -105,8 +105,8 @@ int wait_child(struct task* child, int* wstatus, int options)
 
 SYSCALL_DEFINE(waitpid, int pid, int* wstatus, int options)
 {
-    if (pid != 4)
-        printk("waitpid(%d) of pid=%d\n", pid, task_curr()->pid);
+    //if (pid != 4)
+        //printk("waitpid(%d) of pid=%d\n", pid, task_curr()->pid);
     PTRVALIDNULL(wstatus);
 
     if (options > (WNOHANG | WUNTRACED) || options < 0) return -EINVAL;

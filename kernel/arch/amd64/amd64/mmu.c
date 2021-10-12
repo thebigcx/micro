@@ -46,6 +46,7 @@ void mmu_init()
     mmu_set_kpml4();
 }
 
+// TODO: use a slab allocator
 uintptr_t mmu_kalloc(size_t n)
 {
     unsigned int counter = 0;

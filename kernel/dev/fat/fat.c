@@ -299,10 +299,10 @@ struct inode* fat_find(struct inode* dir, const char* name)
 
                 if (cmp)
                 {
-                    struct inode* file  = vfs_create_file();
+                    struct inode* file  = kcalloc(sizeof(struct inode));
 
                     file->parent       = dir;
-                    file->priv       = vol;
+                    file->priv         = vol;
                     file->type         = (buf[i].attr & FAT_ATTR_DIR) ? S_IFDIR : S_IFREG;
                     file->inode        = (buf[i].cluster_u << 16) | buf[i].cluster;
                     file->size         = buf[i].file_sz;
@@ -625,11 +625,10 @@ struct inode* fat_mount(const char* dev, const void* data)
 
     kfree(buf);
 
-    struct inode* file = vfs_create_file();
-    memset(file, 0, sizeof(struct inode));
+    struct inode* file = kcalloc(sizeof(struct inode));
 
     file->type         = S_IFDIR;
-    file->priv       = vol;
+    file->priv         = vol;
     file->inode        = vol->record.ebr.cluster_num;
     file->ops.find     = fat_find;
     file->ops.getdents = fat_getdents;

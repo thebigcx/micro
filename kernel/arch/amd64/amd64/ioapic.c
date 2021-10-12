@@ -69,7 +69,7 @@ void ioapic_init()
     pic_disable();
 
     for (unsigned int i = 0; i < iso_cnt; i++)
-        ioapic_redir(isos[i]->gsi, isos[i]->irq + 32, DELIV_LOWEST);
+        ioapic_redir(isos[i]->gsi, isos[i]->irq + 32, 0);
 }
 
 void ioapic_redir(uint8_t irq, uint8_t vec, uint32_t deliv)

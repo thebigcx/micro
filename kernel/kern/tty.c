@@ -165,7 +165,7 @@ ssize_t ptsfs_getdents(struct inode* dir, off_t off, size_t size, struct dirent*
 
 struct inode* ptm_open(struct pt* pt)
 {
-    struct inode* ptm = vfs_create_file();
+    struct inode* ptm = kcalloc(sizeof(struct inode));
 
     ptm->fops.read    = ptm_read;
     ptm->fops.write   = ptm_write;
@@ -178,7 +178,7 @@ struct inode* ptm_open(struct pt* pt)
 
 struct inode* pts_open(struct pt* pt)
 {
-    struct inode* pts = vfs_create_file();
+    struct inode* pts = kcalloc(sizeof(struct inode));
 
     pts->fops.read  = pts_read;
     pts->fops.write = pts_write;
