@@ -30,10 +30,12 @@ Run ```sh build-initrd``` in /build to generate an ```initrd.img``` to pass to t
 - RTC driver
 - PS/2 keyboard driver
 - UNIX Signals
+- UNIX Sockets
 - Pseudoterminals through /dev/ptmx and /dev/pts filesystem
 
 # Userland Features
 - Respectable libc
 - Basic shell
-- Coreutils (ls, pwd, cat, date, rm, mkdir, ...)
-- Work-in-progress ports - nasm, GNU binutils, and Lua
+- Coreutils (ls, pwd, cat, date, rm, mkdir, grep, ...)
+- Ports of GNU Bash, Lua, Ed, etc
+- Framebuffer and VGA terminal supporting ANSI
