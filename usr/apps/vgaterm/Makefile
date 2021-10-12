@@ -1,7 +1,7 @@
 SOURCES := term.c
 
 OBJS := $(patsubst %.c, %.o, $(SOURCES))
-TARG = term
+TARG = vgaterm
 CFLAGS := -ffreestanding -fno-stack-protector -Wall -Wextra -Wno-unused-parameter -Wno-unused-variable
 
 CC = x86_64-micro-gcc
@@ -10,7 +10,7 @@ all: $(TARG)
 
 $(TARG): $(OBJS)
 	@echo "    LD    $@"
-	@$(CC) -static -o $@ $^
+	@$(CC) -static -o $@ $^ -lansi
 
 %.o: %.c
 	@echo "    CC    $@"

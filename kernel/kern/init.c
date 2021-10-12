@@ -155,11 +155,6 @@ void initramfs_init()
 
 static void kmod_load(const char* path)
 {
-    //struct inode* mod = kmalloc(sizeof(struct inode));
-    //vfs_resolve(path, mod, 1);
-    //void* buffer = kmalloc(mod->size);
-    //vfs_read(mod, buffer, 0, mod->size);
-
     struct file mod;
     vfs_open(path, &mod, O_RDONLY);
 
@@ -205,7 +200,8 @@ void generic_init(struct genbootparams params)
 
     tty_init();
 
-    fb_init_dev();
+    //fb_init_dev();
+    vga_init();
 
     printk("starting scheduler\n");
     sched_init();

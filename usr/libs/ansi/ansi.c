@@ -16,7 +16,7 @@ static int isterm(char c)
     return 0;
 }
 
-static uint32_t cols[] =
+/*static uint32_t cols[] =
 {
     0x00000000, // Black
     0xff800000, // Red
@@ -34,7 +34,7 @@ static uint32_t cols[] =
     0xffff00ff, // Light magenta
     0xff00ffff, // Light cyan
     0xffffffff, // White
-};
+};*/
 
 static void parse_gfx(ansi_t ansi, char* seq)
 {
@@ -47,24 +47,26 @@ static void parse_gfx(ansi_t ansi, char* seq)
 
         if (i == 0)
         {
-            ansi->fg = 0xffffffff;
-            ansi->bg = 0x00000000;
+            ansi->fg = 15;
+            ansi->bg = 0;
+            //ansi->fg = 0xffffffff;
+            //ansi->bg = 0x00000000;
         }
         else if (i >= 30 && i <= 37)
         {
-            ansi->fg = cols[i - 30];
+            ansi->fg = i - 30;
         }
         else if (i >= 40 && i <= 47)
         {
-            ansi->bg = cols[i - 40];
+            ansi->bg = i - 40;
         }
         else if (i >= 90 && i <= 97)
         {
-            ansi->fg = cols[i - 90 + 8];
+            ansi->fg = i - 90 + 8;
         }
         else if (i >= 100 && i <= 107)
         {
-            ansi->bg = cols[i - 100 + 8];   
+            ansi->bg = i - 100 + 8;   
         }
 
         token = strtok_r(NULL, "m;", &saveptr);
@@ -90,8 +92,8 @@ ansi_t ansi_init(struct ansicbs* cbs, struct winsize* sz)
     
     ansi->cbs = *cbs;
     
-    ansi->fg = 0xffffffff;
-    ansi->bg = 0x00000000;
+    ansi->fg = 15;
+    ansi->bg = 0;
     ansi->sz = *sz;
 
     return (ansi_t)ansi;

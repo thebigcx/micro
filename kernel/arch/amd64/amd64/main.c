@@ -40,21 +40,17 @@ void main(struct bootparams params)
 
     //if (params.graphics)
     //{
-        unsigned int pages = (params.fbwidth * params.fbheight * (params.fbbpp / 8)) / PAGE4K + 1;
+        /*unsigned int pages = (params.fbwidth * params.fbheight * (params.fbbpp / 8)) / PAGE4K + 1;
         uintptr_t virt = mmu_kalloc(pages);
 
         for (unsigned int i = 0; i < pages; i++)
             mmu_kmap(virt + i * PAGE4K, params.fb_phys_addr + i * PAGE4K, PAGE_PR | PAGE_RW);
 
-        fb_set_addr((void*)virt);
+        fb_set_addr((void*)virt);*/
     /*}
     else
-    {
-        uintptr_t virt = mmu_kalloc(8);
-        for (unsigned int i = 0; i < 8; i++)
-            mmu_kmap(virt + i * PAGE4K, 0xb8000 + i * PAGE4K, PAGE_PR | PAGE_RW);
-        vga_set_addr(virt);
-    }*/
+    {*/
+    //}
 
     printk("done\n");
 
