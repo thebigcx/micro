@@ -224,20 +224,13 @@ static uint8_t ext2_dirent_type(unsigned int type)
 {
     switch (type & S_IFMT)
     {
-        case S_IFREG:
-            return DIRENT_FILE;
-        case S_IFDIR:
-            return DIRENT_DIR;
-        case S_IFCHR:
-            return DIRENT_CHARDEV;
-        case S_IFBLK:
-            return DIRENT_BLOCKDEV;
-        case S_IFIFO:
-            return DIRENT_FIFO;
-        case S_IFSOCK:
-            return DIRENT_SOCKET;
-        case S_IFLNK:
-            return DIRENT_SYMLINK;
+        case S_IFREG:  return DIRENT_FILE;
+        case S_IFDIR:  return DIRENT_DIR;
+        case S_IFCHR:  return DIRENT_CHARDEV;
+        case S_IFBLK:  return DIRENT_BLOCKDEV;
+        case S_IFIFO:  return DIRENT_FIFO;
+        case S_IFSOCK: return DIRENT_SOCKET;
+        case S_IFLNK:  return DIRENT_SYMLINK;
     }
 
     printk("ext2: unknown file type %d\n", type);

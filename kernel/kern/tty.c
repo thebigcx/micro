@@ -11,14 +11,12 @@
 #include <micro/devfs.h>
 #include <micro/sched.h>
 #include <micro/debug.h>
+#include <micro/lock.h>
 
 ssize_t pts_read(struct file* file, void* buf, off_t off, size_t size)
 {
     struct pt* pt = file->inode->priv;
 
-    //ssize_t bytes = ringbuf_size(pt->inbuf);
-
-    //if (bytes <= 0) return 0;
     // TODO: use a wakeup queue instead (like a semaphore)
     ssize_t bytes;
     while (!(bytes = ringbuf_size(pt->inbuf))) sched_yield();
@@ -118,7 +116,7 @@ ssize_t ptm_write(struct file* file, const void* buf, off_t off, size_t size)
 
     ringbuf_write(pt->inbuf, buf, size);
 
-    //if (pt->termios.c_iflag & ECHO)
+    if (pt->termios.c_iflag & ECHO)
         ringbuf_write(pt->outbuf, buf, size);
 
     return size;
@@ -145,18 +143,20 @@ int ptsfs_lookup(struct inode* dir, const char* name, struct dentry* dentry)
 
 ssize_t ptsfs_getdents(struct inode* dir, off_t off, size_t size, struct dirent* dirp)
 {
-    size_t i, bytes = 0;
-    for (i = 0; i < size; i++)
+    size_t i = 0, bytes = 0;
+    LIST_FOREACH(&slaves)
     {
-        if (i + off == slaves.size) break;
+        if (bytes + sizeof(struct dirent) > size) break;
+        if (off--) continue;
 
-        struct dentry* dev = list_get(&slaves, i + off);
+        struct dentry* dev = node->data;
         
         strcpy(dirp[i].d_name, dev->name);
-        dirp[i].d_type = IFTODT(dev->file->mode & S_IFMT);
+        dirp[i].d_type   = IFTODT(dev->file->mode & S_IFMT);
         dirp[i].d_reclen = sizeof(struct dirent);
         dirp[i].d_off    = sizeof(struct dirent) * (i + 1);
-        
+       
+        i++; 
         bytes += sizeof(struct dirent);
     }
 
@@ -172,9 +172,12 @@ struct inode* ptm_open(struct pt* pt)
     ptm->fops.ioctl   = pt_ioctl;
     ptm->mode         = S_IFCHR | 0620;
     ptm->priv         = pt;
-    
+
     return ptm;
 }
+
+static int s_ptsname = 0;
+static lock_t s_ptsname_lock = 0;
 
 struct inode* pts_open(struct pt* pt)
 {
@@ -185,29 +188,44 @@ struct inode* pts_open(struct pt* pt)
     pts->fops.ioctl = pt_ioctl;
     pts->mode       = S_IFCHR | 0620;
     pts->priv       = pt;
+    pts->uid        = task_curr()->euid;
 
-    // TODO: generate a unique name
-    
+    pts->ctime      = time_getepoch();
+    pts->atime      = pts->ctime;
+    pts->mtime      = pts->ctime;
+
     struct dentry* dentry = kmalloc(sizeof(struct dentry));
 
-    strcpy(dentry->name, "0");
+    // Generate the next name
+    LOCK(s_ptsname_lock);
+    
+    pt->num = s_ptsname++;
+    itoa(pt->num, dentry->name, 10);
+    
+    UNLOCK(s_ptsname_lock);
+    
     dentry->file = pts;
     
     list_enqueue(&slaves, dentry);
-
     return pts;
 }
+
+static struct termios s_default_termios =
+{
+    .c_iflag = ECHO 
+};
 
 int ptmx_open_new(struct inode* inode, struct file* file)
 {
     struct pt* pt = kcalloc(sizeof(struct pt));
     memset(pt, 0, sizeof(struct pt));
 
+    pt->termios = s_default_termios;
+
     pt->inbuf  = ringbuf_create(1024);
     pt->outbuf = ringbuf_create(1024);
     pt->ptm    = ptm_open(pt);
     pt->pts    = pts_open(pt);
-    pt->num    = 0; // TODO: allocate
 
     file->ops = pt->ptm->fops;
     file->inode->priv = pt;

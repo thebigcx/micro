@@ -59,8 +59,6 @@ SYSCALL_DEFINE(lstat, const char* path, struct stat* buf)
     TRY(vfs_open(canon, &file, O_RDONLY | O_NOFOLLOW | O_PATH));
 
     do_kstat(file.inode, buf);
-    printk("mode: %d\n", (uintptr_t)&buf->st_mode - (uintptr_t)buf);
-    printk("%d\n", buf->st_blocks);
     return 0;
 }
 

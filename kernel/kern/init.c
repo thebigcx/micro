@@ -200,6 +200,7 @@ void generic_init(struct genbootparams params)
     vfs_mount_fs("/dev/sda1", "/boot", "fat", NULL);
 
     kmod_load("/lib/modules/ps2kb.ko");
+    kmod_load("/lib/modules/ps2mouse.ko");
 
     init_devices();
 

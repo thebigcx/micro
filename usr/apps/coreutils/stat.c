@@ -21,10 +21,6 @@ int main(int argc, char** argv)
         return -1;
     }
 
-    printf("%lu\n", (uintptr_t)&buf.st_mode - (uintptr_t)&buf);
-
-    printf("%ld\n", buf.st_gid);
-
     printf("%s", realpath(argv[1], NULL));
 
     // Cool arrow thing if symlink
