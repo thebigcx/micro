@@ -156,12 +156,14 @@ void initramfs_init()
 static void kmod_load(const char* path)
 {
     struct file mod;
-    vfs_open(path, &mod, O_RDONLY);
+    if (vfs_open(path, &mod, O_RDONLY))
+        printk("could not open module %s\n", path);
 
     void* buffer = kmalloc(mod.inode->size);
     vfs_read(&mod, buffer, mod.inode->size);
 
-    module_load(buffer, mod.inode->size);
+    if (module_load(buffer, mod.inode->size))
+        printk("error loading module %s\n", path);
 }
 
 void generic_init(struct genbootparams params)
@@ -186,13 +188,16 @@ void generic_init(struct genbootparams params)
     printk("loading init modules\n");
     kmod_load("/ahci.ko");
     kmod_load("/ext2.ko");
+    kmod_load("/fat.ko");
     printk("mounting root filesystem\n");
 
     gpt_init("/dev/sda");
 
     vfs_umount_fs("/"); // Unmount old initramfs
-    if (vfs_mount_fs("/dev/sda1", "/", "ext2", NULL))
+    if (vfs_mount_fs("/dev/sda2", "/", "ext2", NULL))
         panic("Could not mount root filesystem!");
+
+    vfs_mount_fs("/dev/sda1", "/boot", "fat", NULL);
 
     kmod_load("/lib/modules/ps2kb.ko");
 
@@ -200,8 +205,8 @@ void generic_init(struct genbootparams params)
 
     tty_init();
 
-    //fb_init_dev();
-    vga_init();
+    fb_init_dev();
+    //vga_init();
 
     printk("starting scheduler\n");
     sched_init();

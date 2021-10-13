@@ -3,10 +3,10 @@ qemu-system-x86_64                              \
     -m 512                                      \
     -cpu qemu64                                 \
     -bios /usr/share/ovmf/x64/OVMF.fd           \
-    -drive file=dist/image.hdd,if=ide           \
     -smp 1                                      \
     -s -d guest_errors                          \
     -no-reboot -no-shutdown                     \
+    -net none                                   \
     -drive id=disk,file=dist/disk.img,if=none   \
     -device ahci,id=ahci                        \
     -device ide-hd,drive=disk,bus=ahci.0        \

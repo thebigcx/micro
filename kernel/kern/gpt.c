@@ -90,7 +90,6 @@ int gpt_init(const char* dev)
         for (size_t j = 0; j < 36; j++)
             printk("%c", ent.name[j]);
         printk(" %d-%d\n", ent.start, ent.end);
-        printk("\n");
 
         struct gpt_partdev* part = mkpartdev(ent.start, ent.end, &file);
         

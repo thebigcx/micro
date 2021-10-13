@@ -76,9 +76,31 @@ void setcell(struct cell* cell, char c, uint32_t fg, uint32_t bg)
     cell->dirty = 1;
 }
 
+static uint32_t colors[] =
+{
+    0x00000000, // Black
+    0xff800000, // Red
+    0xff008000, // Green
+    0xff808000, // Yellow
+    0xff0000ff, // Blue
+    0xff800080, // Magenta
+    0xff008080, // Cyan
+    0xffc0c0c0, // Light grey
+    0xff808080, // Dark grey
+    0xffff0000, // Light red
+    0xff00ff00, // Light green
+    0xffffff00, // Yellow
+    0xff3d97ff, // Light blue (technically not right - VGA blue is just too dark)
+    0xffff00ff, // Light magenta
+    0xff00ffff, // Light cyan
+    0xffffffff, // White
+};
+
 void draw_cell(unsigned int x, unsigned int y)
 {
     struct cell* cell = cellat(x, y);
+    uint32_t fg = colors[cell->fg];
+    uint32_t bg = colors[cell->bg];
 
     char* face = (char*)font.buffer + (cell->c * font.hdr.ch_size);
 
@@ -90,7 +112,7 @@ void draw_cell(unsigned int x, unsigned int y)
             uint32_t ny = (y * 16) + j;
 
             uint32_t color = (*face & (0b10000000 >> i)) > 0
-                           ? cell->fg : cell->bg;
+                           ? fg : bg;
 
             *((uint32_t*)fbaddr + nx + ny * info.xres) = color;
         }
@@ -170,7 +192,6 @@ void backspace()
 
 void draw_cursor()
 {
-    //return;
     static int lx = 0, ly = 0;
 
     for (uint64_t j = 0; j < 16; j++)
@@ -178,7 +199,7 @@ void draw_cursor()
     {
         uint32_t x = (cx * 8 ) + i;
         uint32_t y = (cy * 16) + j;
-        *((uint32_t*)fbaddr + x + y * info.xres) = ansi->fg;
+        *((uint32_t*)fbaddr + x + y * info.xres) = colors[ansi->fg];
     }
     
     //setcell(cellat(lx, ly), ' ', ansi->fg, ansi->bg);
@@ -254,7 +275,7 @@ static char shift_ascii[] =
     'c', '~', '!', '@', '#', '$', '%',
     '^', '&', '*', '(', ')', '_', '+',
     '\b', '\t', 'Q', 'W', 'E', 'R', 'T',
-    'Y', 'U', 'U', 'O', 'P', '{', '}',
+    'Y', 'U', 'I', 'O', 'P', '{', '}',
     '\n', '^', 'A', 'S', 'D', 'F', 'G',
     'H', 'J', 'K', 'L', ':', '"', '~',
     '~', '|', 'Z', 'X', 'C', 'V', 'B',

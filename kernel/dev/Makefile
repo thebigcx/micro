@@ -1,2 +1,2 @@
-SUBDIRS = test ahci atapi ext2 ps2kb
+SUBDIRS = test ahci atapi ext2 fat ps2kb
 include subdir.mk

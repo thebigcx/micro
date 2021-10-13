@@ -6,8 +6,21 @@
 #include <micro/fs.h>
 #include <micro/debug.h>
 #include <micro/module.h>
+#include <micro/try.h>
+#include <micro/fcntl.h>
+#include <micro/errno.h>
 
 // TODO: cache the FATs in memory
+
+static int read_sectors(struct fat32_volume* vol, void* buf, uintptr_t lba, unsigned int cnt)
+{
+    return vol->device->ops.read(vol->device, buf, lba * 512, cnt * 512);
+}
+
+static int write_sectors(struct fat32_volume* vol, const void* buf, uintptr_t lba, unsigned int cnt)
+{
+    return vol->device->ops.write(vol->device, buf, lba * 512, cnt * 512);
+}
 
 uint64_t clus2lba(struct fat32_volume* vol, unsigned int cluster)
 {
@@ -22,10 +35,7 @@ void from8dot3(struct fat_dirent* dirent, char* dst)
     {
         if (dirent->name[i] == ' ')
             break;
-        else if (dirent->name[i] >= 'A' && dirent->name[i] <= 'Z')
-            *dst++ = dirent->name[i] + 32; // convert to lower case
-        else
-            *dst++ = dirent->name[i];
+        *dst++ = dirent->name[i];
     }
 
     *dst++ = '.';
@@ -35,10 +45,7 @@ void from8dot3(struct fat_dirent* dirent, char* dst)
     {
         if (dirent->ext[j] == ' ')
             break;
-        else if (dirent->ext[j] >= 'A' && dirent->ext[j] <= 'Z')
-            *dst++ = dirent->ext[j] + 32; // convert to lower case
-        else
-            *dst++ = dirent->ext[j];
+        *dst++ = dirent->ext[j];
     }
 
     if (j == 0) *(--dst) = 0; // We don't want a trailing '.'
@@ -62,15 +69,6 @@ void to8dot3(const char* reg_name, char* name, char* ext)
     memset(name + len, ' ', 8 - len);
     memcpy(ext, reg_name + len + 1, extlen);
     memset(ext + extlen, ' ', 3 - extlen);
-
-    // Convert to upper case
-    for (int i = 0; i < 8; i++)
-        if (name[i] >= 'a' && name[i] <= 'z')
-            name[i] -= 32;
-
-    for (int i = 0; i < 3; i++)
-        if (ext[i] >= 'a' && ext[i] <= 'z')
-            ext[i] -= 32;
 }
 
 // name: in the format file.ext 8.3 limit
@@ -90,7 +88,7 @@ unsigned int fat_table_read(struct fat32_volume* vol, unsigned int i)
 
     uint32_t* buf = kmalloc(512);
 
-    vfs_read(vol->priv, buf, fat_sector * 512, 512);
+    read_sectors(vol, buf, fat_sector, 1);
 
     uint32_t val = buf[fat_off / 4];
 
@@ -106,9 +104,9 @@ void fat_table_write(struct fat32_volume* vol, unsigned int i, unsigned int val)
 
     uint32_t* buf = kmalloc(512);
 
-    vfs_read(vol->priv, buf, fat_sector * 512, 512);
+    read_sectors(vol, buf, fat_sector, 1);
     buf[fat_off / 4] = val;
-    vfs_write(vol->priv, buf, fat_sector * 512, 512);
+    write_sectors(vol, buf, fat_sector, 1);
 
     kfree(buf);
 }
@@ -140,42 +138,56 @@ unsigned int fat_alloc_clus(struct fat32_volume* vol)
     return 0;
 }
 
-ssize_t fat_read(struct inode* file, void* buf, off_t off, size_t size)
+ssize_t fat_read(struct file* file, void* buf, off_t off, size_t size)
 {
-    struct fat32_volume* vol = file->priv;
+    if ((size_t)off > file->inode->size) return 0;
+    if (off + size > file->inode->size)
+    {
+        size = file->inode->size - off;
+        if (!size) return 0;
+    }
 
-    unsigned int clus = file->inode;
+    struct fat32_volume* vol = file->inode->priv;
+
+    unsigned int clus = file->inode->inode;
+   
+    uint8_t* fullbuf = kmalloc(512);
+    uintptr_t ptroff = 0;
+
+    uint64_t startblk = off / 512;
+    uint64_t modoff   = off % 512;
     
-    uint8_t* fullbuf = kmalloc(off % 512 + size + (512 - (size % 512))); // Sector-aligned
-    uint8_t* fullbuf_ptr = fullbuf;
-    uint64_t start = off / 512;
-    uint64_t end = (off + size) / 512;
-
-    // TODO: use 'i' rather than this variable
-    size_t pos = 0;
+    uint64_t endblk   = (off + size) / 512;
+    uint64_t modend   = (off + size) % 512;
 
     unsigned int cnt = fat_cchain_cnt(vol, clus);
 
-    for (unsigned int i = 0; i < cnt; i++)
+    for (unsigned int i = 0; i < cnt && i <= endblk; i++)
     {
         uint64_t lba = clus2lba(vol, clus);
-
-        if (pos > end) break;
-        if (pos >= start)
-        {
-            vfs_read(vol->priv, fullbuf_ptr, lba * 512, 512);
-            fullbuf_ptr += 512;
-        }
-
-        pos++;
         clus = fat_table_read(vol, clus);
+        
+        if (i < startblk) continue;
+
+        read_sectors(vol, fullbuf, lba, 1);
+        
+        uint32_t start = 0;
+        uint32_t bytes = 512;
+        
+        if (i == startblk)
+        {
+            start = modoff;
+            bytes = 512 - start;
+        }
+        if (i == endblk)
+            bytes = modend < size ? modend : size;
+        
+        memcpy((void*)((uintptr_t)buf + ptroff), fullbuf + start, bytes);
+        ptroff += bytes;
     }
 
-    memcpy(buf, fullbuf + (off % 512), size);
-
     kfree(fullbuf);
-
-    return 0;
+    return size;
 }
 
 // TODO: IMPORTANT: move directory entry parsing to a different function
@@ -185,7 +197,7 @@ void fat_resize_dirent(struct fat32_volume* vol, unsigned int clus, const char* 
     struct fat_dirent* dirents = kmalloc(512);
     for (unsigned int i = 0; i < clusters; i++)
     {
-        vfs_read(vol->priv, dirents, clus2lba(vol, clus) * 512, 512);
+        read_sectors(vol, dirents, clus2lba(vol, clus), 1);
         for (unsigned int j = 0; j < 512 / sizeof(struct fat_dirent); j++)
         {
             if (dirents[j].name[0] == 0 || dirents[j].name[0] == 0xe5) continue;
@@ -194,7 +206,7 @@ void fat_resize_dirent(struct fat32_volume* vol, unsigned int clus, const char* 
                 if (fat_name_cmp(&dirents[j], name))
                 {
                     dirents[j].file_sz = size;
-                    vfs_write(vol->priv, dirents, clus2lba(vol, clus) * 512, 512);
+                    write_sectors(vol, dirents, clus2lba(vol, clus), 1);
                     return;
                 }
             }
@@ -206,9 +218,9 @@ void fat_resize_dirent(struct fat32_volume* vol, unsigned int clus, const char* 
 
 void fat_resize_file(struct inode* file, size_t size)
 {
-    if (file->size == size) return; // No need
+    /*if (file->size == size) return; // No need
 
-    struct fat32_volume* vol = file->priv;
+    struct fat32_volume* vol = file->inode->priv;
 
     if (file->parent) // Set parent's dirent structure size
         fat_resize_dirent(vol, file->parent->inode, file->name, size);
@@ -235,10 +247,10 @@ void fat_resize_file(struct inode* file, size_t size)
         fat_table_write(vol, clus, 0xffffff8);
     }
 
-    file->size = size;
+    file->size = size;*/
 }
 
-struct inode* fat_find(struct inode* dir, const char* name)
+int fat_lookup(struct inode* dir, const char* name, struct dentry* dentry)
 {
     struct fat32_volume* vol = dir->priv;
     unsigned int clus = dir->inode;
@@ -253,7 +265,7 @@ struct inode* fat_find(struct inode* dir, const char* name)
     {
         uint64_t lba = clus2lba(vol, clus);
 
-        vfs_read(vol->priv, buf, lba * 512, 512);
+        read_sectors(vol, buf, lba, 1);
 
         // clus
         for (unsigned int i = 0; i < 512 / sizeof(struct fat_dirent); i++)
@@ -299,27 +311,26 @@ struct inode* fat_find(struct inode* dir, const char* name)
 
                 if (cmp)
                 {
-                    struct inode* file  = kcalloc(sizeof(struct inode));
+                    struct inode* inode  = kcalloc(sizeof(struct inode));
 
-                    file->parent       = dir;
-                    file->priv         = vol;
-                    file->type         = (buf[i].attr & FAT_ATTR_DIR) ? S_IFDIR : S_IFREG;
-                    file->inode        = (buf[i].cluster_u << 16) | buf[i].cluster;
-                    file->size         = buf[i].file_sz;
+                    strcpy(dentry->name, name);
 
-                    file->ops.read     = fat_read;
-                    file->ops.write    = fat_write;
-                    file->ops.find     = fat_find;
-                    file->ops.getdents = fat_getdents;
-                    file->ops.mkfile   = fat_mkfile;
-                    file->ops.mkdir    = fat_mkdir;
-                    file->ops.unlink   = fat_unlink;
+                    inode->priv         = vol;
+                    inode->mode         = (buf[i].attr & FAT_ATTR_DIR) ? S_IFDIR : S_IFREG;
+                    inode->inode        = (buf[i].cluster_u << 16) | buf[i].cluster;
+                    inode->size         = buf[i].file_sz;
 
-                    strcpy(file->name, name);
+                    inode->fops.read    = fat_read;
+                    inode->fops.write   = fat_write;
+                    inode->ops.lookup   = fat_lookup;
+                    inode->ops.getdents = fat_getdents;
+                    inode->ops.mkdir    = fat_mkdir;
+                    inode->ops.unlink   = fat_unlink;
+
+                    dentry->file = inode;
                     
                     kfree(buf);
-
-                    return file;
+                    return 0;
                 }
             }
         }
@@ -328,16 +339,15 @@ struct inode* fat_find(struct inode* dir, const char* name)
     }
 
     kfree(buf);
-
-    return NULL;
+    return -ENOENT;
 }
 
-ssize_t fat_write(struct inode* file, const void* buf, off_t off, size_t size)
+ssize_t fat_write(struct file* file, const void* buf, off_t off, size_t size)
 {
-    struct fat32_volume* vol = file->priv;
+    struct fat32_volume* vol = file->inode->priv;
     
     // TEMP
-    if (off + size > file->size)
+    if (off + size > file->inode->size)
         fat_resize_file(file, off + size);
 
     unsigned int clus = file->inode;
@@ -357,7 +367,7 @@ ssize_t fat_write(struct inode* file, const void* buf, off_t off, size_t size)
 
         if (pos >= start)
         {
-            vfs_read(vol->priv, fullbuf, lba * 512, 512);
+            read_sectors(vol, fullbuf, lba, 1);
 
             unsigned int byte_offset = 0;
             size_t bytes = 512;
@@ -373,7 +383,7 @@ ssize_t fat_write(struct inode* file, const void* buf, off_t off, size_t size)
             }
             
             memcpy(fullbuf + byte_offset, buf, bytes);
-            vfs_write(vol->priv, fullbuf, lba * 512, 512);
+            write_sectors(vol, fullbuf, lba, 1);
 
             buf = (void*)((uintptr_t)buf + bytes);
         }
@@ -399,7 +409,7 @@ void fat_dirent_append(struct inode* dir, struct fat_dirent* dirent)
 
     for (;;)
     {
-        vfs_read(vol->priv, buf, clus2lba(vol, clus) * 512, 512);
+        read_sectors(vol, buf, clus2lba(vol, clus), 1);
 
         for (unsigned int j = 0; j < dirents_per_clus; j++)
         {
@@ -408,7 +418,7 @@ void fat_dirent_append(struct inode* dir, struct fat_dirent* dirent)
                 // Read the sector, write the dirent, and flush the sector
                 memcpy(&buf[j], dirent, sizeof(struct fat_dirent));
 
-                vfs_write(vol->priv, buf, clus2lba(vol, clus) * 512, 512);
+                write_sectors(vol, buf, clus2lba(vol, clus), 1);
 
                 kfree(buf);
                 return;
@@ -438,11 +448,11 @@ void fat_mkdirent(struct inode* dir, struct fat_dirent* dirent)
     fat_dirent_append(dir, &zero);
 }
 
-void fat_mkfile(struct inode* dir, const char* name, mode_t mode, uid_t uid, gid_t gid)
+/*void fat_mkfile(struct inode* dir, const char* name, mode_t mode, uid_t uid, gid_t gid)
 {
     (void)mode; (void)uid; (void)gid;
 
-    struct fat32_volume* vol = dir->priv;
+    struct fat32_volume* vol = dir->device;
 
     struct fat_dirent dirent;
     memset(&dirent, 0, sizeof(struct fat_dirent));
@@ -453,9 +463,9 @@ void fat_mkfile(struct inode* dir, const char* name, mode_t mode, uid_t uid, gid
 
     fat_mkdirent(dir, &dirent);
     fat_table_write(vol, dirent.cluster, 0xffffff8);
-}
+}*/
 
-void fat_mkdir(struct inode* dir, const char* name, mode_t mode, uid_t uid, gid_t gid)
+int fat_mkdir(struct inode* dir, const char* name, mode_t mode, uid_t uid, gid_t gid)
 {
     (void)mode; (void)uid; (void)gid;
     
@@ -472,12 +482,13 @@ void fat_mkdir(struct inode* dir, const char* name, mode_t mode, uid_t uid, gid_
 
     fat_mkdirent(dir, &dirent);
     fat_table_write(vol, dirent.cluster, 0xffffff8);
+    return 0;
 }
 
 // TODO: IMPORTANT: move directory entry parsing to a different function
 
 // TODO: should return int error code
-void fat_unlink(struct inode* dir, const char* name)
+int fat_unlink(struct inode* dir, const char* name)
 {
     struct fat32_volume* vol = dir->priv;
     unsigned int clus = dir->inode;
@@ -487,9 +498,7 @@ void fat_unlink(struct inode* dir, const char* name)
     unsigned int cnt = fat_cchain_cnt(vol, clus);
     for (unsigned int i = 0; i < cnt; i++)
     {
-        uint64_t lba = clus2lba(vol, clus);
-
-        vfs_read(vol->priv, buf, lba * 512, 512);
+        read_sectors(vol, buf, clus2lba(vol, clus), 1);
 
         for (unsigned int i = 0; i < 512 / sizeof(struct fat_dirent); i++)
         {
@@ -500,7 +509,7 @@ void fat_unlink(struct inode* dir, const char* name)
                 if (fat_name_cmp(&buf[i], name))
                 {
                     struct fat_dirent* buf = kmalloc(512);
-                    vfs_read(vol->priv, buf, clus2lba(vol, clus) * 512, 512);
+                    read_sectors(vol, buf, clus2lba(vol, clus), 1);
                     
 
                     // TODO: delete the data
@@ -508,10 +517,10 @@ void fat_unlink(struct inode* dir, const char* name)
                     memset(&buf[i], 0, sizeof(struct fat_dirent));
                     buf[i].name[0] = 0xe5; // Bit of a hack - mark the dirent as unused (no data is actually freed)
 
-                    vfs_write(vol->priv, buf, clus2lba(vol, clus) * 512, 512);
+                    write_sectors(vol, buf, clus2lba(vol, clus), 1);
 
                     kfree(buf);
-                    return;
+                    return 0;
                 }
             }
         }
@@ -520,6 +529,12 @@ void fat_unlink(struct inode* dir, const char* name)
     }
 
     kfree(buf);
+    return -ENOENT;
+}
+
+unsigned int todenttype(uint8_t attr)
+{
+    return attr & FAT_ATTR_DIR ? DT_DIR : DT_REG;
 }
 
 #define DENTS_PER_SECT 512 / sizeof(struct fat_dirent)
@@ -533,7 +548,6 @@ ssize_t fat_getdents(struct inode* dir, off_t off, size_t size, struct dirent* d
 
     ssize_t bytes = 0;
     size_t dirp_idx = 0;
-    size_t dirent_idx = 0;
 
     char lfns[8][LFN_LEN + 1];
     size_t lfncnt = 0;
@@ -542,8 +556,7 @@ ssize_t fat_getdents(struct inode* dir, off_t off, size_t size, struct dirent* d
     for (unsigned int i = 0; i < cnt; i++)
     {
         uint64_t lba = clus2lba(vol, clus);
-
-        vfs_read(vol->priv, buf, lba * 512, 512);
+        read_sectors(vol, buf, lba, 1);
 
         for (unsigned int j = 0; j < DENTS_PER_SECT; j++)
         {
@@ -572,18 +585,23 @@ ssize_t fat_getdents(struct inode* dir, off_t off, size_t size, struct dirent* d
             }
             else
             {
-                if (dirent_idx >= off + size)
+                if (bytes + sizeof(struct dirent) >= size)
                 {
                     kfree(buf);
                     return bytes;
                 }
 
-                if (dirent_idx++ < (size_t)off)
+                if (off--)
                 {
                     lfncnt = 0; continue;
                 }
 
                 bytes += sizeof(struct dirent);
+
+                dirp[dirp_idx].d_ino    = (buf[j].cluster_u << 32) | buf[j].cluster;
+                dirp[dirp_idx].d_off    = sizeof(struct dirent) * (dirp_idx + 1);
+                dirp[dirp_idx].d_reclen = sizeof(struct dirent);
+                dirp[dirp_idx].d_type   = todenttype(buf[j].attr);
 
                 char* dirpname = dirp[dirp_idx].d_name;
                 if (lfncnt)
@@ -608,35 +626,34 @@ ssize_t fat_getdents(struct inode* dir, off_t off, size_t size, struct dirent* d
     return bytes;
 }
 
-struct inode* fat_mount(const char* dev, const void* data)
+int fat_mount(const char* dev, const void* data, struct inode* fsroot)
 {
     (void)data;
-    
-    struct inode* device = kmalloc(sizeof(struct inode));
-    vfs_resolve(dev, device, 1);
+
+    struct file* device = kcalloc(sizeof(struct file));
+    TRY(vfs_open(dev, device, O_RDWR));
 
     struct fat32_volume* vol = kmalloc(sizeof(struct fat32_volume));
-    vol->priv = device;
+    vol->device = device;
 
     void* buf = kmalloc(512);
-    vfs_read(device, buf, 0, 512);
+    read_sectors(vol, buf, 0, 1);
 
     memcpy(&vol->record, buf, sizeof(struct fat32_record));
 
     kfree(buf);
 
-    struct inode* file = kcalloc(sizeof(struct inode));
+    fsroot->mode         = 0555 | S_IFDIR;
+    fsroot->priv         = vol;
+    fsroot->inode        = vol->record.ebr.cluster_num;
+    fsroot->ops.lookup   = fat_lookup;
+    fsroot->ops.getdents = fat_getdents;
+    fsroot->ops.mkdir    = fat_mkdir;
+    fsroot->ops.unlink   = fat_unlink;
 
-    file->type         = S_IFDIR;
-    file->priv         = vol;
-    file->inode        = vol->record.ebr.cluster_num;
-    file->ops.find     = fat_find;
-    file->ops.getdents = fat_getdents;
-    file->ops.mkfile   = fat_mkfile;
-    file->ops.mkdir    = fat_mkdir;
-    file->ops.unlink   = fat_unlink;
+    printk("mounted FAT32 filesystem on %s\n", dev);
 
-    return file;
+    return 0;
 }
 
 void fat_init()

@@ -92,7 +92,7 @@ struct inode_ops
 #define IFTODT(x) ((x) >> 12 & 017)
 
 // TODO: flags, modes, etc
-struct file // TODO: rename to 'file'
+struct file
 {
     struct inode*   inode;
     off_t           off;

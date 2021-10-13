@@ -242,18 +242,15 @@ int vfs_getmnt(const char* path, char** relat, struct inode* out)
 
 int vfs_mkcanon(const char* path, const char* work, char* out)
 {
-    char* tmp;
+    char tmp[256];
 
     if (!work || path[0] == '/')
-    {
-        tmp = strdup(path);
-    }
+        strcpy(tmp, path);
     else
     {
-        tmp = kmalloc(strlen(path) + 1 + strlen(work) + 1);
         strcpy(tmp, work);
-        strcpy(tmp + strlen(tmp), "/");
-        strcpy(tmp + strlen(tmp), path);
+        strcat(tmp, "/");
+        strcat(tmp, path);
     }
 
     struct list tokens = list_create();
@@ -293,7 +290,6 @@ int vfs_mkcanon(const char* path, const char* work, char* out)
     }
 
     list_free(&tokens);
-    kfree(tmp);
     return 0;
 }
 
