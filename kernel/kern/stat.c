@@ -28,10 +28,11 @@ SYSCALL_DEFINE(stat, const char* path, struct stat* buf)
     PTRVALID(path);
     PTRVALID(buf);
 
-    char* canon = vfs_mkcanon(path, task_curr()->workd);
+    char canon[256];
+    vfs_mkcanon(path, task_curr()->workd, canon);
 
     struct file file;
-    TRY2(vfs_open(canon, &file, O_RDONLY), kfree(canon));
+    TRY(vfs_open(canon, &file, O_RDONLY));
 
     do_kstat(file.inode, buf);
     return 0;
@@ -51,10 +52,11 @@ SYSCALL_DEFINE(lstat, const char* path, struct stat* buf)
     PTRVALID(path);
     PTRVALID(buf);
 
-    char* canon = vfs_mkcanon(path, task_curr()->workd);
+    char canon[256];
+    vfs_mkcanon(path, task_curr()->workd, canon);
 
     struct file file;
-    TRY2(vfs_open(canon, &file, O_RDONLY | O_NOFOLLOW | O_PATH), kfree(canon));
+    TRY(vfs_open(canon, &file, O_RDONLY | O_NOFOLLOW | O_PATH));
 
     do_kstat(file.inode, buf);
     printk("mode: %d\n", (uintptr_t)&buf->st_mode - (uintptr_t)buf);
@@ -67,10 +69,11 @@ SYSCALL_DEFINE(readlink, const char* pathname, char* buf, size_t n)
     PTRVALID(pathname);
     PTRVALID(buf);
 
-    char* canon = vfs_mkcanon(pathname, task_curr()->workd);
+    char canon[256];
+    vfs_mkcanon(pathname, task_curr()->workd, canon);
 
     struct file file;
-    TRY2(vfs_open(canon, &file, O_RDONLY | O_NOFOLLOW | O_PATH), kfree(canon));
+    TRY(vfs_open(canon, &file, O_RDONLY | O_NOFOLLOW | O_PATH));
 
     if (!S_ISLNK(file.inode->mode)) return -EINVAL;
 

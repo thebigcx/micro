@@ -35,7 +35,8 @@ SYSCALL_DEFINE(utime, const char* path, const struct utimbuf* times)
     PTRVALID(path);
     PTRVALIDNULL(times);
 
-    char* canon = vfs_mkcanon(path, task_curr()->workd);
+    char canon[256];
+    vfs_mkcanon(path, task_curr()->workd, canon);
 
     int ret = do_utime(canon, times);
 
@@ -48,7 +49,8 @@ SYSCALL_DEFINE(utimes, const char* path, const struct timeval times[2])
     PTRVALID(path);
     PTRVALIDNULL(times);
 
-    char* canon = vfs_mkcanon(path, task_curr()->workd);
+    char canon[256];
+    vfs_mkcanon(path, task_curr()->workd, canon);
 
     int ret;
     if (times)

@@ -40,10 +40,10 @@ SYSCALL_DEFINE(execve, const char* path, char* const argv[], char* const envp[])
     }
     env_copy[envc] = NULL;
 
-    char* canon = vfs_mkcanon(path, task_curr()->workd);
+    char canon[256];
+    vfs_mkcanon(path, task_curr()->workd, canon);
 
-    TRY2(task_execve(task_curr(), canon, arg_copy,
-                     env_copy), kfree(canon));
+    TRY(task_execve(task_curr(), canon, arg_copy, env_copy));
         
     sched_yield();
     __builtin_unreachable();

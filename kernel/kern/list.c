@@ -7,6 +7,13 @@ struct list list_create()
     return (struct list) { .head = NULL, .tail = NULL, .size = 0 };
 }
 
+// Free resources associated with 'list'
+// NOTE: list itself is not kfree()'d
+void list_free(struct list* list)
+{
+    list_clear(list);
+}
+
 void* list_enqueue(struct list* list, void* data)
 {
     // Initialize new node

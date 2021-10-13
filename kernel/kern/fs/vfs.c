@@ -240,7 +240,7 @@ int vfs_getmnt(const char* path, char** relat, struct inode* out)
     return 0;
 }
 
-char* vfs_mkcanon(const char* path, const char* work)
+int vfs_mkcanon(const char* path, const char* work, char* out)
 {
     char* tmp;
 
@@ -280,22 +280,21 @@ char* vfs_mkcanon(const char* path, const char* work)
         token = strtok_r(NULL, "/", &saveptr);
     }
 
-    char* ret = kmalloc(fsize + 1);
-    memset(ret, 0, fsize + 1);
+    out[0] = 0;
 
     if (!tokens.size)
-        strcpy(ret, "/");
+        strcpy(out, "/");
 
     LIST_FOREACH(&tokens)
     {
         char* token = node->data;
-        strcpy(ret + strlen(ret), "/");
-        strcpy(ret + strlen(ret), token);
+        strcat(out, "/");
+        strcat(out, token);
     }
 
+    list_free(&tokens);
     kfree(tmp);
-    
-    return ret;
+    return 0;
 }
 
 // Hold the depth of symlinks, so we can return ELOOP is necessary

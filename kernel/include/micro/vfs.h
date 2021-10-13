@@ -161,7 +161,7 @@ int vfs_open(const char* path, struct file* file, uint32_t flags);
 
 void vfs_close(struct file* fd);
 
-char* vfs_mkcanon(const char* path, const char* work);
+int vfs_mkcanon(const char* path, const char* work, char* out);
 
 int vfs_resolve(const char* path, struct inode* out, int symlinks);
 

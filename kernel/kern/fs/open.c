@@ -51,7 +51,8 @@ SYSCALL_DEFINE(open, const char* path, uint32_t flags, mode_t mode)
     if ((flags & 3) > 2) return -EINVAL;
 
     struct task* task = task_curr();
-    char* canon = vfs_mkcanon(path, task->workd);
+    char canon[256];
+    vfs_mkcanon(path, task->workd, canon);
 
     return do_sys_open(canon, flags, mode);
 }
@@ -72,11 +73,9 @@ SYSCALL_DEFINE(access, const char* pathname, int mode)
 {
     PTRVALID(pathname);
 
-    char* canon = vfs_mkcanon(pathname, task_curr()->workd);
-    int ret = vfs_access(canon, mode);
-    kfree(canon);
-
-    return ret;
+    char canon[256];
+    vfs_mkcanon(pathname, task_curr()->workd, canon);
+    return vfs_access(canon, mode);
 }
 
 // TODO: add PATH_MAX macro
@@ -85,16 +84,15 @@ SYSCALL_DEFINE(chdir, const char* path)
     PTRVALID(path);
 
     struct task* task = task_curr();
-    char* new = vfs_mkcanon(path, task->workd); // TODO: buffer on stack
-
+    char canon[256];
+    vfs_mkcanon(path, task->workd, canon);
+    
     struct file dir;
-    TRY(vfs_open(new, &dir, O_RDONLY));
+    TRY(vfs_open(canon, &dir, O_RDONLY));
     
     if (!S_ISDIR(dir.inode->mode)) return -ENOTDIR;
 
-    strcpy(task->workd, new);
-
-    kfree(new);
+    strcpy(task->workd, canon);
     return 0;
 }
 
@@ -116,10 +114,11 @@ SYSCALL_DEFINE(chmod, const char* pathname, mode_t mode)
 {
     PTRVALID(pathname);
 
-    char* canon = vfs_mkcanon(pathname, task_curr()->workd);
+    char canon[256];
+    vfs_mkcanon(pathname, task_curr()->workd, canon);
     
     struct file file;
-    TRY2(vfs_open(canon, &file, O_RDONLY), kfree(canon));
+    TRY(vfs_open(canon, &file, O_RDONLY));
     
     if (task_curr()->euid
         && task_curr()->euid && file.inode->uid != task_curr()->euid) return -EPERM;
@@ -141,13 +140,14 @@ SYSCALL_DEFINE(fchmod, int fd, mode_t mode)
 
 int do_chown(const char* path, uid_t uid, gid_t gid, int symlinks)
 {
-    char* canon = vfs_mkcanon(path, task_curr()->workd);
+    char canon[256];
+    vfs_mkcanon(path, task_curr()->workd, canon);
 
     uint32_t mode = O_RDONLY;
     if (!symlinks) mode |= O_PATH | O_NOFOLLOW;
 
     struct file file;
-    TRY2(vfs_open(canon, &file, mode), kfree(canon));
+    TRY(vfs_open(canon, &file, mode));
     
     // Must be root
     if (task_curr()->euid) return -EPERM;

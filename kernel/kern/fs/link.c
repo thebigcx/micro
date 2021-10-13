@@ -7,7 +7,8 @@ SYSCALL_DEFINE(mkdir, const char* path, mode_t mode)
     PTRVALID(path);
 
     struct task* task = task_curr();
-    char* canon = vfs_mkcanon(path, task->workd);
+    char canon[256];
+    vfs_mkcanon(path, task->workd, canon);
 
     if (canon[0] == 0) return -ENOENT;
     if (sys_access(canon, F_OK) == 0) return -EEXIST;
@@ -19,11 +20,11 @@ SYSCALL_DEFINE(unlink, const char* pathname)
 {
     PTRVALID(pathname);
 
-    char* canon = vfs_mkcanon(pathname, task_curr()->workd);
+    char canon[256];
+    vfs_mkcanon(pathname, task_curr()->workd, canon);
 
     int ret = vfs_unlink(canon);
 
-    kfree(canon);
     return ret;
 }
 
@@ -32,12 +33,10 @@ SYSCALL_DEFINE(symlink, const char* target, const char* linkpath)
     PTRVALID(target);
     PTRVALID(linkpath);
 
-    char* canon = vfs_mkcanon(linkpath, task_curr()->workd);
+    char canon[256];
+    vfs_mkcanon(linkpath, task_curr()->workd, canon);
     
-    int ret = vfs_symlink(target, canon);
-
-    kfree(canon);
-    return ret;
+    return vfs_symlink(target, canon);
 }
 
 SYSCALL_DEFINE(link, const char* old, const char* new)
@@ -45,14 +44,11 @@ SYSCALL_DEFINE(link, const char* old, const char* new)
     PTRVALID(old);
     PTRVALID(new);
 
-    char* oldcanon = vfs_mkcanon(old, task_curr()->workd);
-    char* newcanon = vfs_mkcanon(new, task_curr()->workd);
+    char oldcanon[256], newcanon[256];
+    vfs_mkcanon(old, task_curr()->workd, oldcanon);
+    vfs_mkcanon(new, task_curr()->workd, newcanon);
 
-    int ret = vfs_link(oldcanon, newcanon);
-
-    kfree(oldcanon);
-    kfree(newcanon);
-    return ret;
+    return vfs_link(oldcanon, newcanon);
 }
 
 SYSCALL_DEFINE(rename, const char* old, const char* new)
@@ -60,26 +56,21 @@ SYSCALL_DEFINE(rename, const char* old, const char* new)
     PTRVALID(old);
     PTRVALID(new);
 
-    char* oldcanon = vfs_mkcanon(old, task_curr()->workd);
-    char* newcanon = vfs_mkcanon(new, task_curr()->workd);
+    char oldcanon[256], newcanon[256];
+    vfs_mkcanon(old, task_curr()->workd, oldcanon);
+    vfs_mkcanon(new, task_curr()->workd, newcanon);
 
-    int ret = vfs_rename(oldcanon, newcanon);
-
-    kfree(oldcanon);
-    kfree(newcanon);
-    return ret;
+    return vfs_rename(oldcanon, newcanon);
 }
 
 SYSCALL_DEFINE(rmdir, const char* path)
 {
     PTRVALID(path);
 
-    char* canon = vfs_mkcanon(path, task_curr()->workd);
+    char canon[256];
+    vfs_mkcanon(path, task_curr()->workd, canon);
 
-    int ret = vfs_rmdir(canon);
-
-    kfree(canon);
-    return ret;
+    return vfs_rmdir(canon);
 }
 
 SYSCALL_DEFINE(mknod, const char* path, mode_t mode, dev_t dev)
