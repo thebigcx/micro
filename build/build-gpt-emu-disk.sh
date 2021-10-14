@@ -35,3 +35,4 @@ sudo chown -R 1000:1000 mnt/
 
 sudo umount mnt
 rmdir mnt
+

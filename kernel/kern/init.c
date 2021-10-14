@@ -191,13 +191,14 @@ void generic_init(struct genbootparams params)
     kmod_load("/fat.ko");
     printk("mounting root filesystem\n");
 
-    gpt_init("/dev/sda");
+    //gpt_init("/dev/sda");
+    mbr_init("/dev/sda");
 
     vfs_umount_fs("/"); // Unmount old initramfs
-    if (vfs_mount_fs("/dev/sda2", "/", "ext2", NULL))
+    if (vfs_mount_fs("/dev/sda1", "/", "ext2", NULL))
         panic("Could not mount root filesystem!");
 
-    vfs_mount_fs("/dev/sda1", "/boot", "fat", NULL);
+    //vfs_mount_fs("/dev/sda1", "/boot", "fat", NULL);
 
     kmod_load("/lib/modules/ps2kb.ko");
     kmod_load("/lib/modules/ps2mouse.ko");

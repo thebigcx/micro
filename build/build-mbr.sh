@@ -1,0 +1,11 @@
+qemu-system-x86_64                              \
+    -serial stdio                               \
+    -m 512                                      \
+    -smp 1                                      \
+    -s -d guest_errors                          \
+    -no-shutdown -no-reboot                     \
+    -drive id=disk,file=dist/mbr.img,if=none    \
+    -device ahci,id=ahci                        \
+    -device ide-hd,drive=disk,bus=ahci.0        \
+    -rtc base=localtime                         \
+    --enable-kvm

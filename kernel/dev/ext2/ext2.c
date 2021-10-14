@@ -868,7 +868,7 @@ static int ext2_mount(const char* dev, const void* data, struct inode* fsroot)
 
     struct ext2_volume* vol = kmalloc(sizeof(struct ext2_volume));
     vol->device = kmalloc(sizeof(struct file));
-    
+   
     TRY(vfs_open(dev, vol->device, O_RDWR));
 
     void* buf = kmalloc(512);

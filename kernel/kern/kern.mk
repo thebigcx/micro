@@ -42,4 +42,6 @@ SRC += kern/init.c          \
        kern/stat.c          \
        kern/sem.c           \
        kern/reboot.c        \
-	   kern/gpt.c
+	   kern/gpt.c           \
+	   kern/mbr.c           \
+	   kern/part.c

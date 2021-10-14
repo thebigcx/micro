@@ -4,41 +4,8 @@
 #include <micro/vfs.h>
 #include <micro/fcntl.h>
 #include <micro/stdlib.h>
-#include <micro/devfs.h>
 #include <micro/debug.h>
-
-struct gpt_partdev
-{
-    uint64_t start, end; // Start and end LBAs   
-    struct file dev;
-};
-
-static ssize_t part_read(struct file* file, void* buf, off_t off, size_t size)
-{
-    struct gpt_partdev* dev = file->inode->priv;
-    return dev->dev.ops.read(&dev->dev, buf, off + dev->start * 512, size);
-}
-
-static ssize_t part_write(struct file* file, const void* buf, off_t off, size_t size)
-{
-    struct gpt_partdev* dev = file->inode->priv;
-    return dev->dev.ops.write(&dev->dev, buf, off + dev->start * 512, size);
-}
-
-static struct file_ops partops =
-{
-    .read = part_read,
-    .write = part_write
-};
-
-static struct gpt_partdev* mkpartdev(uint64_t start, uint64_t end, struct file* dev)
-{
-    struct gpt_partdev* part = kcalloc(sizeof(struct gpt_partdev));
-    part->start = start;
-    part->end   = end;
-    part->dev   = *dev;
-    return part;
-}
+#include <micro/part.h>
 
 static int unused(struct gpt_entry* ent)
 {
@@ -86,17 +53,13 @@ int gpt_init(const char* dev)
 
         if (unused(&ent)) continue; // Unused entry
 
-        printk("found partition: ");
+        printk("GPT: found partition: ");
         for (size_t j = 0; j < 36; j++)
             printk("%c", ent.name[j]);
         printk(" %d-%d\n", ent.start, ent.end);
 
-        struct gpt_partdev* part = mkpartdev(ent.start, ent.end, &file);
-        
         name[strlen(name) - 1] = i + 1 + '0';
-        printk("%s\n", name);
-        devfs_register_blkdev(&partops, name, 0660, part);
-
+        register_part(ent.start, ent.end, &file, name);
     }
 
     kfree(buf);
