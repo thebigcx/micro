@@ -12,10 +12,10 @@ SYSCALL_DEFINE(mount, const char* src, const char* dst,
 
     PTRVALIDNULL(data);
 
-    struct inode target;
-    TRY(vfs_resolve(dst, &target, 1));
+    //struct inode target;
+    //TRY(vfs_resolve(dst, &target, 1));
 
-    if (!S_ISDIR(target.mode)) return -ENOTDIR;
+    //if (!S_ISDIR(target.mode)) return -ENOTDIR;
 
     return vfs_mount_fs(src, dst, fs, data);
 }

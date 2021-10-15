@@ -105,8 +105,9 @@ SYSCALL_DEFINE(execve,       const char* path, char* const argv[],
 SYSCALL_DEFINE(fork);
 
 // module.c
-SYSCALL_DEFINE(insmod,       void* data, size_t len);
-SYSCALL_DEFINE(rmmod,        const char* name);
+SYSCALL_DEFINE(init_module,   void* data, size_t len, const char* params);
+SYSCALL_DEFINE(finit_module,  int fd, const char* params, int flags);
+SYSCALL_DEFINE(delete_module, const char* name, unsigned int flags);
 
 // ptrace.c
 SYSCALL_DEFINE(ptrace,       unsigned long req, pid_t pid,

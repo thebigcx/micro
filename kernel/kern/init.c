@@ -183,25 +183,28 @@ void generic_init(struct genbootparams params)
     initramfs_init();
 
     printk("mounting initramfs\n");
-    vfs_mount_fs("/dev/initrd", "/", "initramfs", NULL);
+    vfs_mount_fs("/dev/initrd", "/initrd", "initramfs", NULL);
 
     printk("loading init modules\n");
-    kmod_load("/ahci.ko");
-    kmod_load("/ext2.ko");
-    kmod_load("/fat.ko");
+    kmod_load("/initrd/ahci.ko");
+    kmod_load("/initrd/ext2.ko");
+    kmod_load("/initrd/fat.ko");
     printk("mounting root filesystem\n");
 
-    //gpt_init("/dev/sda");
-    mbr_init("/dev/sda");
+    // TODO: better device interface i.e. device management - this is temporary
+    if (!gpt_detect("/dev/sda"))
+        gpt_init("/dev/sda");
+    else
+        mbr_init("/dev/sda");
 
-    vfs_umount_fs("/"); // Unmount old initramfs
+    /*vfs_umount_fs("/"); // Unmount old initramfs
     if (vfs_mount_fs("/dev/sda1", "/", "ext2", NULL))
         panic("Could not mount root filesystem!");
 
     //vfs_mount_fs("/dev/sda1", "/boot", "fat", NULL);
 
     kmod_load("/lib/modules/ps2kb.ko");
-    kmod_load("/lib/modules/ps2mouse.ko");
+    kmod_load("/lib/modules/ps2mouse.ko");*/
 
     init_devices();
 

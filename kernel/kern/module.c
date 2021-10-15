@@ -9,6 +9,7 @@
 #include <micro/errno.h>
 #include <micro/ksym.h>
 #include <micro/stdlib.h>
+#include <micro/vfs.h>
 #include <micro/sys.h>
 
 #define MOD_MAX 64
@@ -157,13 +158,28 @@ void modules_init()
     memset(modules, 0, sizeof(modules));
 }
 
-SYSCALL_DEFINE(insmod, void* data, size_t len)
+SYSCALL_DEFINE(init_module, void* data, size_t len, const char* params)
 {
     PTRVALID(data);
     return module_load(data, len);
 }
 
-SYSCALL_DEFINE(rmmod, const char* name)
+SYSCALL_DEFINE(finit_module, int fd, const char* params, int flags)
+{
+    FDVALID(fd);
+    
+    struct file* file = task_curr()->fds[fd];
+    
+    void* buf = kmalloc(file->inode->size);
+    
+    vfs_read(file, buf, file->inode->size);
+    int ret = module_load(buf, file->inode->size);
+    kfree(buf);
+    
+    return ret;
+}
+
+SYSCALL_DEFINE(delete_module, const char* name, unsigned int flags)
 {
     PTRVALID(name);
     return module_free(name);

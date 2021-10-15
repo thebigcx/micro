@@ -19,7 +19,6 @@ sudo mount ${USED_LOOPBACK}p1 mnt
  
 # Copy the relevant files over.
 sudo mkdir -p mnt/EFI/BOOT
-sudo cp -v ../kernel/dist/vmkernel initrd.img limine.cfg limine/limine.sys mnt/
 sudo cp -v limine/BOOTX64.EFI mnt/EFI/BOOT/
 
 sync
@@ -32,6 +31,7 @@ sudo mount ${USED_LOOPBACK}p2 mnt
 
 sudo cp -r ../root/* mnt/
 sudo chown -R 1000:1000 mnt/
+sudo cp -v ../kernel/dist/vmkernel initrd.img limine.cfg limine/limine.sys mnt/boot
 
 sudo umount mnt
 rmdir mnt

@@ -14,6 +14,24 @@ static int unused(struct gpt_entry* ent)
     return 1;
 }
 
+int gpt_detect(const char* dev)
+{
+    struct file file;
+    TRY(vfs_open(dev, &file, O_RDONLY));
+
+    void* buf = kmalloc(512);
+    
+    file.ops.read(&file, buf, 512, 512);
+    
+    struct gpt_header* header = buf;
+    if (strcmp(header->sig, "EFI PART"))
+        return -1;
+
+    kfree(buf);
+
+    return 0;
+}
+
 int gpt_init(const char* dev)
 {
     struct file file;

@@ -80,13 +80,13 @@ struct task* task_init_creat()
     struct task* task = mktask(NULL, mmu_create_vmmap());
 
     struct file file;
-    if (vfs_open("/init", &file, O_RDONLY))
+    if (vfs_open("/initrd/init", &file, O_RDONLY))
         return NULL; // Shits gonna hit the fan
 
     void* data = kmalloc(file.inode->size);
     vfs_read(&file, data, file.inode->size);
 
-    char* const argv[] = { "/init", NULL };
+    char* const argv[] = { "/initrd/init", NULL };
     char* const envp[] = { NULL };
 
     uintptr_t entry, brk;

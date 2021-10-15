@@ -1,4 +1,5 @@
 #include <unistd.h>
+#include <fcntl.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <sys/wait.h>
@@ -6,6 +7,12 @@
 
 int main(int argc, char** argv)
 {
+    mount("/dev/sda1", "/", "ext2", 0, NULL);
+
+    int ps2kb = open("/lib/modules/ps2kb.ko", O_RDONLY);
+
+    syscall(SYS_finit_module, ps2kb, NULL, 0);
+
     pid_t pid = fork();
     if (pid == 0)
     {

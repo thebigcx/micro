@@ -32,4 +32,5 @@ struct gpt_entry
     uint16_t name[36];
 };
 
+int gpt_detect(const char* dev);
 int gpt_init(const char* dev);
