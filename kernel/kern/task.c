@@ -50,7 +50,8 @@ static void init_user_task(struct task* task, const char* path,
 
     // Allocate the first page for stack setup (args, environment, auxiliary)
     // TODO: don't allocate the whole thing
-    vm_map_anon_alloc(task->vm_map, area, area->end - size, size);
+    //vm_map_anon_alloc(task->vm_map, area, area->end - size, size);
+    vm_map_anon_alloc(task->vm_map, area, area->end - 0x1000, 0x1000);
 
     task->main->regs.rsp = stack;
     task->main->regs.rbp = stack;

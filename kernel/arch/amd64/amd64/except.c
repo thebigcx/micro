@@ -156,7 +156,7 @@ static void pf(struct regs* regs, uint32_t e)
 {
     if (regs->cs & 3) // TODO: can also fault allocate when doing ABI stuff like stack setup
     {
-        //if (vm_map_handle_fault(task_curr()->vm_map, rcr2()) == -1)
+        if (rcr2() < 0x8000000000 && vm_map_handle_fault(task_curr()->vm_map, rcr2()) == -1)
         {
             printk("page fault pid=%d\n", task_curr()->pid);
             printk("pid=%d\n", task_curr()->pid);

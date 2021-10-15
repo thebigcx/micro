@@ -17,7 +17,7 @@ unsigned long ksys_do_mmap(void* addr, size_t length, int prot, int flags, int f
             addr = (void*)task_curr()->brk;
 
         struct vm_area* area = vm_map_anon(task_curr()->vm_map, (uintptr_t)addr, length, flags & MAP_FIXED);
-        vm_map_anon_alloc(task_curr()->vm_map, area, area->base, length); // TODO: TEMP (SHOULD NOT ALLOCATE)
+        //vm_map_anon_alloc(task_curr()->vm_map, area, area->base, length); // TODO: TEMP (SHOULD NOT ALLOCATE)
         return area->base;
     }
     else
@@ -27,20 +27,21 @@ unsigned long ksys_do_mmap(void* addr, size_t length, int prot, int flags, int f
 
         FDVALID(fdno);
 
-        struct file* fd = task_curr()->fds[fdno];
+        struct file* file = task_curr()->fds[fdno];
 
-        if (fd->ops.mmap)
+        if (file->ops.mmap)
         {
-            struct vm_area* area = vm_map_anon(task_curr()->vm_map, (uintptr_t)addr, length, flags & MAP_FIXED);
+            return vm_map_file(task_curr()->vm_map, (uintptr_t)addr, length, flags & MAP_FIXED, file)->base;
+            /*struct vm_area* area = vm_map_anon(task_curr()->vm_map, (uintptr_t)addr, length, flags & MAP_FIXED);
             vfs_mmap(fd, area);
-            return area->base;
+            return area->base;*/
         }
         else
         {
             // TEMP
             return 0;
             
-            if (!S_ISREG(fd->inode->mode)) return (unsigned long)-EACCES;
+/*            if (!S_ISREG(file->inode->mode)) return (unsigned long)-EACCES;
 
             //unsigned int mmu_flags = PAGE_PR;
             //mmu_flags |= prot & PROT_WRITE ? PAGE_RW : 0;
@@ -51,7 +52,7 @@ unsigned long ksys_do_mmap(void* addr, size_t length, int prot, int flags, int f
                 mmu_map(task_curr()->vm_map, i, mmu_alloc_phys(), mmu_flags);
             }
 
-            vfs_read(fd, addr, fd->inode->size);
+            vfs_read(fd, addr, fd->inode->size);*/
         }
     }
     

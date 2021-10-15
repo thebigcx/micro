@@ -239,7 +239,7 @@ int tgetc() { return fgetc(ptm); }
 
 void clrsect(int fx, int fy, int tx, int ty)
 {
-    
+    memset(buffer + ((fy * width) + fx), 0, (ty * width + tx) * sizeof(struct vga_char));
 }
 
 struct ansicbs cbs =

@@ -89,7 +89,8 @@ void* kmalloc(size_t n)
         curr = curr->next;
     }
 
-    printk("unable to kmalloc: %x bytes, last block size: %x\n", n, last->size);
+    printk("Unable to kmalloc: %x bytes, last block size: %x\n", n, last->size);
+    asm volatile ("ud2");
     UNLOCK(lock);
     return NULL;
 }

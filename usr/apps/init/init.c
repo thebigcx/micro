@@ -17,7 +17,7 @@ int main(int argc, char** argv)
     if (pid == 0)
     {
         // Run the shell
-        char* const argv[] = { "/usr/bin/term", NULL };
+        char* const argv[] = { "/usr/bin/vgaterm", NULL };
         char* const envp[] = { NULL };
         execve(argv[0], argv, envp);
     }

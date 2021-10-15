@@ -523,23 +523,26 @@ struct vm_area* vm_map_allocat(struct vm_map* map, uintptr_t base, size_t size)
     return NULL;
 }
 
-// Create a private anonymous mapping
-struct vm_area* vm_map_anon(struct vm_map* map, uintptr_t base, size_t size, int fixed)
+static struct vm_area* alloc_vmarea(struct vm_map* map, uintptr_t base, size_t size, int fixed)
 {
-    struct vm_area* area;
-
     if (base)
     {
-        area = vm_map_allocat(map, base, size);
-        if (!area)
+        struct vm_area* area = vm_map_allocat(map, base, size);
+        if (area) return area;
+        else
         {
             if (fixed) return NULL;
-            else area = vm_map_alloc(map, size); // Fallback
+            else return vm_map_alloc(map, size); // Fallback
         }
     }
     else
-        area = vm_map_alloc(map, size);
+        return vm_map_alloc(map, size);
+}
 
+// Create a private anonymous mapping
+struct vm_area* vm_map_anon(struct vm_map* map, uintptr_t base, size_t size, int fixed)
+{
+    struct vm_area* area = alloc_vmarea(map, base, size, fixed);
     struct anon_vmo* obj = kmalloc(sizeof(struct anon_vmo));
 
     obj->flags = ANON_PRIVATE;
@@ -551,9 +554,37 @@ struct vm_area* vm_map_anon(struct vm_map* map, uintptr_t base, size_t size, int
     return area;
 }
 
-struct vm_area* vm_map_file(struct vm_map* map, uintptr_t base, int fixed, struct inode* file)
+struct vm_area* vm_map_file(struct vm_map* map, uintptr_t base, size_t size, int fixed, struct file* file)
 {
-    return NULL; // TODO: implement
+    if (size % PAGE4K)
+        size += (PAGE4K - size % PAGE4K);
+
+    struct vm_area* area = alloc_vmarea(map, base, size, fixed);
+    
+    if (file->ops.mmap)
+        file->ops.mmap(file, area);
+    else
+    {
+        // TODO
+        return NULL;
+    }
+
+    struct inode_vmo* obj = kmalloc(sizeof(struct inode_vmo));
+    
+    obj->flags = INODE_PRIVATE;
+    obj->inode = file->inode;
+    obj->pages = kmalloc(sizeof(uintptr_t) * size / PAGE4K);
+    
+    area->obj = (struct vm_object*)obj;
+    area->obj->type = VMO_INODE;
+    
+    /*for (uintptr_t i = 0; i < size / PAGE4K; i++)
+    {
+        obj->pages[i] = mmu_alloc_phys();
+        mmu_map(map, area->base + i * PAGE4K, obj->pages[i], PAGE_PR | PAGE_RW);
+    }*/
+    
+    return area;
 }
 
 // Allocate part of an anonymous mapping
@@ -591,6 +622,7 @@ int vm_map_handle_fault(struct vm_map* map, uintptr_t addr)
                 unsigned int i = (addr - area->base) / PAGE4K;
                 anon->pages[i] = mmu_alloc_phys();
 
+                printk("fault: map=%x addr=%x base=%x i=%d\n", map, addr, area->base, i);
                 mmu_map(map, addr, anon->pages[i], PAGE_PR | PAGE_RW);
                 return 0;
             }

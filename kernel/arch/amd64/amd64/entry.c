@@ -29,7 +29,7 @@ static struct st2_header_term termtag =
     .flags = 0
 };
 
-static struct st2_header_fb fbtag =
+/*static struct st2_header_fb fbtag =
 {
     .tag =
     {
@@ -39,7 +39,7 @@ static struct st2_header_fb fbtag =
     .width  = 0,
     .height = 0,
     .bpp    = 0
-};
+};*/
 
 SECTION(".stivale2hdr") USED
 static struct st2header header =
@@ -47,8 +47,8 @@ static struct st2header header =
     .entry = 0,
     .stack = (uintptr_t)stack + sizeof(stack),
     .flags = 0,
-    .tags = (uintptr_t)&fbtag
-    //.tags = (uintptr_t)&termtag
+    //.tags = (uintptr_t)&fbtag
+    .tags = (uintptr_t)&termtag
 };
 
 term_write_t term_write;
