@@ -42,26 +42,35 @@ ssize_t kb_read(struct file* file, void* buf, off_t off, size_t size)
     return bytes;
 }
 
-void ps2kb_init()
+void init_kb()
 {
-    printk("loaded PS/2 keyboard driver\n");
-
     register_irq_handler(1, ps2kb_handler);
 
     struct file_ops ops = { .read = kb_read };
     devfs_register_chrdev(&ops, "keyboard", 0660, NULL);
-
-    count = 0;
 }
 
-void ps2kb_fini()
+void init_mouse()
 {
-    printk("finalizing PS/2 keyboard driver\n");
+    
+}
+
+void ps2_init()
+{
+    printk("loaded PS/2 driver\n");
+
+    init_kb();
+    init_mouse();
+}
+
+void ps2_fini()
+{
+    printk("finalizing PS/2 driver\n");
 }
 
 struct modmeta meta =
 {
-    .init = ps2kb_init,
-    .fini = ps2kb_fini,
-    .name = "ps2kb"
+    .init = ps2_init,
+    .fini = ps2_fini,
+    .name = "ps2"
 };
