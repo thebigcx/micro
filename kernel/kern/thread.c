@@ -7,6 +7,7 @@
 #include <micro/debug.h>
 #include <micro/heap.h>
 #include <micro/sys.h>
+#include <micro/vmmap.h>
 
 static void init_thread_meta(struct thread* thread, struct task* parent)
 {
@@ -21,8 +22,7 @@ static void init_thread_meta(struct thread* thread, struct task* parent)
     thread->sigqueue = list_create();
     thread->sigmask  = 0;
 
-    struct vm_area* sigstack = vm_map_anon(parent->vm_map, 0, PAGE4K, 0);
-    vm_map_anon_alloc(parent->vm_map, sigstack, sigstack->base, sigstack->end - sigstack->base);
+    struct vm_area* sigstack = vm_do_mmap(parent->vm_map, 0, 0x1000, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0);
     thread->sigstack = sigstack->end;
 }
 

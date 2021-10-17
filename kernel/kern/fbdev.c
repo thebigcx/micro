@@ -6,6 +6,7 @@
 #include <arch/mmu.h>
 #include <micro/task.h>
 #include <micro/devfs.h>
+#include <micro/vmmap.h>
 
 static struct fb fb;
 static int ready = 0;
@@ -73,7 +74,7 @@ int fb_mmap(struct file* file, struct vm_area* area)
 {
     for (uintptr_t i = 0; i < (area->end - area->base) / PAGE4K; i++)
     {
-        mmu_map(task_curr()->vm_map, area->base + i * PAGE4K, fb.phys + i * PAGE4K, PAGE_PR | PAGE_RW | PAGE_USR);
+        mmu_map(task_curr()->vm_map->pagemap, area->base + i * PAGE4K, fb.phys + i * PAGE4K, PAGE_PR | PAGE_RW | PAGE_USR);
     }
 
     return 0;

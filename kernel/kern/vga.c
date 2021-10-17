@@ -6,6 +6,7 @@
 #include <micro/task.h>
 #include <micro/devfs.h>
 #include <micro/errno.h>
+#include <micro/vmmap.h>
 
 #define COLS 80
 #define ROWS 25
@@ -52,7 +53,7 @@ int vga_mmap(struct file* file, struct vm_area* area)
     for (uintptr_t i = 0; i < (area->end - area->base) / PAGE4K; i++)
     {
         printk("%x-%x\n", area->base + i * PAGE4K, addr + i * PAGE4K);
-        mmu_map(task_curr()->vm_map, area->base + i * PAGE4K, addr + i * PAGE4K, PAGE_PR | PAGE_RW | PAGE_USR);
+        mmu_map(task_curr()->vm_map->pagemap, area->base + i * PAGE4K, addr + i * PAGE4K, PAGE_PR | PAGE_RW | PAGE_USR);
     }
  
     return 0;

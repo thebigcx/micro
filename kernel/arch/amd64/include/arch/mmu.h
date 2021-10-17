@@ -18,7 +18,7 @@ struct pagemap
 };
 
 // User Virtual-Memory map
-struct vm_map
+/*struct vm_map
 {
     pml_t*    pml4;
     uintptr_t pml4_phys;
@@ -72,13 +72,13 @@ struct vm_area
     uintptr_t end;
     struct vm_object* obj;
 };
-
+*/
 void mmu_init();
 uintptr_t mmu_kalloc(size_t n);
 void mmu_kfree(uintptr_t ptr, size_t n);
 void mmu_kmap(uintptr_t virt, uintptr_t phys, unsigned int flags);
 
-void mmu_map(struct vm_map* map, uintptr_t virt, uintptr_t phys, unsigned int flags);
+void mmu_map(struct pagemap* map, uintptr_t virt, uintptr_t phys, unsigned int flags);
 
 uintptr_t mmu_map_mmio(uintptr_t mmio, size_t cnt);
 uintptr_t mmu_map_module(size_t size);
@@ -89,9 +89,13 @@ uintptr_t mmu_alloc_phys_at(uintptr_t p, unsigned int cnt);
 uintptr_t mmu_alloc_phys();
 void mmu_free_phys(uintptr_t p, unsigned int cnt);
 
-uintptr_t mmu_virt2phys(struct vm_map* map, uintptr_t virt);
+uintptr_t mmu_virt2phys(struct pagemap* map, uintptr_t virt);
 uintptr_t mmu_kvirt2phys(uintptr_t virt);
 
+struct pagemap* mmu_create_pagemap();
+void mmu_destroy_pagemap(struct pagemap* map);
+
+/*
 struct vm_map* mmu_create_vmmap();
 struct vm_map* mmu_clone_vmmap(const struct vm_map* src);
 void mmu_destroy_vmmap(struct vm_map* map);
@@ -106,5 +110,6 @@ void vm_map_anon_alloc(struct vm_map* map, struct vm_area* area, uintptr_t base,
 
 int vm_map_handle_fault(struct vm_map* map, uintptr_t addr);
 void vm_map_clear(struct vm_map* map);
-
-void mmu_set_kpml4();
+*/
+void mmu_set_currmap(struct pagemap* map);
+void mmu_set_kmap();

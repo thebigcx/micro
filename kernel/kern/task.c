@@ -10,6 +10,7 @@
 #include <micro/stdlib.h>
 #include <micro/errno.h>
 #include <micro/try.h>
+#include <micro/vmmap.h>
 
 // TODO: needs WAY more locking
 
@@ -48,7 +49,7 @@ struct task* task_idle()
 
 struct task* task_init_creat()
 {
-    struct task* task = mktask(NULL, mmu_create_vmmap());
+    struct task* task = mktask(NULL, alloc_vmmap());
     
     char* const argv[] = { "/initrd/init", NULL };
     char* const envp[] = { NULL };
@@ -59,13 +60,13 @@ struct task* task_init_creat()
 
 struct task* task_kcreat(struct task* parent, uintptr_t entry)
 {
-    struct task* task = mktask(parent, mmu_create_vmmap());
+    struct task* task = mktask(parent, alloc_vmmap());
 
     task->main = thread_creat(task, entry, 0);
 
     // Top of canonical lower-half
     uintptr_t stack = 0x8000000000;
-    mmu_map(task->vm_map, stack - 0x1000, mmu_alloc_phys(), PAGE_PR | PAGE_RW);
+    vm_do_mmap(task->vm_map, stack - 0x1000, 0x1000, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0);
 
     task->main->regs.rsp = stack;
     task->main->regs.rbp = stack;
@@ -77,7 +78,7 @@ struct task* task_kcreat(struct task* parent, uintptr_t entry)
 
 struct task* task_clone(struct task* src, struct thread* calling)
 {
-    struct task* task = mktask(src, mmu_clone_vmmap(src->vm_map));
+    struct task* task = mktask(src, fork_vmmap(src->vm_map));
     task->main = thread_clone(task, calling);
 
     list_enqueue(&task->threads, task->main);
@@ -232,7 +233,7 @@ void task_delete(struct task* task)
         }
     }
 
-    mmu_destroy_vmmap(task->vm_map);
+    free_vmmap(task->vm_map);
     kfree(task);
 }
 

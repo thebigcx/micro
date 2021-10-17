@@ -8,6 +8,7 @@
 #include <micro/sched.h>
 #include <arch/mmu.h>
 #include <micro/thread.h>
+#include <micro/vmmap.h>
 
 static void dump(struct regs* r)
 {
@@ -154,9 +155,9 @@ static void gp(struct regs* regs, uint32_t e)
 
 static void pf(struct regs* regs, uint32_t e)
 {
-    if (regs->cs & 3) // TODO: can also fault allocate when doing ABI stuff like stack setup
+    //if (regs->cs & 3) // TODO: can also fault allocate when doing ABI stuff like stack setup
     {
-        if (rcr2() < 0x8000000000 && vm_map_handle_fault(task_curr()->vm_map, rcr2()) == -1)
+        if (vm_handle_fault(task_curr()->vm_map, rcr2() == -1))
         {
             printk("page fault pid=%d\n", task_curr()->pid);
             printk("pid=%d\n", task_curr()->pid);

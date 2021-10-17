@@ -9,9 +9,11 @@
 #include <micro/binfmt.h>
 #include <arch/mmu.h>
 #include <micro/thread.h>
+#include <micro/vmmap.h>
 
 int do_exec(struct task* task, const char* path, char* const argv[], char* const envp[])
 {
+    printk("exec(%s) of pid=%d\n", path, task->pid);
     struct file elf;
     TRY(vfs_open(path, &elf, O_RDONLY));
 
@@ -26,19 +28,19 @@ int do_exec(struct task* task, const char* path, char* const argv[], char* const
     TRY(elf_valid(data));
 
     // From here on, no errors can occur
-    mmu_set_kpml4();
+    mmu_set_kmap();
     //vm_map_clear(task->vm_map);
     // TODO: clear mappings, rather than destroy the ENTIRE map
-    mmu_destroy_vmmap(task->vm_map);
-    task->vm_map = mmu_create_vmmap();
+    free_vmmap(task->vm_map);
+    task->vm_map = alloc_vmmap();
 
     // Top of canonical lower-half
     uintptr_t stack = 0x8000000000;
     size_t size = 0x16000; // TODO: dynamic stack size (can expand if necessary)
-    struct vm_area* area = vm_map_anon(task->vm_map, stack - size, size, 0);
+    struct vm_area* area = vm_do_mmap(task->vm_map, stack - size, size, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0);
 
     // Allocate the first page for stack setup (args, environment, auxiliary)
-    vm_map_anon_alloc(task->vm_map, area, area->end - 0x1000, 0x1000);
+    //vm_map_anon_alloc(task->vm_map, area, area->end - 0x1000, 0x1000);
 
     struct elfinf info;
     elf_load(task->vm_map, data, argv, envp, &info);
@@ -62,7 +64,6 @@ int do_exec(struct task* task, const char* path, char* const argv[], char* const
 
 SYSCALL_DEFINE(execve, const char* path, char* const argv[], char* const envp[])
 {
-    printk("execve(%s) of pid=%d\n", path, task_curr()->pid);
     PTRVALID(path);
     PTRVALID(argv);
     PTRVALID(envp);

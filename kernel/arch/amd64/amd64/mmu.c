@@ -43,7 +43,7 @@ void mmu_init()
     for (int i = 0; i < ENTCNT; i++)
         memset(&(kheap_tbls[i]), 0, sizeof(page_t) * ENTCNT);
 
-    mmu_set_kpml4();
+    mmu_set_kmap();
 }
 
 // TODO: use a slab allocator
@@ -159,7 +159,7 @@ void mmu_kmap(uintptr_t virt, uintptr_t phys, unsigned int flags)
     invlpg(virt);
 }
 
-static void mktable(struct vm_map* map, unsigned int pdptidx, unsigned int pdidx)
+static void mktable(struct pagemap* map, unsigned int pdptidx, unsigned int pdidx)
 {
     pml_t* table = (pml_t*)mmu_kalloc(1);
     uintptr_t table_phys = mmu_alloc_phys();
@@ -170,7 +170,7 @@ static void mktable(struct vm_map* map, unsigned int pdptidx, unsigned int pdidx
     map->pts[pdptidx][pdidx] = (page_t*)table;
 }
 
-void mmu_map(struct vm_map* map, uintptr_t virt, uintptr_t phys, unsigned int flags)
+void mmu_map(struct pagemap* map, uintptr_t virt, uintptr_t phys, unsigned int flags)
 {
     unsigned int pdptidx = PDPT_IDX(virt);
     unsigned int pdidx = PD_IDX(virt);
@@ -288,7 +288,7 @@ void mmu_free_phys(uintptr_t p, unsigned int cnt)
     }
 }
 
-uintptr_t mmu_virt2phys(struct vm_map* map, uintptr_t virt)
+uintptr_t mmu_virt2phys(struct pagemap* map, uintptr_t virt)
 {
     // Indices
     uint32_t pml4i = PML4_IDX(virt);
@@ -307,11 +307,9 @@ uintptr_t mmu_virt2phys(struct vm_map* map, uintptr_t virt)
 }
 
 // TODO: this function is fucking SLOW!
-struct vm_map* mmu_create_vmmap()
+struct pagemap* mmu_create_pagemap()
 {
-    struct vm_map* map = kmalloc(sizeof(struct vm_map));
-
-    map->vm_areas = list_create();
+    struct pagemap* map = kmalloc(sizeof(struct pagemap));
 
     map->pml4 = (pml_t*)mmu_kalloc(1);
     map->pdpt = (pml_t*)mmu_kalloc(1);
@@ -344,7 +342,7 @@ struct vm_map* mmu_create_vmmap()
 
     return map;
 }
-
+/*
 // TODO: this function is stupid - each mapping should define its own copy() function
 struct vm_map* mmu_clone_vmmap(const struct vm_map* src)
 {
@@ -398,8 +396,8 @@ struct vm_map* mmu_clone_vmmap(const struct vm_map* src)
 
     return map;
 }
-
-void mmu_destroy_vmmap(struct vm_map* map)
+*/
+void mmu_destroy_pagemap(struct pagemap* map)
 {
     for (unsigned int i = 0; i < ENTCNT; i++)
     {
@@ -437,7 +435,7 @@ void mmu_destroy_vmmap(struct vm_map* map)
 
     kfree(map);
 }
-
+/*
 struct vm_area* vm_area_create(uintptr_t base, uintptr_t end, struct vm_object* obj)
 {
     struct vm_area* area = kmalloc(sizeof(struct vm_area));
@@ -580,11 +578,11 @@ struct vm_area* vm_map_file(struct vm_map* map, uintptr_t base, size_t size, int
     area->obj = (struct vm_object*)obj;
     area->obj->type = VMO_INODE;
     
-    /*for (uintptr_t i = 0; i < size / PAGE4K; i++)
-    {
-        obj->pages[i] = mmu_alloc_phys();
-        mmu_map(map, area->base + i * PAGE4K, obj->pages[i], PAGE_PR | PAGE_RW);
-    }*/
+    //for (uintptr_t i = 0; i < size / PAGE4K; i++)
+    //{
+        //obj->pages[i] = mmu_alloc_phys();
+        //mmu_map(map, area->base + i * PAGE4K, obj->pages[i], PAGE_PR | PAGE_RW);
+    //}
     
     return area;
 }
@@ -636,15 +634,16 @@ int vm_map_handle_fault(struct vm_map* map, uintptr_t addr)
 
 void vm_map_clear(struct vm_map* map)
 {
-    /*LIST_FOREACH(&map->vm_areas)
-    {
-        
-    }*/
     // FIXME: IMPL
     memcpy(map, mmu_create_vmmap(), sizeof(struct vm_map));
+}*/
+
+void mmu_set_currmap(struct pagemap* map)
+{
+    lcr3(map->pml4_phys);
 }
 
-void mmu_set_kpml4()
+void mmu_set_kmap()
 {
     lcr3((uintptr_t)&kpml4 - KBASE);
 }
