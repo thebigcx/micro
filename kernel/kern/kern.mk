@@ -23,6 +23,7 @@ SRC += kern/init.c          \
        kern/fs/pipe.c       \
        kern/fs/procfs.c     \
        kern/mm/mmap.c       \
+       kern/mm/vmmap.c      \
        kern/net/socket.c    \
        kern/exit.c          \
        kern/exec.c          \

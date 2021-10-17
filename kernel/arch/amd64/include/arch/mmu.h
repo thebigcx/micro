@@ -3,6 +3,20 @@
 #include <arch/mmu_defs.h>
 #include <micro/list.h>
 
+struct pagemap
+{
+    pml_t*    pml4;
+    uintptr_t pml4_phys;
+
+    pml_t*    pdpt;
+    uintptr_t pdpt_phys;
+
+    page_t**  pds; // page_t*[512]
+    uintptr_t phys_pds[512];
+
+    page_t*** pts;
+};
+
 // User Virtual-Memory map
 struct vm_map
 {
