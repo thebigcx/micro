@@ -363,15 +363,10 @@ int vfs_open(const char* path, struct file* file, uint32_t flags)
 // TODO: return int
 void vfs_close(struct file* fd)
 {
-    if (fd->ops.close)
-    {
-        fd->ops.close(fd);
-        return;
-    }
+    if (fd->ops.release)
+        fd->ops.release(fd);
 
     //kfree(fd->inode);
-    //kfree(fd);
-    // TODO: free memory
 }
 
 int vfs_access(const char* path, int mode)

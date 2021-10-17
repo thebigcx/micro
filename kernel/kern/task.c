@@ -36,36 +36,6 @@ static struct task* mktask(struct task* parent, struct vm_map* vm_map)
     return task;
 }
 
-// TODO: fix this up - should move into a more syscall-oriented approach, as this
-// is never called from the kernel (execept for /bin/init)
-static void init_user_task(struct task* task, const char* path,
-                          char* const argv[], char* const envp[], uintptr_t entry, uintptr_t brk)
-{
-    task->main = thread_creat(task, 0, 1);
-
-    // Top of canonical lower-half
-    uintptr_t stack = 0x8000000000;
-    size_t size = 0x16000; // TODO: dynamic stack size (can expand if necessary)
-    struct vm_area* area = vm_map_anon(task->vm_map, stack - 0x16000, 0x16000, 0);
-
-    // Allocate the first page for stack setup (args, environment, auxiliary)
-    // TODO: don't allocate the whole thing
-    //vm_map_anon_alloc(task->vm_map, area, area->end - size, size);
-    vm_map_anon_alloc(task->vm_map, area, area->end - 0x1000, 0x1000);
-
-    task->main->regs.rsp = stack;
-    task->main->regs.rbp = stack;
-    task->main->regs.rip = entry;
-
-    setup_user_stack(task, argv, envp);
-
-    // FIXME: this whole system is silly. ELF loading should be integrated 
-    // into task creation, rather than all of this parameter-passing garbage
-    task->brk = brk;
-
-    list_enqueue(&task->threads, task->main);
-}
-
 static void idle()
 {
     for(;;);
@@ -79,23 +49,11 @@ struct task* task_idle()
 struct task* task_init_creat()
 {
     struct task* task = mktask(NULL, mmu_create_vmmap());
-
-    struct file file;
-    if (vfs_open("/initrd/init", &file, O_RDONLY))
-        return NULL; // Shits gonna hit the fan
-
-    void* data = kmalloc(file.inode->size);
-    vfs_read(&file, data, file.inode->size);
-
+    
     char* const argv[] = { "/initrd/init", NULL };
     char* const envp[] = { NULL };
-
-    uintptr_t entry, brk;
-    if (elf_load(task->vm_map, data, argv, envp, &entry, &brk))
-        return NULL;
-
-    init_user_task(task, argv[0], argv, envp, entry, brk);
-
+    
+    do_exec(task, argv[0], argv, envp);
     return task;
 }
 
@@ -155,7 +113,7 @@ struct task* task_clone(struct task* src, struct thread* calling)
 
     return task;
 }
-
+/*
 // TODO: move into exec.c
 int task_execve(struct task* task, const char* path, char* const argv[], char* const envp[])
 {
@@ -191,8 +149,8 @@ int task_execve(struct task* task, const char* path, char* const argv[], char* c
 
     struct vm_map* vm_map = mmu_create_vmmap();
 
-    uintptr_t entry, brk;
-    TRY(elf_load(vm_map, data, argv, envp, &entry, &brk))
+    struct elfinf inf;
+    TRY(elf_load(vm_map, data, argv, envp, &inf))
 
     // Only delete vm_map and set new one if elf_load passed
 
@@ -212,12 +170,12 @@ int task_execve(struct task* task, const char* path, char* const argv[], char* c
     }
     list_clear(&task->threads);
     
-    init_user_task(task, path, argv, envp, entry, brk);
+    init_user_task(task, path, argv, envp, inf.entry, inf.brk);
 
     sched_start(task); // Start the new main thread
     return 0;
 }
-
+*/
 void task_exit(int status)
 {
     printk("task pid=%d exited\n", task_curr()->pid);

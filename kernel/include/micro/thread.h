@@ -33,5 +33,6 @@ struct thread* thread_curr();
 void thread_handle_signals(struct thread* thread);
 void thread_block();
 void thread_unblock(struct thread* thread);
+void thread_free(struct thread* thread);
 
 void thread_handle_contsig(struct thread* thread);

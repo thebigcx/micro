@@ -46,6 +46,11 @@ struct thread* thread_clone(struct task* parent, struct thread* src)
     return t;
 }
 
+void thread_free(struct thread* thread)
+{
+    thread->state = THREAD_DEAD;
+}
+
 struct thread* thread_curr()
 {
     return cpu_curr()->current;

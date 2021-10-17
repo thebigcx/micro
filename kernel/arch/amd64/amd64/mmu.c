@@ -306,6 +306,7 @@ uintptr_t mmu_virt2phys(struct vm_map* map, uintptr_t virt)
         return 0; // Either kernel space or completely invalid
 }
 
+// TODO: this function is fucking SLOW!
 struct vm_map* mmu_create_vmmap()
 {
     struct vm_map* map = kmalloc(sizeof(struct vm_map));
@@ -344,6 +345,7 @@ struct vm_map* mmu_create_vmmap()
     return map;
 }
 
+// TODO: this function is stupid - each mapping should define its own copy() function
 struct vm_map* mmu_clone_vmmap(const struct vm_map* src)
 {
     struct vm_map* map = mmu_create_vmmap();
@@ -630,6 +632,16 @@ int vm_map_handle_fault(struct vm_map* map, uintptr_t addr)
     }
 
     return -1;
+}
+
+void vm_map_clear(struct vm_map* map)
+{
+    /*LIST_FOREACH(&map->vm_areas)
+    {
+        
+    }*/
+    // FIXME: IMPL
+    memcpy(map, mmu_create_vmmap(), sizeof(struct vm_map));
 }
 
 void mmu_set_kpml4()

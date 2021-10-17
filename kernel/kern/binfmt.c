@@ -92,8 +92,9 @@ void setup_user_stack(struct task* task, char* const argv[], char* const envp[])
 }
 
 // TODO: this is very architecture-dependent
-int valid_elf(struct elf_hdr* header)
+int elf_valid(void* data)
 {
+    struct elf_hdr* header = data;
     return header->ident[0]          == ELFMAG0
         && header->ident[1]          == ELFMAG1
         && header->ident[2]          == ELFMAG2
@@ -105,14 +106,11 @@ int valid_elf(struct elf_hdr* header)
 }
 
 int elf_load(struct vm_map* vm_map, void* data, char* const argv[],
-             char* const envp[], uintptr_t* rip, uintptr_t* brk)
+             char* const envp[], struct elfinf* inf)
 {
-    *brk = 0;
+    inf->brk = 0;
 
     struct elf_hdr* header = (struct elf_hdr*)data;
-    
-    if (!valid_elf(header))
-        return -ENOEXEC;
 
     for (unsigned int i = 0; i < header->ph_num; i++)
     {
@@ -137,12 +135,12 @@ int elf_load(struct vm_map* vm_map, void* data, char* const argv[],
             memcpy((void*)begin, (void*)((uintptr_t)data + phdr->offset), filesize);
             lcr3(cr3);
         
-            if (*brk < page_begin + page_cnt)
-                *brk = page_begin + page_cnt;
+            if (inf->brk < page_begin + page_cnt)
+                inf->brk = page_begin + page_cnt;
         }
     }
 
-    *rip = header->entry;
+    inf->entry = header->entry;
     return 0;
 }
 

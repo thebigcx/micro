@@ -91,5 +91,6 @@ struct vm_area* vm_map_file(struct vm_map* map, uintptr_t base, size_t size, int
 void vm_map_anon_alloc(struct vm_map* map, struct vm_area* area, uintptr_t base, size_t size);
 
 int vm_map_handle_fault(struct vm_map* map, uintptr_t addr);
+void vm_map_clear(struct vm_map* map);
 
 void mmu_set_kpml4();

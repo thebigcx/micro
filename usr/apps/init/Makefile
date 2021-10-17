@@ -16,7 +16,8 @@ $(TARG): $(OBJS)
 	@$(CC) $(CFLAGS) -c $< -o $@
 
 install:
-	cp $(TARG) $(DESTDIR)/
+	mkdir -p $(DESTDIR)/bin
+	cp $(TARG) $(DESTDIR)/bin/
 
 .PHONY:
 clean:

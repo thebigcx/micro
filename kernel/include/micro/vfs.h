@@ -11,7 +11,7 @@ struct file;
 struct file_ops
 {
     int     (*open)(struct inode*, struct file*);
-    int     (*close)(struct file*);
+    int     (*release)(struct file*);
     ssize_t (*read)(struct file*, void*, off_t, size_t);
     ssize_t (*write)(struct file*, const void*, off_t, size_t);
     int     (*ioctl)(struct file*, int, void*);
@@ -91,7 +91,7 @@ struct inode_ops
 
 #define IFTODT(x) ((x) >> 12 & 017)
 
-// TODO: flags, modes, etc
+// TODO: fcntl() fd flags
 struct file
 {
     struct inode*   inode;

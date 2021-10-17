@@ -69,7 +69,7 @@ struct task* task_curr();
 
 void task_send(struct task* task, int signal);
 
-int task_execve(struct task* task, const char* path, char* const argv[], char* const envp[]);
+int do_exec(struct task* task, const char* path, char* const argv[], char* const envp[]);
 
 void task_exit(int val);
 void task_delete(struct task* task);
