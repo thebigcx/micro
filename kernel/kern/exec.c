@@ -26,7 +26,7 @@ int do_exec(struct task* task, const char* path, char* const argv[], char* const
     TRY(elf_valid(data));
 
     // From here on, no errors can occur
-    mmu_set_kpml4();
+    mmu_set_kmap();
     //vm_map_clear(task->vm_map);
     // TODO: clear mappings, rather than destroy the ENTIRE map
     free_vmmap(task->vm_map);
@@ -39,6 +39,8 @@ int do_exec(struct task* task, const char* path, char* const argv[], char* const
 
     // Allocate the first page for stack setup (args, environment, auxiliary)
     vm_map_anon_alloc(task->vm_map, area, area->end - 0x1000, 0x1000);
+
+    vm_set_currmap(task->vm_map);
 
     struct elfinf info;
     elf_load(task->vm_map, data, argv, envp, &info);

@@ -43,7 +43,7 @@ void mmu_init()
     for (int i = 0; i < ENTCNT; i++)
         memset(&(kheap_tbls[i]), 0, sizeof(page_t) * ENTCNT);
 
-    mmu_set_kpml4();
+    mmu_set_kmap();
 }
 
 // TODO: use a slab allocator
@@ -434,7 +434,12 @@ void mmu_destroy_pagemap(struct pagemap* map)
     kfree(map);
 }
 
-void mmu_set_kpml4()
+void mmu_set_pagemap(struct pagemap* map)
+{
+    lcr3(map->pml4_phys);
+}
+
+void mmu_set_kmap()
 {
     lcr3((uintptr_t)&kpml4 - KBASE);
 }

@@ -1,6 +1,6 @@
-/*
- * Switch context of CPU
- */
+#
+# Switch context of CPU
+#
 
 .macro popaq
 
@@ -18,26 +18,24 @@
     pop     %rdx
     pop     %rcx
     pop     %rbx
+    pop     %rax
 
 .endm
 
-// void _switch_ctx(RegisterCtx*, uintptr_t, uint16_t)
+# void _switch_ctx(RegisterCtx*, uint16_t)
 .global _switch_ctx
 _switch_ctx:
-    mov     %dx, %ax
-    mov     %ax, %ds
-    mov     %ax, %es
-    mov     %ax, %fs
-    mov     %ax, %gs
+    movw    %dx, %ax
+    movw    %ax, %ds
+    movw    %ax, %es
+    movw    %ax, %fs
+    movw    %ax, %gs
 
     movq    %rdi, %rsp
     movq    %rsi, %rax
     popaq
-
-    movq    %rax, %cr3
-
-    popq    %rax
-    // Stack contains RSP, CS, RIP, RFLAGS, SS
+    
+    # Stack contains RSP, CS, RIP, RFLAGS, SS
     iretq
 
-    ret // Return from signal handler (not used on a regular context switch)
+    ret # Return from signal handler (not used on a regular context switch)

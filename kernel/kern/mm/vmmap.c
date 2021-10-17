@@ -225,4 +225,7 @@ int vm_map_handle_fault(struct vm_map* map, uintptr_t addr)
     return -1;
 }
 
-
+void vm_set_currmap(struct vm_map* map)
+{
+    mmu_set_pagemap(map->pagemap);
+}

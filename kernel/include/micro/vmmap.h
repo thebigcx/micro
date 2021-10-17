@@ -64,3 +64,5 @@ void vm_map_anon_alloc(struct vm_map* map, struct vm_area* area, uintptr_t base,
 
 int vm_map_handle_fault(struct vm_map* map, uintptr_t addr);
 void vm_map_clear(struct vm_map* map);
+
+void vm_set_currmap(struct vm_map* map);

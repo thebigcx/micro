@@ -39,9 +39,9 @@ void setup_user_stack(struct task* task, char* const argv[], char* const envp[])
     auxv_t auxv[64];
     gen_auxv(auxv, task);
 
-    uintptr_t cr3 = rcr3();
+    //uintptr_t cr3 = rcr3();
 
-    lcr3(task->vm_map->pagemap->pml4_phys);
+    //lcr3(task->vm_map->pagemap->pml4_phys);
 
     // Push the raw strings onto the stack
     while (argv[argc])
@@ -85,7 +85,7 @@ void setup_user_stack(struct task* task, char* const argv[], char* const envp[])
 
     task->main->regs.rdi = task->main->regs.rsp;
 
-    lcr3(cr3);
+    //lcr3(cr3);
 
     //task->main->regs.rdi = argc;
     //task->main->regs.rsi = argv_ptr;
@@ -129,12 +129,12 @@ int elf_load(struct vm_map* vm_map, void* data, char* const argv[],
             struct vm_area* area = vm_map_anon(vm_map, page_begin, page_cnt, 1);
             vm_map_anon_alloc(vm_map, area, page_begin, page_cnt);
 
-            uintptr_t cr3 = rcr3();
+            //uintptr_t cr3 = rcr3();
             
-            lcr3(vm_map->pagemap->pml4_phys);
+            //lcr3(vm_map->pagemap->pml4_phys);
             memset((void*)begin, 0, memsize);
             memcpy((void*)begin, (void*)((uintptr_t)data + phdr->offset), filesize);
-            lcr3(cr3);
+            //lcr3(cr3);
         
             if (inf->brk < page_begin + page_cnt)
                 inf->brk = page_begin + page_cnt;
