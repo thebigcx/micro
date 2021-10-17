@@ -40,7 +40,7 @@ void setup_user_stack(struct task* task, char* const argv[], char* const envp[])
 
     uintptr_t cr3 = rcr3();
 
-    lcr3(task->vm_map->pml4_phys);
+    lcr3(task->vm_map->pagemap->pml4_phys);
 
     // Push the raw strings onto the stack
     while (argv[argc])
@@ -122,15 +122,15 @@ int elf_load(struct vm_map* vm_map, void* data, char* const argv[],
             uintptr_t memsize = phdr->memsz;
             uintptr_t filesize = phdr->filesz;
 
-            uintptr_t page_begin = begin - (begin % PAGE4K);
-            uintptr_t page_cnt = memsize - (memsize % PAGE4K) + PAGE4K * 2;
+            uintptr_t page_begin = begin - (begin % PAGE_SIZE);
+            uintptr_t page_cnt = memsize - (memsize % PAGE_SIZE) + PAGE_SIZE * 2;
 
             struct vm_area* area = vm_map_anon(vm_map, page_begin, page_cnt, 1);
             vm_map_anon_alloc(vm_map, area, page_begin, page_cnt);
 
             uintptr_t cr3 = rcr3();
             
-            lcr3(vm_map->pml4_phys);
+            lcr3(vm_map->pagemap->pml4_phys);
             memset((void*)begin, 0, memsize);
             memcpy((void*)begin, (void*)((uintptr_t)data + phdr->offset), filesize);
             lcr3(cr3);

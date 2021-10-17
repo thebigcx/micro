@@ -12,11 +12,11 @@
     { if (fd < 0 || fd >= FD_MAX) return -EBADF; }
 
 #define PTRVALID(ptr)\
-    { if (!mmu_virt2phys(task_curr()->vm_map, (uintptr_t)ptr)) return -EFAULT; }
+    { if (!mmu_virt2phys(task_curr()->vm_map->pagemap, (uintptr_t)ptr)) return -EFAULT; }
 
 // Pointer can be either NULL, or a valid pointer
 #define PTRVALIDNULL(ptr)\
-    { if (ptr && !mmu_virt2phys(task_curr()->vm_map, (uintptr_t)ptr)) return -EFAULT; }
+    { if (ptr && !mmu_virt2phys(task_curr()->vm_map->pagemap, (uintptr_t)ptr)) return -EFAULT; }
 
 #define SYSCALL_DEFINE(name, ...)\
     long sys_##name(__VA_ARGS__)

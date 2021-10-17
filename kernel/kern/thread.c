@@ -16,12 +16,12 @@ static void init_thread_meta(struct thread* thread, struct task* parent)
     uintptr_t kstack = mmu_kalloc(1);
     mmu_kmap(kstack, mmu_alloc_phys(), PAGE_PR | PAGE_RW);
 
-    thread->kstack = kstack + PAGE4K;
+    thread->kstack = kstack + PAGE_SIZE;
     
     thread->sigqueue = list_create();
     thread->sigmask  = 0;
 
-    struct vm_area* sigstack = vm_map_anon(parent->vm_map, 0, PAGE4K, 0);
+    struct vm_area* sigstack = vm_map_anon(parent->vm_map, 0, PAGE_SIZE, 0);
     vm_map_anon_alloc(parent->vm_map, sigstack, sigstack->base, sigstack->end - sigstack->base);
     thread->sigstack = sigstack->end;
 }

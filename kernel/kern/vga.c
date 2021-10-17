@@ -49,10 +49,10 @@ int vga_ioctl(struct file* file, int req, void* argp)
 int vga_mmap(struct file* file, struct vm_area* area)
 {
     printk("vga_mmap(%x-%x)\n", area->base, area->end);
-    for (uintptr_t i = 0; i < (area->end - area->base) / PAGE4K; i++)
+    for (uintptr_t i = 0; i < (area->end - area->base) / PAGE_SIZE; i++)
     {
-        printk("%x-%x\n", area->base + i * PAGE4K, addr + i * PAGE4K);
-        mmu_map(task_curr()->vm_map, area->base + i * PAGE4K, addr + i * PAGE4K, PAGE_PR | PAGE_RW | PAGE_USR);
+        printk("%x-%x\n", area->base + i * PAGE_SIZE, addr + i * PAGE_SIZE);
+        mmu_map(task_curr()->vm_map->pagemap, area->base + i * PAGE_SIZE, addr + i * PAGE_SIZE, PAGE_PR | PAGE_RW | PAGE_USR);
     }
  
     return 0;

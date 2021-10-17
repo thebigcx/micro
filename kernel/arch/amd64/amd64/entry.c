@@ -124,7 +124,7 @@ void kmain_st2(struct st2struct* st2)
                         case ST2_MMAP_USABLE:
                         case ST2_MMAP_BOOTLD_RECL:
                             printk("mapping: %x-%x\n", ent->base, ent->base + ent->length);
-                            mmu_free_phys(ent->base, ent->length / PAGE4K);
+                            mmu_free_phys(ent->base, ent->length / PAGE_SIZE);
                             break;
                         
                         default:

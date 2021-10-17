@@ -19,11 +19,12 @@ void cpu_set_kstack(struct cpu_info* cpu, uintptr_t kstack)
     cpu->tss.rsp[0] = kstack;
 }
 
+// TODO: don't need to take the cr3
 extern void _switch_ctx(struct regs*, uintptr_t, uint16_t);
 
 void arch_switch_ctx(struct thread* thread)
 {
-    _switch_ctx(&thread->regs, thread->parent->vm_map->pml4_phys,
+    _switch_ctx(&thread->regs, thread->parent->vm_map->pagemap->pml4_phys,
                  thread->regs.ss);
 }
 
@@ -46,10 +47,10 @@ void arch_enter_signal(struct thread* thread, int sig)
     r.rsp    = thread->sigstack; // One thread per task to handle signal
 
     // Push the return address onto the task's signal stack
-    lcr3(thread->parent->vm_map->pml4_phys);
+    lcr3(thread->parent->vm_map->pagemap->pml4_phys);
 
     r.rsp -= 0x8;
     *(uintptr_t*)r.rsp = (uintptr_t)thread->parent->signals[sig].sa_restorer;
 
-    _switch_ctx(&r, thread->parent->vm_map->pml4_phys, r.ss);
+    _switch_ctx(&r, thread->parent->vm_map->pagemap->pml4_phys, r.ss);
 }

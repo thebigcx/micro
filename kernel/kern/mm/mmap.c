@@ -40,19 +40,6 @@ unsigned long ksys_do_mmap(void* addr, size_t length, int prot, int flags, int f
         {
             // TEMP
             return 0;
-            
-/*            if (!S_ISREG(file->inode->mode)) return (unsigned long)-EACCES;
-
-            //unsigned int mmu_flags = PAGE_PR;
-            //mmu_flags |= prot & PROT_WRITE ? PAGE_RW : 0;
-            unsigned int mmu_flags = PAGE_PR | PAGE_RW; // TODO: this is dangerous
-
-            for (uintptr_t i = (uintptr_t)addr; i < (uintptr_t)addr + length; i += PAGE4K)
-            {
-                mmu_map(task_curr()->vm_map, i, mmu_alloc_phys(), mmu_flags);
-            }
-
-            vfs_read(fd, addr, fd->inode->size);*/
         }
     }
     
@@ -70,7 +57,7 @@ SYSCALL_DEFINE(mmap, void* addr, size_t length, int prot, int flags, int fdno, o
 SYSCALL_DEFINE(munmap, void* addr, size_t length)
 {
     if (!length) return -EINVAL;
-    if ((uintptr_t)addr % PAGE4K != 0) return -EINVAL;
+    if ((uintptr_t)addr % PAGE_SIZE != 0) return -EINVAL;
 
     // TODO: unmap the physical blocks if anonymous
     return 0;

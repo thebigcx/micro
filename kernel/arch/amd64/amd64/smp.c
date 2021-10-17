@@ -54,10 +54,10 @@ static void init_cpu(uint16_t id)
     mmu_kmap(stack, mmu_alloc_phys(), PAGE_PR | PAGE_RW);
     
     *((volatile uintptr_t*)AP_ENT)   = (uintptr_t)ap_entry;
-    *((volatile uintptr_t*)AP_STACK) = stack + PAGE4K;
+    *((volatile uintptr_t*)AP_STACK) = stack + PAGE_SIZE;
     *((volatile uintptr_t*)AP_CR3)   = cr3;
 
-    memcpy((void*)TRMP_ENTRY, &_ap_bs_start, PAGE4K);
+    memcpy((void*)TRMP_ENTRY, &_ap_bs_start, PAGE_SIZE);
 
     _ap_done = 0;
 

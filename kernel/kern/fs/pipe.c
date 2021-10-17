@@ -64,7 +64,7 @@ ssize_t pipe_write(struct file* file, const void* buf, off_t off, size_t size)
 }
 
 // TODO: release resources and stuff
-int pipe_close(struct file* file)
+int pipe_release(struct file* file)
 {
     struct pipe* pipe = file->inode->priv;
     pipe->closed = 1;
@@ -83,9 +83,9 @@ int pipe_create(struct inode* files[2])
     files[0]->mode = files[1]->mode = S_IFIFO | 0777;
     files[0]->priv = files[1]->priv = pipe;
 
-    files[0]->fops.read = pipe_read;
-    files[1]->fops.write = pipe_write;
-    files[0]->fops.close = files[1]->fops.close = pipe_close;
+    files[0]->fops.read    = pipe_read;
+    files[1]->fops.write   = pipe_write;
+    files[0]->fops.release = files[1]->fops.release = pipe_release;
 
     files[0]->uid = files[1]->uid = task_curr()->euid;
     files[0]->gid = files[1]->gid = task_curr()->egid;

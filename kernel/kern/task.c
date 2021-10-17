@@ -65,7 +65,7 @@ struct task* task_kcreat(struct task* parent, uintptr_t entry)
 
     // Top of canonical lower-half
     uintptr_t stack = 0x8000000000;
-    mmu_map(task->vm_map, stack - 0x1000, mmu_alloc_phys(), PAGE_PR | PAGE_RW);
+    mmu_map(task->vm_map->pagemap, stack - 0x1000, mmu_alloc_phys(), PAGE_PR | PAGE_RW);
 
     task->main->regs.rsp = stack;
     task->main->regs.rbp = stack;

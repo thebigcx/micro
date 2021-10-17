@@ -7,6 +7,8 @@
 #define PAGE2M 0x200000
 #define PAGE1G 0x40000000
 
+#define PAGE_SIZE PAGE4K
+
 #define PAGE_FRAME   0xffffFFFFffffF000
 
 #define PAGE_PR      (1 << 0) // Present
@@ -19,11 +21,10 @@
 
 #define PD_2M        (1 << 7) // 2 megabyte pages
 
-#define PAGEALIGN ALIGN(PAGE4K)
+#define PAGEALIGN ALIGN(PAGE_SIZE)
 
 typedef uint64_t page_t;
 typedef page_t pml_t[512];
 
-#define KBASE      (0xffffffff80000000)
-#define HEAPBASE   (0xffffffffc0000000)
-#define MMIO_BASE  (KBASE - 0x100000000)
+#define KBASE      (0xffffFFFF80000000)
+#define HEAPBASE   (0xffffFFFFc0000000)

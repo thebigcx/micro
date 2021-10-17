@@ -78,7 +78,7 @@ uintptr_t mmu_kalloc(size_t n)
 
             if (counter >= n)
             {
-                uintptr_t addr = HEAPBASE + (pdidx * PAGE2M) + (ptidx * PAGE4K);
+                uintptr_t addr = HEAPBASE + (pdidx * PAGE2M) + (ptidx * PAGE_SIZE);
 
                 // Allocate the pages
                 while (counter--)
@@ -117,7 +117,7 @@ uintptr_t mmu_kalloc(size_t n)
         counter += 512;
         if (counter >= n)
         {
-            uintptr_t addr = HEAPBASE + (pdidx * PAGE2M) + (ptidx * PAGE4K);
+            uintptr_t addr = HEAPBASE + (pdidx * PAGE2M) + (ptidx * PAGE_SIZE);
 
             kheap_dir[pdidx] = ((uintptr_t)&kheap_tbls[pdidx] - KBASE) | PAGE_PR | PAGE_RW;
 
@@ -139,7 +139,7 @@ uintptr_t mmu_kalloc(size_t n)
         }
     }
 
-    printk("mmu_kalloc(): failed to allocate virtual memory of size=%x\n", n * PAGE4K);
+    printk("mmu_kalloc(): failed to allocate virtual memory of size=%x\n", n * PAGE_SIZE);
     return 0;
 }
 
@@ -149,7 +149,7 @@ void mmu_kfree(uintptr_t ptr, size_t n)
     {
         kheap_tbls[PD_IDX(ptr)][PT_IDX(ptr)] = 0; // Non-present
         invlpg(ptr); // Flush TLB
-        ptr += PAGE4K;
+        ptr += PAGE_SIZE;
     }
 }
 
@@ -159,18 +159,18 @@ void mmu_kmap(uintptr_t virt, uintptr_t phys, unsigned int flags)
     invlpg(virt);
 }
 
-static void mktable(struct vm_map* map, unsigned int pdptidx, unsigned int pdidx)
+static void mktable(struct pagemap* map, unsigned int pdptidx, unsigned int pdidx)
 {
     pml_t* table = (pml_t*)mmu_kalloc(1);
     uintptr_t table_phys = mmu_alloc_phys();
     mmu_kmap((uintptr_t)table, table_phys, PAGE_PR | PAGE_RW);
-    memset(table, 0, PAGE4K);
+    memset(table, 0, PAGE_SIZE);
 
     map->pds[pdptidx][pdidx] = table_phys | PAGE_PR | PAGE_RW | PAGE_USR;
     map->pts[pdptidx][pdidx] = (page_t*)table;
 }
 
-void mmu_map(struct vm_map* map, uintptr_t virt, uintptr_t phys, unsigned int flags)
+void mmu_map(struct pagemap* map, uintptr_t virt, uintptr_t phys, unsigned int flags)
 {
     unsigned int pdptidx = PDPT_IDX(virt);
     unsigned int pdidx = PD_IDX(virt);
@@ -190,22 +190,22 @@ uintptr_t mmu_map_mmio(uintptr_t mmio, size_t cnt)
     uintptr_t v = mmu_kalloc(cnt);
 
     for (uintptr_t i = 0; i < cnt; i++)
-        mmu_kmap(v + i * PAGE4K, mmio, PAGE_PR | PAGE_RW | PAGE_NOCACHE | PAGE_WTHRU);
+        mmu_kmap(v + i * PAGE_SIZE, mmio, PAGE_PR | PAGE_RW | PAGE_NOCACHE | PAGE_WTHRU);
     
-    return v + mmio % PAGE4K;
+    return v + mmio % PAGE_SIZE;
 }
 
 uintptr_t mmu_map_module(size_t size)
 {
     // Assure page-alignment
-    if (size % PAGE4K) size += PAGE4K - (size % PAGE4K);
+    if (size % PAGE_SIZE) size += PAGE_SIZE - (size % PAGE_SIZE);
 
-    size_t cnt = size / PAGE4K;
+    size_t cnt = size / PAGE_SIZE;
 
     uintptr_t v = mmu_kalloc(cnt);
 
     for (uintptr_t i = 0; i < cnt; i++)
-        mmu_kmap(v + i * PAGE4K, mmu_alloc_phys(), PAGE_PR | PAGE_RW);
+        mmu_kmap(v + i * PAGE_SIZE, mmu_alloc_phys(), PAGE_PR | PAGE_RW);
     
     return v;
 }
@@ -213,12 +213,12 @@ uintptr_t mmu_map_module(size_t size)
 void mmu_unmap_module(uintptr_t base, size_t size)
 {
     // Assure page-alignment
-    if (size % PAGE4K) size += PAGE4K - (size % PAGE4K);
+    if (size % PAGE_SIZE) size += PAGE_SIZE - (size % PAGE_SIZE);
 
-    size_t cnt = size / PAGE4K;
+    size_t cnt = size / PAGE_SIZE;
 
     for (uintptr_t i = 0; i < cnt; i++)
-        mmu_free_phys(mmu_kvirt2phys(base + i * PAGE4K), 1);
+        mmu_free_phys(mmu_kvirt2phys(base + i * PAGE_SIZE), 1);
 
     mmu_kfree(base, cnt);
 }
@@ -245,7 +245,7 @@ void mmu_phys_init()
 
 uintptr_t mmu_alloc_phys_at(uintptr_t p, unsigned int cnt)
 {
-    uintptr_t strt = p / PAGE4K;
+    uintptr_t strt = p / PAGE_SIZE;
 
     for (uintptr_t i = strt; i < strt + cnt; i++)
         phys_bmp[i / 8] |= (1 << (i % 8));
@@ -263,7 +263,7 @@ uintptr_t mmu_alloc_phys()
             {
                 if (!(phys_bmp[i] & (1 << j))) // Check if bit is 0
                 {
-                    uintptr_t addr = (i * 8 + j) * PAGE4K;
+                    uintptr_t addr = (i * 8 + j) * PAGE_SIZE;
                     return mmu_alloc_phys_at(addr, 1);
                 }
             }
@@ -276,8 +276,8 @@ uintptr_t mmu_alloc_phys()
 
 void mmu_free_phys(uintptr_t p, unsigned int cnt)
 {
-    uintptr_t strt = p / PAGE4K;
-    uintptr_t end = p / PAGE4K + cnt;
+    uintptr_t strt = p / PAGE_SIZE;
+    uintptr_t end = p / PAGE_SIZE + cnt;
 
     for (uintptr_t it = strt; it < end; it++)
     {
@@ -288,7 +288,7 @@ void mmu_free_phys(uintptr_t p, unsigned int cnt)
     }
 }
 
-uintptr_t mmu_virt2phys(struct vm_map* map, uintptr_t virt)
+uintptr_t mmu_virt2phys(struct pagemap* map, uintptr_t virt)
 {
     // Indices
     uint32_t pml4i = PML4_IDX(virt);
@@ -306,17 +306,14 @@ uintptr_t mmu_virt2phys(struct vm_map* map, uintptr_t virt)
         return 0; // Either kernel space or completely invalid
 }
 
-// TODO: this function is fucking SLOW!
-struct vm_map* mmu_create_vmmap()
+struct pagemap* mmu_create_pagemap()
 {
-    struct vm_map* map = kmalloc(sizeof(struct vm_map));
-
-    map->vm_areas = list_create();
+    struct pagemap* map = kmalloc(sizeof(struct pagemap));
 
     map->pml4 = (pml_t*)mmu_kalloc(1);
     map->pdpt = (pml_t*)mmu_kalloc(1);
-    map->pds = (page_t**)kmalloc(PAGE4K);
-    map->pts = (page_t***)kmalloc(PAGE4K);
+    map->pds = (page_t**)kmalloc(PAGE_SIZE);
+    map->pts = (page_t***)kmalloc(PAGE_SIZE);
 
     map->pml4_phys = mmu_alloc_phys();
     map->pdpt_phys = mmu_alloc_phys();
@@ -324,8 +321,8 @@ struct vm_map* mmu_create_vmmap()
     mmu_kmap((uintptr_t)map->pml4, map->pml4_phys, PAGE_PR | PAGE_RW);
     mmu_kmap((uintptr_t)map->pdpt, map->pdpt_phys, PAGE_PR | PAGE_RW);
 
-    memcpy(map->pml4, kpml4, PAGE4K);
-    memset(map->pdpt, 0, PAGE4K);
+    memcpy(map->pml4, kpml4, PAGE_SIZE);
+    memset(map->pdpt, 0, PAGE_SIZE);
 
     (*map->pml4)[0] = map->pdpt_phys | PAGE_PR | PAGE_RW | PAGE_USR;
 
@@ -334,21 +331,20 @@ struct vm_map* mmu_create_vmmap()
         map->pds[i] = (page_t*)mmu_kalloc(1);
         map->phys_pds[i] = mmu_alloc_phys();
         mmu_kmap((uintptr_t)map->pds[i], map->phys_pds[i], PAGE_PR | PAGE_RW);
-        memset(map->pds[i], 0, PAGE4K);
+        memset(map->pds[i], 0, PAGE_SIZE);
 
         (*map->pdpt)[i] = map->phys_pds[i] | PAGE_PR | PAGE_RW | PAGE_USR;
 
         map->pts[i] = (page_t**)kmalloc(4096); // FIXME: create the page tables as needed
-		memset(map->pts[i], 0, PAGE4K);
+		memset(map->pts[i], 0, PAGE_SIZE);
     }
 
     return map;
 }
 
-// TODO: this function is stupid - each mapping should define its own copy() function
-struct vm_map* mmu_clone_vmmap(const struct vm_map* src)
+struct pagemap* mmu_clone_pagemap(const struct pagemap* src)
 {
-    struct vm_map* map = mmu_create_vmmap();
+    struct pagemap* map = mmu_create_pagemap();
 
     // Copy over the pages if marked as user, or reference them if they are kernel
     for (unsigned int i = 0; i < ENTCNT; i++)
@@ -375,7 +371,7 @@ struct vm_map* mmu_clone_vmmap(const struct vm_map* src)
                         mmu_kmap(virt1, phys1, PAGE_PR | PAGE_RW);
                         mmu_kmap(virt2, phys2, PAGE_PR | PAGE_RW);
 
-                        memcpy((void*)virt2, (const void*)virt1, PAGE4K);
+                        memcpy((void*)virt2, (const void*)virt1, PAGE_SIZE);
                         
                         mmu_kfree(virt1, 1);
                         mmu_kfree(virt2, 1);
@@ -399,7 +395,7 @@ struct vm_map* mmu_clone_vmmap(const struct vm_map* src)
     return map;
 }
 
-void mmu_destroy_vmmap(struct vm_map* map)
+void mmu_destroy_pagemap(struct pagemap* map)
 {
     for (unsigned int i = 0; i < ENTCNT; i++)
     {
@@ -438,6 +434,33 @@ void mmu_destroy_vmmap(struct vm_map* map)
     kfree(map);
 }
 
+// TODO: this function is fucking SLOW!
+struct vm_map* mmu_create_vmmap()
+{
+    struct vm_map* map = kmalloc(sizeof(struct vm_map));
+
+    map->pagemap = mmu_create_pagemap();
+    map->vm_areas = list_create();
+
+    return map;
+}
+
+// TODO: this function is stupid - each mapping should define its own copy() function
+struct vm_map* mmu_clone_vmmap(const struct vm_map* src)
+{
+    struct vm_map* map = kcalloc(sizeof(struct vm_map));
+
+    map->pagemap = mmu_clone_pagemap(src->pagemap);
+
+    return map;
+}
+
+void mmu_destroy_vmmap(struct vm_map* map)
+{
+    mmu_destroy_pagemap(map->pagemap);
+    kfree(map);
+}
+
 struct vm_area* vm_area_create(uintptr_t base, uintptr_t end, struct vm_object* obj)
 {
     struct vm_area* area = kmalloc(sizeof(struct vm_area));
@@ -452,7 +475,7 @@ struct vm_area* vm_area_create(uintptr_t base, uintptr_t end, struct vm_object* 
 // TODO: move this stuff to a seperate file
 struct vm_area* vm_map_alloc(struct vm_map* map, size_t size)
 {
-    uintptr_t base = PAGE4K;
+    uintptr_t base = PAGE_SIZE;
     uintptr_t end = base + size;
 
     uint32_t i = 0;
@@ -548,7 +571,7 @@ struct vm_area* vm_map_anon(struct vm_map* map, uintptr_t base, size_t size, int
     struct anon_vmo* obj = kmalloc(sizeof(struct anon_vmo));
 
     obj->flags = ANON_PRIVATE;
-    obj->pages = kmalloc(sizeof(uintptr_t) * size / PAGE4K);
+    obj->pages = kmalloc(sizeof(uintptr_t) * size / PAGE_SIZE);
 
     area->obj = (struct vm_object*)obj;
     area->obj->type = VMO_ANON;
@@ -558,8 +581,8 @@ struct vm_area* vm_map_anon(struct vm_map* map, uintptr_t base, size_t size, int
 
 struct vm_area* vm_map_file(struct vm_map* map, uintptr_t base, size_t size, int fixed, struct file* file)
 {
-    if (size % PAGE4K)
-        size += (PAGE4K - size % PAGE4K);
+    if (size % PAGE_SIZE)
+        size += (PAGE_SIZE - size % PAGE_SIZE);
 
     struct vm_area* area = alloc_vmarea(map, base, size, fixed);
     
@@ -575,15 +598,15 @@ struct vm_area* vm_map_file(struct vm_map* map, uintptr_t base, size_t size, int
     
     obj->flags = INODE_PRIVATE;
     obj->inode = file->inode;
-    obj->pages = kmalloc(sizeof(uintptr_t) * size / PAGE4K);
+    obj->pages = kmalloc(sizeof(uintptr_t) * size / PAGE_SIZE);
     
     area->obj = (struct vm_object*)obj;
     area->obj->type = VMO_INODE;
     
-    /*for (uintptr_t i = 0; i < size / PAGE4K; i++)
+    /*for (uintptr_t i = 0; i < size / PAGE_SIZE; i++)
     {
         obj->pages[i] = mmu_alloc_phys();
-        mmu_map(map, area->base + i * PAGE4K, obj->pages[i], PAGE_PR | PAGE_RW);
+        mmu_map(map, area->base + i * PAGE_SIZE, obj->pages[i], PAGE_PR | PAGE_RW);
     }*/
     
     return area;
@@ -596,10 +619,10 @@ void vm_map_anon_alloc(struct vm_map* map, struct vm_area* area, uintptr_t base,
 
     struct anon_vmo* anon = (struct anon_vmo*)area->obj;
 
-    for (uintptr_t i = base / PAGE4K; i < (base + size) / PAGE4K; i++)
+    for (uintptr_t i = base / PAGE_SIZE; i < (base + size) / PAGE_SIZE; i++)
     {
         anon->pages[i] = mmu_alloc_phys();
-        mmu_map(map, i * PAGE4K + area->base, anon->pages[i], PAGE_PR | PAGE_RW);
+        mmu_map(map->pagemap, i * PAGE_SIZE + area->base, anon->pages[i], PAGE_PR | PAGE_RW);
     }
 }
 
@@ -607,25 +630,25 @@ void vm_map_anon_alloc(struct vm_map* map, struct vm_area* area, uintptr_t base,
 int vm_map_handle_fault(struct vm_map* map, uintptr_t addr)
 {
     // Page-align address
-    if (addr % PAGE4K)
-        addr -= addr % PAGE4K;
+    if (addr % PAGE_SIZE)
+        addr -= addr % PAGE_SIZE;
 
     LIST_FOREACH(&map->vm_areas)
     {
         struct vm_area* area = node->data;
 
         // addr inside the vm_area
-        if (addr >= area->base && addr + PAGE4K <= area->end)
+        if (addr >= area->base && addr + PAGE_SIZE <= area->end)
         {
             if (area->obj->type == VMO_ANON)
             {
                 struct anon_vmo* anon = (struct anon_vmo*)area->obj;
                 
-                unsigned int i = (addr - area->base) / PAGE4K;
+                unsigned int i = (addr - area->base) / PAGE_SIZE;
                 anon->pages[i] = mmu_alloc_phys();
 
                 printk("fault: map=%x addr=%x base=%x i=%d\n", map, addr, area->base, i);
-                mmu_map(map, addr, anon->pages[i], PAGE_PR | PAGE_RW);
+                mmu_map(map->pagemap, addr, anon->pages[i], PAGE_PR | PAGE_RW);
                 return 0;
             }
         }

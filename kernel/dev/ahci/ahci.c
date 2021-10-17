@@ -222,7 +222,7 @@ struct ahci_port* ahci_create_port(volatile struct hba_port* hba_port)
     port->port->com_base_addr_u = (uint32_t)(phys >> 32); // Upper 32 bits
     port->cmdlist = (struct hba_cmd_hdr*)mmu_map_mmio(phys, 1);
 
-    memset(port->cmdlist, 0, PAGE4K);
+    memset(port->cmdlist, 0, PAGE_SIZE);
 
     phys = mmu_alloc_phys();
 
@@ -230,7 +230,7 @@ struct ahci_port* ahci_create_port(volatile struct hba_port* hba_port)
     port->port->fis_base_u = (uint32_t)(phys >> 32); // Upper 32 bit
     port->fis = (struct hba_fis*)mmu_map_mmio(phys, 1);
 
-    memset(port->fis, 0, PAGE4K);
+    memset(port->fis, 0, PAGE_SIZE);
 
     port->fis->dsfis.fis_type = (uint8_t)FIS_TYPE_DMA_SETUP;
     port->fis->psfis.fis_type = (uint8_t)FIS_TYPE_PIO_SETUP;
@@ -247,7 +247,7 @@ struct ahci_port* ahci_create_port(volatile struct hba_port* hba_port)
         port->cmdlist[i].cmd_tbl_base_addr_u = (uint32_t)(phys >> 32);
 
         port->cmdtbls[i] = (struct hba_cmd_tbl*)mmu_map_mmio(phys, 1);
-        memset(port->cmdtbls[i], 0, PAGE4K);
+        memset(port->cmdtbls[i], 0, PAGE_SIZE);
     }
 
     port_start_cmd(port);

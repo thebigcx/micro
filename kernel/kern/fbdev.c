@@ -71,9 +71,9 @@ int fb_ioctl(struct file* file, int req, void* argp)
 
 int fb_mmap(struct file* file, struct vm_area* area)
 {
-    for (uintptr_t i = 0; i < (area->end - area->base) / PAGE4K; i++)
+    for (uintptr_t i = 0; i < (area->end - area->base) / PAGE_SIZE; i++)
     {
-        mmu_map(task_curr()->vm_map, area->base + i * PAGE4K, fb.phys + i * PAGE4K, PAGE_PR | PAGE_RW | PAGE_USR);
+        mmu_map(task_curr()->vm_map->pagemap, area->base + i * PAGE_SIZE, fb.phys + i * PAGE_SIZE, PAGE_PR | PAGE_RW | PAGE_USR);
     }
 
     return 0;

@@ -118,11 +118,11 @@ void heap_init()
 {
     uintptr_t start = mmu_kalloc(10000);
     for (unsigned int i = 0; i < 10000; i++)
-        mmu_kmap(start + i * PAGE4K, mmu_alloc_phys(), PAGE_PR | PAGE_RW);
+        mmu_kmap(start + i * PAGE_SIZE, mmu_alloc_phys(), PAGE_PR | PAGE_RW);
 
     first = last = (struct block*)start;
     first->used = 0;
-    first->size = 10000 * PAGE4K;
+    first->size = 10000 * PAGE_SIZE;
     first->next = first->prev = NULL;
 }
 

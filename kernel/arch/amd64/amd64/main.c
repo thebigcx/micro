@@ -30,9 +30,9 @@ void main(struct bootparams params)
     mmu_alloc_phys_at(0, 0x100);
     mmu_init();
 
-    uintptr_t size = (params.initrd_phys_end - params.initrd_phys_start + PAGE4K) / PAGE4K;
+    uintptr_t size = (params.initrd_phys_end - params.initrd_phys_start + PAGE_SIZE) / PAGE_SIZE;
     uintptr_t vaddr = mmu_kalloc(size);
-    for (uintptr_t i = 0; i < size * PAGE4K; i += PAGE4K)
+    for (uintptr_t i = 0; i < size * PAGE_SIZE; i += PAGE_SIZE)
         mmu_kmap(vaddr + i, params.initrd_phys_start + i, PAGE_PR | PAGE_RW);
 
     genparams.initrd_start = vaddr;
@@ -40,11 +40,11 @@ void main(struct bootparams params)
 
     //if (params.graphics)
     //{
-        /*unsigned int pages = (params.fbwidth * params.fbheight * (params.fbbpp / 8)) / PAGE4K + 1;
+        /*unsigned int pages = (params.fbwidth * params.fbheight * (params.fbbpp / 8)) / PAGE_SIZE + 1;
         uintptr_t virt = mmu_kalloc(pages);
 
         for (unsigned int i = 0; i < pages; i++)
-            mmu_kmap(virt + i * PAGE4K, params.fb_phys_addr + i * PAGE4K, PAGE_PR | PAGE_RW);
+            mmu_kmap(virt + i * PAGE_SIZE, params.fb_phys_addr + i * PAGE_SIZE, PAGE_PR | PAGE_RW);
 
         fb_set_addr((void*)virt);*/
     /*}
