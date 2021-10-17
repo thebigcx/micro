@@ -29,8 +29,8 @@ int do_exec(struct task* task, const char* path, char* const argv[], char* const
     mmu_set_kpml4();
     //vm_map_clear(task->vm_map);
     // TODO: clear mappings, rather than destroy the ENTIRE map
-    mmu_destroy_vmmap(task->vm_map);
-    task->vm_map = mmu_create_vmmap();
+    free_vmmap(task->vm_map);
+    task->vm_map = alloc_vmmap();
 
     // Top of canonical lower-half
     uintptr_t stack = 0x8000000000;

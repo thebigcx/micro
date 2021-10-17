@@ -3,6 +3,7 @@
 #include <micro/task.h>
 #include <arch/reg.h>
 #include <micro/stdlib.h>
+#include <micro/vmmap.h>
 
 struct cpu_info g_cpus[MAX_CPUS];
 unsigned int g_cpu_cnt = 1;

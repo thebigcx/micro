@@ -1,60 +1,66 @@
 #pragma once
 
-#include <arch/mmu.h>
+#include <micro/types.h>
+#include <micro/list.h>
 
-// struct pagemap defined in arch/mmu.h
-/*struct vm_map
+// User Virtual-Memory map
+struct vm_map
 {
-    struct pagemap pagemap;
-    struct list area;
+    struct pagemap* pagemap;
+
+    struct list vm_areas; // List of virtual memory areas
 };
 
-struct vmo_ops
-{
-    // Copy the object to a new map
-    void (*copy)(struct vm_object*, struct vm_map*);
-    void (*free)(struct vm_object*);
-    
-    // Handle a page-fault
-    void (*fault)(struct vm_object*, uintptr_t);
-};
+#define VMO_ANON  0
+#define VMO_INODE 1
 
-// Virtual Memory Object
+// TODO: make union?
 struct vm_object
 {
-    struct vmo_ops ops;
+    int type;
+};
+
+#define ANON_SHARED  0
+#define ANON_PRIVATE 1
+
+struct anon_vmo
+{
+    struct vm_object obj;
     int flags;
     uintptr_t* pages;
 };
 
-// Anonymous - not backed by file
-struct anon_vmo
-{
-    struct vm_object obj;
-};
+struct inode;
+struct file;
 
-// Inode - backed by an inode
+#define INODE_PRIVATE 0
+
 struct inode_vmo
 {
     struct vm_object obj;
-    struct inode* ino;
+    struct inode*    inode;
+    uintptr_t*       pages;
+    int              flags;
 };
 
-// Virtual memory region
 struct vm_area
 {
-    uintptr_t base, end;
-    struct vm_object* vmo;
+    uintptr_t base;
+    uintptr_t end;
+    struct vm_object* obj;
 };
 
 struct vm_map* alloc_vmmap();
-struct vm_map* fork_vmmap(struct vm_map* src);
+struct vm_map* fork_vmmap(const struct vm_map* src);
 void free_vmmap(struct vm_map* map);
 
-void vm_set_curr(struct vm_map* map);
+struct vm_area* vm_map_alloc(struct vm_map* map, size_t size);
+struct vm_area* vm_map_allocat(struct vm_map* map, uintptr_t base, size_t size);
 
-struct vm_area* vm_map_area(struct vm_map* map, uintptr_t base, size_t size);
-void vm_unmap_area(struct vm_map* map, struct vm_area* area);
+struct vm_area* vm_map_anon(struct vm_map* map, uintptr_t base, size_t size, int fixed);
+struct vm_area* vm_map_file(struct vm_map* map, uintptr_t base, size_t size, int fixed, struct file* file);
 
-int vm_handle_fault(struct vm_map* map, uintptr_t addr);
-*/
+void vm_map_anon_alloc(struct vm_map* map, struct vm_area* area, uintptr_t base, size_t size);
+
+int vm_map_handle_fault(struct vm_map* map, uintptr_t addr);
+void vm_map_clear(struct vm_map* map);

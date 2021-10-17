@@ -7,6 +7,7 @@
 #include <micro/thread.h>
 #include <micro/vfs.h>
 #include <micro/errno.h>
+#include <micro/vmmap.h>
 
 #define PUSH_STR(stack, x) { stack -= strlen(x) + 1; strcpy((char*)stack, x); }
 #define PUSH(stack, type, x) { stack -= sizeof(type); *((type*)stack) = x; }

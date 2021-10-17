@@ -3,6 +3,7 @@
 #include <micro/errno.h>
 #include <micro/task.h>
 #include <micro/time.h>
+#include <micro/vmmap.h>
 
 #define FDVALID(fd)\
     { if (fd < 0 || fd >= FD_MAX || !task_curr()->fds[fd]) return -EBADF; }

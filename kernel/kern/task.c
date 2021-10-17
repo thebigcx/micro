@@ -10,6 +10,7 @@
 #include <micro/stdlib.h>
 #include <micro/errno.h>
 #include <micro/try.h>
+#include <micro/vmmap.h>
 
 // TODO: needs WAY more locking
 
@@ -48,7 +49,7 @@ struct task* task_idle()
 
 struct task* task_init_creat()
 {
-    struct task* task = mktask(NULL, mmu_create_vmmap());
+    struct task* task = mktask(NULL, alloc_vmmap());
     
     char* const argv[] = { "/initrd/init", NULL };
     char* const envp[] = { NULL };
@@ -59,7 +60,7 @@ struct task* task_init_creat()
 
 struct task* task_kcreat(struct task* parent, uintptr_t entry)
 {
-    struct task* task = mktask(parent, mmu_create_vmmap());
+    struct task* task = mktask(parent, alloc_vmmap());
 
     task->main = thread_creat(task, entry, 0);
 
@@ -77,7 +78,7 @@ struct task* task_kcreat(struct task* parent, uintptr_t entry)
 
 struct task* task_clone(struct task* src, struct thread* calling)
 {
-    struct task* task = mktask(src, mmu_clone_vmmap(src->vm_map));
+    struct task* task = mktask(src, fork_vmmap(src->vm_map));
     task->main = thread_clone(task, calling);
 
     list_enqueue(&task->threads, task->main);
@@ -147,7 +148,7 @@ int task_execve(struct task* task, const char* path, char* const argv[], char* c
         return task_execve(task, nargv[0], nargv, envp);
     }
 
-    struct vm_map* vm_map = mmu_create_vmmap();
+    struct vm_map* vm_map = alloc_vmmap();
 
     struct elfinf inf;
     TRY(elf_load(vm_map, data, argv, envp, &inf))
@@ -157,7 +158,7 @@ int task_execve(struct task* task, const char* path, char* const argv[], char* c
     // About to delete the in-use pml4
     mmu_set_kpml4();
 
-    mmu_destroy_vmmap(task->vm_map);
+    free_vmmap(task->vm_map);
     task->vm_map = vm_map;
     
     lcr3(task->vm_map->pml4_phys);
@@ -232,7 +233,7 @@ void task_delete(struct task* task)
         }
     }
 
-    mmu_destroy_vmmap(task->vm_map);
+    free_vmmap(task->vm_map);
     kfree(task);
 }
 

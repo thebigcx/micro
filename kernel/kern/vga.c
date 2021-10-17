@@ -6,6 +6,7 @@
 #include <micro/task.h>
 #include <micro/devfs.h>
 #include <micro/errno.h>
+#include <micro/vmmap.h>
 
 #define COLS 80
 #define ROWS 25
