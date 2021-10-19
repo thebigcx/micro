@@ -18,25 +18,17 @@
     pop     %rdx
     pop     %rcx
     pop     %rbx
+    pop     %rax
 
 .endm
 
-// void _switch_ctx(RegisterCtx*, uintptr_t, uint16_t)
+// void _switch_ctx(struct regs*)
 .global _switch_ctx
 _switch_ctx:
-    mov     %dx, %ax
-    mov     %ax, %ds
-    mov     %ax, %es
-    mov     %ax, %fs
-    mov     %ax, %gs
-
     movq    %rdi, %rsp
     movq    %rsi, %rax
     popaq
 
-    movq    %rax, %cr3
-
-    popq    %rax
     // Stack contains RSP, CS, RIP, RFLAGS, SS
     iretq
 
