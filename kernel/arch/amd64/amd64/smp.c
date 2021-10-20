@@ -100,4 +100,8 @@ void smp_init()
 
         ent = (struct madtent*)((uintptr_t)ent + ent->len);
     }
+
+    g_cpuptrs[0] = &g_cpus[0];
+    arch_set_gsbase((uintptr_t)&g_cpuptrs[0]);
+    
 }

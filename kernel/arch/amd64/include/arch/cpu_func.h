@@ -49,6 +49,11 @@ FORCE_INLINE void wrmsr(unsigned int msr, uintptr_t val)
     asm volatile ("wrmsr" :: "a"(val & 0xffffffff), "d"(val >> 32), "c"(msr));
 }
 
+FORCE_INLINE void swapgs()
+{
+    asm volatile ("swapgs");
+}
+
 FORCE_INLINE uintptr_t rcr0()
 {
     uintptr_t cr0;

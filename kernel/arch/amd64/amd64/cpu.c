@@ -7,12 +7,15 @@
 struct cpu_info g_cpus[MAX_CPUS];
 unsigned int g_cpu_cnt = 1;
 
-// TODO: use gs-relative cpu information
+struct cpu_info* g_cpuptrs[MAX_CPUS];
+
 struct cpu_info* cpu_curr()
 {
-    uintptr_t id;
-    asm volatile ("cpuid" : "=b"(id) : "a"(1));
-    return &g_cpus[id >> 24];
+    struct cpu_info* cpu;
+    asm (
+        "mov %%gs:0, %0\n"
+    : "=r"(cpu));
+    return cpu;
 }
 
 void cpu_set_kstack(struct cpu_info* cpu, uintptr_t kstack)
@@ -53,4 +56,11 @@ void arch_enter_signal(struct thread* thread, int sig)
     *(uintptr_t*)r.rsp = (uintptr_t)thread->parent->signals[sig].sa_restorer;
 
     _switch_ctx(&r);
+}
+
+void arch_set_gsbase(uintptr_t base)
+{
+    wrmsr(0xC0000101, base);
+    wrmsr(0xC0000102, base);
+    swapgs();
 }

@@ -23,6 +23,8 @@ struct cpu_info
 extern struct cpu_info g_cpus[MAX_CPUS];
 extern unsigned int g_cpu_cnt;
 
+extern struct cpu_info* g_cpuptrs[MAX_CPUS];
+
 struct cpu_info* cpu_curr();
 
 void cpu_set_kstack(struct cpu_info* cpu, uintptr_t kstack);
@@ -30,6 +32,8 @@ void cpu_set_kstack(struct cpu_info* cpu, uintptr_t kstack);
 void arch_init_thread(struct thread* thread, int usr);
 void arch_switch_ctx(struct thread* thread);
 void arch_enter_signal(struct thread* thread, int sig);
+
+void arch_set_gsbase(uintptr_t gsbase);
 
 FORCE_INLINE void arch_syscall_ret(struct regs* r, uintptr_t n)
 {
