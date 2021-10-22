@@ -40,6 +40,7 @@ SYSCALL_DEFINE(lchown,       const char* path, uid_t owner, gid_t group);
 SYSCALL_DEFINE(getcwd,       char* buf, size_t size);
 SYSCALL_DEFINE(chdir,        const char* path);
 SYSCALL_DEFINE(access,       const char* pathname, int mode);
+SYSCALL_DEFINE(faccessat2,   int dirfd, const char* path, int mode, int flags);
 
 // fs/readwr.c
 SYSCALL_DEFINE(read,         int fd, void* buf, size_t count);
@@ -101,7 +102,7 @@ SYSCALL_DEFINE(wait4,        pid_t pid, int* wstatus, int options, struct rusage
 SYSCALL_DEFINE(execve,       const char* path, char* const argv[],
                              char* const envp[]);
 
-// fork.c
+// proc/fork.c
 SYSCALL_DEFINE(fork);
 
 // module.c
@@ -109,11 +110,11 @@ SYSCALL_DEFINE(init_module,   void* data, size_t len, const char* params);
 SYSCALL_DEFINE(finit_module,  int fd, const char* params, int flags);
 SYSCALL_DEFINE(delete_module, const char* name, unsigned int flags);
 
-// ptrace.c
+// proc/ptrace.c
 SYSCALL_DEFINE(ptrace,       unsigned long req, pid_t pid,
                              void* addr, void* data);
 
-// signal.c
+// proc/signal.c
 SYSCALL_DEFINE(sigaction,    int signum, const struct sigaction* act,
                              struct sigaction* oldact);
 SYSCALL_DEFINE(sigprocmask,  int how, const sigset_t* set, sigset_t* oldset);
@@ -121,7 +122,7 @@ SYSCALL_DEFINE(sigreturn);
 SYSCALL_DEFINE(umask,        mode_t umask);
 SYSCALL_DEFINE(kill,         int pid, int sig);
 
-// thread.c
+// proc/thread.c
 SYSCALL_DEFINE(tkill,        pid_t tid, int sig);
 
 // time.c

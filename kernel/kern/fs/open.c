@@ -177,3 +177,9 @@ SYSCALL_DEFINE(lchown, const char* path, uid_t owner, gid_t group)
     PTRVALID(path);
     return do_chown(path, owner, group, 0);
 }
+
+SYSCALL_DEFINE(faccessat2, int dirfd, const char* path, int mode, int flags)
+{
+    printk("faccessat2(%d, %s, %d, %d)\n", dirfd, path, mode, flags);
+    return 0;
+}

@@ -310,7 +310,8 @@ static void* syscalls[] =
     [SYS_bind]            = &sys_bind,
     [SYS_accept]          = &sys_accept,
     [SYS_fchown]          = &sys_fchown,
-    [SYS_lchown]          = &sys_lchown
+    [SYS_lchown]          = &sys_lchown,
+    [SYS_faccessat2]      = &sys_faccessat2
 };
 
 void syscall_handler(struct regs* r)

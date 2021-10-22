@@ -16,7 +16,8 @@ struct pt
     struct termios  termios;
 
     unsigned int    num;
-    pid_t           pgid;
+    pid_t           fgid;
+    pid_t           bgid;
 };
 
 void tty_init();

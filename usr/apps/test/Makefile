@@ -1,9 +1,9 @@
 SRC = test.c
 OBJ = $(patsubst %.c, %.o, $(SRC))
 
-TARG = test-ld
+TARG = test
 
-CFLAGS = -ffreestanding -fno-stack-protector -O2 -Wall -Wextra -Wno-unused-parameter -Wno-unused-variable
+CFLAGS = -ffreestanding -fno-stack-protector -O2 -static -Wall -Wextra -Wno-unused-parameter -Wno-unused-variable
 LDFLAGS =
 CC = x86_64-micro-gcc
 

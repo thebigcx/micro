@@ -13,10 +13,23 @@
 #include <micro/debug.h>
 #include <micro/lock.h>
 
+// TODO: use a wakeup queue
+static ssize_t iobuf_read(struct ringbuf* rbuf, void* buf, size_t size)
+{
+    ssize_t bytes;
+    while (!(bytes = ringbuf_size(rbuf))) sched_yield();
+
+    if (size < (size_t)bytes) bytes = size;
+    
+    ringbuf_read(rbuf, buf, bytes);
+    return bytes;
+}
+
 ssize_t pts_read(struct file* file, void* buf, off_t off, size_t size)
 {
     struct pt* pt = file->inode->priv;
-
+    return iobuf_read(pt->inbuf, buf, size);
+/*
     // TODO: use a wakeup queue instead (like a semaphore)
     ssize_t bytes;
     while (!(bytes = ringbuf_size(pt->inbuf))) sched_yield();
@@ -25,7 +38,7 @@ ssize_t pts_read(struct file* file, void* buf, off_t off, size_t size)
 
     ringbuf_read(pt->inbuf, buf, bytes);
 
-    return bytes;
+    return bytes;*/
 }
 
 ssize_t pts_write(struct file* file, const void* buf, off_t off, size_t size)
@@ -78,11 +91,11 @@ int pt_ioctl(struct file* file, int req, void* argp)
         }
         case TIOCGPGRP:
         {
-            return pt->pgid;
+            return pt->fgid;
         }
         case TIOCSPGRP:
         {
-            pt->pgid = *(pid_t*)argp;
+            pt->fgid = *(pid_t*)argp;
             return 0;
         }
         case FIONREAD:
@@ -96,6 +109,7 @@ int pt_ioctl(struct file* file, int req, void* argp)
     return -EINVAL;
 }
 
+// TODO: use iobuf_read(pt->outbuf, buf, size);
 ssize_t ptm_read(struct file* file, void* buf, off_t off, size_t size)
 {
     struct pt* pt = file->inode->priv;
@@ -233,10 +247,8 @@ int ptmx_open_new(struct inode* inode, struct file* file)
     return 0;
 }
 
-int ptsfs_mount(const char* dev, const void* data, struct inode* fsroot)
+int ptsfs_mount(const char*, const void*, struct inode* fsroot)
 {
-    (void)dev; (void)data;
-
     fsroot->ops.lookup   = ptsfs_lookup;
     fsroot->ops.getdents = ptsfs_getdents;
     fsroot->mode         = S_IFDIR | 0755;
