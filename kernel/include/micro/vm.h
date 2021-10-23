@@ -2,37 +2,34 @@
 
 #include <arch/mmu.h>
 
-#define VMO_ANON  0
-#define VMO_INODE 1
+#define VM_ANON 0x1
+#define VM_PRIV 0x2
 
 // TODO: refactor all of this
 
 struct vm_object
 {
-    int type;
-};
+    int flags;
+    uintptr_t* pages;
 
-#define ANON_SHARED  0
-#define ANON_PRIVATE 1
+    /*union
+    {
+        struct inode* inode;
+    };*/
+};
 
 struct anon_vmo
 {
     struct vm_object obj;
-    int flags;
-    uintptr_t* pages;
 };
 
 struct inode;
 struct file;
 
-#define INODE_PRIVATE 0
-
 struct inode_vmo
 {
     struct vm_object obj;
     struct inode*    inode;
-    uintptr_t*       pages;
-    int              flags;
 };
 
 struct vm_area
