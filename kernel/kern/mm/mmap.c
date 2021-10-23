@@ -2,6 +2,7 @@
 #include <micro/mman.h>
 #include <micro/vfs.h>
 #include <arch/mmu.h>
+#include <micro/vm.h>
 
 unsigned long ksys_do_mmap(void* addr, size_t length, int prot, int flags, int fdno, off_t offset)
 {

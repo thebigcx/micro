@@ -6,6 +6,7 @@
 #include <arch/mmu.h>
 #include <micro/task.h>
 #include <micro/devfs.h>
+#include <micro/vm.h>
 
 static struct fb fb;
 static int ready = 0;

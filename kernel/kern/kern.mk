@@ -24,6 +24,7 @@ SRC += kern/debug/ubsan.c   \
        kern/fs/procfs.c     \
 	   						\
        kern/mm/mmap.c       \
+       kern/mm/vm.c         \
 	   						\
        kern/net/socket.c    \
 	   						\

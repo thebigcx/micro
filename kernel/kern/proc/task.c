@@ -10,6 +10,7 @@
 #include <micro/stdlib.h>
 #include <micro/errno.h>
 #include <micro/try.h>
+#include <micro/vm.h>
 
 // TODO: needs WAY more locking
 

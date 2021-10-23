@@ -7,6 +7,7 @@
 #include <micro/debug.h>
 #include <micro/heap.h>
 #include <micro/sys.h>
+#include <micro/vm.h>
 
 static void init_thread_meta(struct thread* thread, struct task* parent)
 {
