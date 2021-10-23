@@ -7,29 +7,17 @@
 
 // TODO: refactor all of this
 
+struct inode;
+
 struct vm_object
 {
     int flags;
     uintptr_t* pages;
 
-    /*union
+    union
     {
         struct inode* inode;
-    };*/
-};
-
-struct anon_vmo
-{
-    struct vm_object obj;
-};
-
-struct inode;
-struct file;
-
-struct inode_vmo
-{
-    struct vm_object obj;
-    struct inode*    inode;
+    };
 };
 
 struct vm_area
@@ -45,6 +33,8 @@ void vm_free_map(struct vm_map* map);
 
 struct vm_area* vm_map_alloc(struct vm_map* map, size_t size);
 struct vm_area* vm_map_allocat(struct vm_map* map, uintptr_t base, size_t size);
+
+struct file;
 
 struct vm_area* vm_map_anon(struct vm_map* map, uintptr_t base, size_t size, int fixed);
 struct vm_area* vm_map_file(struct vm_map* map, uintptr_t base, size_t size, int fixed, struct file* file);

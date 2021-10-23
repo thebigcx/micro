@@ -141,12 +141,12 @@ static struct vm_area* alloc_vmarea(struct vm_map* map, uintptr_t base, size_t s
 struct vm_area* vm_map_anon(struct vm_map* map, uintptr_t base, size_t size, int fixed)
 {
     struct vm_area* area = alloc_vmarea(map, base, size, fixed);
-    struct anon_vmo* obj = kmalloc(sizeof(struct anon_vmo));
+    
+    area->obj = kmalloc(sizeof(struct vm_object));
 
-    obj->obj.pages = kmalloc(sizeof(uintptr_t) * size / PAGE4K);
-    obj->obj.flags = VM_ANON | VM_PRIV;
+    area->obj->pages = kmalloc(sizeof(uintptr_t) * size / PAGE4K);
+    area->obj->flags = VM_ANON | VM_PRIV;
 
-    area->obj = (struct vm_object*)obj;
     return area;
 }
 
@@ -165,15 +165,12 @@ struct vm_area* vm_map_file(struct vm_map* map, uintptr_t base, size_t size, int
         return NULL;
     }
 
-    struct inode_vmo* obj = kmalloc(sizeof(struct inode_vmo));
+    area->obj = kmalloc(sizeof(struct vm_object));
    
-    obj->obj.flags = VM_PRIV;
-    obj->obj.pages = kmalloc(sizeof(uintptr_t) * size / PAGE4K);
-
-    obj->inode = file->inode;
+    area->obj->flags = VM_PRIV;
+    area->obj->pages = kmalloc(sizeof(uintptr_t) * size / PAGE4K);
+    area->obj->inode = file->inode;
     
-    area->obj = (struct vm_object*)obj;
-   
     return area;
 }
 
@@ -182,12 +179,10 @@ void vm_map_anon_alloc(struct vm_map* map, struct vm_area* area, uintptr_t base,
 {
     base -= area->base;
 
-    struct anon_vmo* anon = (struct anon_vmo*)area->obj;
-
     for (uintptr_t i = base / PAGE4K; i < (base + size) / PAGE4K; i++)
     {
-        anon->obj.pages[i] = mmu_alloc_phys();
-        mmu_map(map, i * PAGE4K + area->base, anon->obj.pages[i], PAGE_PR | PAGE_RW);
+        area->obj->pages[i] = mmu_alloc_phys();
+        mmu_map(map, i * PAGE4K + area->base, area->obj->pages[i], PAGE_PR | PAGE_RW);
     }
 }
 
@@ -207,13 +202,11 @@ int vm_map_handle_fault(struct vm_map* map, uintptr_t addr)
         {
             if (area->obj->flags & VM_ANON)
             {
-                struct anon_vmo* anon = (struct anon_vmo*)area->obj;
-                
                 unsigned int i = (addr - area->base) / PAGE4K;
-                anon->obj.pages[i] = mmu_alloc_phys();
+                area->obj->pages[i] = mmu_alloc_phys();
 
                 printk("fault: map=%x addr=%x base=%x i=%d\n", map, addr, area->base, i);
-                mmu_map(map, addr, anon->obj.pages[i], PAGE_PR | PAGE_RW);
+                mmu_map(map, addr, area->obj->pages[i], PAGE_PR | PAGE_RW);
                 return 0;
             }
         }
