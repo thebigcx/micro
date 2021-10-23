@@ -307,6 +307,8 @@ uintptr_t mmu_virt2phys(struct vm_map* map, uintptr_t virt)
 }
 
 // Initialize arch-dependent paging structures
+//
+// FIXME: this function does WAY too many allocations
 void mmu_init_vmmap(struct vm_map* map)
 {
     map->pml4 = (pml_t*)mmu_kalloc(1);
@@ -360,6 +362,7 @@ void mmu_clone_vmmap(const struct vm_map* src, struct vm_map* dst)
                 {
                     if (srcpt[k] & PAGE_USR)
                     {
+                        // TODO: DONT DO THIS
                         uintptr_t virt1 = mmu_kalloc(1);
                         uintptr_t phys1 = srcpt[k] & PAGE_FRAME;
 
