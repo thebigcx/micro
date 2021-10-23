@@ -8,6 +8,7 @@
 // TODO: refactor all of this
 
 struct inode;
+struct vm_area;
 
 struct vm_object
 {
@@ -18,6 +19,10 @@ struct vm_object
     {
         struct inode* inode;
     };
+
+    int (*copy)(struct vm_object*);
+    int (*fault)(struct vm_area*, uintptr_t);
+    int (*free)(struct vm_object*);
 };
 
 struct vm_area
@@ -25,6 +30,7 @@ struct vm_area
     uintptr_t base;
     uintptr_t end;
     struct vm_object* obj;
+    struct vm_map* map;
 };
 
 struct vm_map* vm_alloc_map();

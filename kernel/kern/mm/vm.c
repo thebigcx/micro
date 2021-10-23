@@ -35,13 +35,13 @@ void vm_free_map(struct vm_map* map)
     kfree(map);
 }
 
-static struct vm_area* vm_area_create(uintptr_t base, uintptr_t end, struct vm_object* obj)
+static struct vm_area* vm_area_create(uintptr_t base, uintptr_t end, struct vm_map* map)
 {
-    struct vm_area* area = kmalloc(sizeof(struct vm_area));
+    struct vm_area* area = kcalloc(sizeof(struct vm_area));
 
     area->base = base;
     area->end  = end;
-    area->obj  = obj;
+    area->map  = map;
     
     return area;
 }
@@ -58,7 +58,7 @@ struct vm_area* vm_map_alloc(struct vm_map* map, size_t size)
 
         if (area->base >= end)
         {
-            return list_insert_before(&map->vm_areas, i, vm_area_create(base, end, NULL));
+            return list_insert_before(&map->vm_areas, i, vm_area_create(base, end, map));
         }
 
         // Intersects/Encapsulates
@@ -75,7 +75,7 @@ struct vm_area* vm_map_alloc(struct vm_map* map, size_t size)
 
     if (end < KBASE)
     {
-        return list_enqueue(&map->vm_areas, vm_area_create(base, end, NULL));
+        return list_enqueue(&map->vm_areas, vm_area_create(base, end, map));
     }
 
     return NULL;
@@ -107,7 +107,7 @@ struct vm_area* vm_map_allocat(struct vm_map* map, uintptr_t base, size_t size)
         
         if (area->base >= end)
         {
-            return list_insert_before(&map->vm_areas, i, vm_area_create(base, end, NULL));
+            return list_insert_before(&map->vm_areas, i, vm_area_create(base, end, map));
         }
     }
 
@@ -115,7 +115,7 @@ struct vm_area* vm_map_allocat(struct vm_map* map, uintptr_t base, size_t size)
     if (!map->vm_areas.size
      ||((struct vm_area*)list_back(&map->vm_areas))->end <= base)
     {
-        return list_enqueue(&map->vm_areas, vm_area_create(base, end, NULL));
+        return list_enqueue(&map->vm_areas, vm_area_create(base, end, map));
     }
 
     return NULL;
@@ -137,6 +137,16 @@ static struct vm_area* alloc_vmarea(struct vm_map* map, uintptr_t base, size_t s
         return vm_map_alloc(map, size);
 }
 
+static int anonvmo_fault(struct vm_area* area, uintptr_t addr)
+{
+    unsigned int i = (addr - area->base) / PAGE4K;
+    area->obj->pages[i] = mmu_alloc_phys();
+
+    printk("fault: map=%x addr=%x base=%x i=%d\n", area->map, addr, area->base, i);
+    mmu_map(area->map, addr, area->obj->pages[i], PAGE_PR | PAGE_RW);
+    return 0;
+}
+
 // Create a private anonymous mapping
 struct vm_area* vm_map_anon(struct vm_map* map, uintptr_t base, size_t size, int fixed)
 {
@@ -146,6 +156,8 @@ struct vm_area* vm_map_anon(struct vm_map* map, uintptr_t base, size_t size, int
 
     area->obj->pages = kmalloc(sizeof(uintptr_t) * size / PAGE4K);
     area->obj->flags = VM_ANON | VM_PRIV;
+
+    area->obj->fault = anonvmo_fault;
 
     return area;
 }
@@ -193,24 +205,17 @@ int vm_map_handle_fault(struct vm_map* map, uintptr_t addr)
     if (addr % PAGE4K)
         addr -= addr % PAGE4K;
 
+    // Find the vm_area that 'addr' is inside
     LIST_FOREACH(&map->vm_areas)
     {
         struct vm_area* area = node->data;
 
         // addr inside the vm_area
         if (addr >= area->base && addr + PAGE4K <= area->end)
-        {
-            if (area->obj->flags & VM_ANON)
-            {
-                unsigned int i = (addr - area->base) / PAGE4K;
-                area->obj->pages[i] = mmu_alloc_phys();
-
-                printk("fault: map=%x addr=%x base=%x i=%d\n", map, addr, area->base, i);
-                mmu_map(map, addr, area->obj->pages[i], PAGE_PR | PAGE_RW);
-                return 0;
-            }
-        }
+            return area->obj->fault(area, addr);
     }
 
+    // Invalid memory access
     return -1;
 }
+
