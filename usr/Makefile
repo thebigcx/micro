@@ -1,2 +1,2 @@
-SUBDIRS = libs apps
+SUBDIRS = lib bin
 include subdir.mk
