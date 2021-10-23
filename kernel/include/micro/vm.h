@@ -20,9 +20,12 @@ struct vm_object
         struct inode* inode;
     };
 
-    int (*copy)(struct vm_object*);
-    int (*fault)(struct vm_area*, uintptr_t);
-    int (*free)(struct vm_object*);
+    struct
+    {
+        int (*copy)(struct vm_area*, struct vm_area*);
+        int (*fault)(struct vm_area*, uintptr_t);
+        int (*free)(struct vm_area*);
+    } cbs;
 };
 
 struct vm_area

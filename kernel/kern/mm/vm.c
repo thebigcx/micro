@@ -1,6 +1,7 @@
 #include <micro/vm.h>
 #include <arch/mmu.h>
 #include <micro/heap.h>
+#include <micro/stdlib.h>
 
 // TODO: remove
 #include <micro/vfs.h>
@@ -22,6 +23,14 @@ struct vm_map* vm_clone_map(const struct vm_map* src)
 
     map->vm_areas = list_create(); // TODO: clone them properly: copy-on-write, shared-memory, etc etc
     
+    /*LIST_FOREACH(&src->vm_areas)
+    {
+        struct vm_area* area = node->data;
+        struct vm_area* new = memdup(area);
+
+        area->obj->cbs.copy(area, new);
+    };*/
+
     return map;
 }
 
@@ -30,6 +39,13 @@ void vm_free_map(struct vm_map* map)
     mmu_free_vmmap(map);
     
     // TODO: free areas properly i.e. copy-on-write, shared-memory, etc
+    /*
+    LIST_FOREACH(&map->vm_areas)
+    {
+        struct vm_area* area = node->data;
+        area->obj->cbs.free(area);
+    }
+    */
 
     list_free(&map->vm_areas);
     kfree(map);
@@ -137,6 +153,35 @@ static struct vm_area* alloc_vmarea(struct vm_map* map, uintptr_t base, size_t s
         return vm_map_alloc(map, size);
 }
 
+static int anonvmo_copy(struct vm_area* src, struct vm_area* dst)
+{
+    dst->obj = kcalloc(sizeof(struct vm_object));
+
+    dst->obj->flags = src->obj->flags;
+    memcpy(&dst->obj->cbs, &src->obj->cbs, sizeof(dst->obj->cbs)); 
+
+    dst->obj->pages = kmalloc(sizeof(uintptr_t) * (dst->end - dst->base) / PAGE4K);
+
+    uintptr_t tmp1 = mmu_kalloc(1);
+    uintptr_t tmp2 = mmu_kalloc(1);
+
+    // Copy the memory
+    for (size_t i = 0; i < (dst->end - dst->base) / PAGE4K; i++)
+    {
+        dst->obj->pages[i] = mmu_alloc_phys();
+
+        mmu_kmap(tmp1, dst->obj->pages[i], PAGE_PR | PAGE_RW);
+        mmu_kmap(tmp2, src->obj->pages[i], PAGE_PR | PAGE_RW);
+
+        memcpy((void*)tmp1, (void*)tmp2, PAGE4K);
+    }
+
+    mmu_kfree(tmp1, 1);
+    mmu_kfree(tmp2, 1);
+
+    return 0;
+}
+
 static int anonvmo_fault(struct vm_area* area, uintptr_t addr)
 {
     unsigned int i = (addr - area->base) / PAGE4K;
@@ -157,7 +202,8 @@ struct vm_area* vm_map_anon(struct vm_map* map, uintptr_t base, size_t size, int
     area->obj->pages = kmalloc(sizeof(uintptr_t) * size / PAGE4K);
     area->obj->flags = VM_ANON | VM_PRIV;
 
-    area->obj->fault = anonvmo_fault;
+    area->obj->cbs.fault = anonvmo_fault;
+    area->obj->cbs.copy  = anonvmo_copy;
 
     return area;
 }
@@ -212,7 +258,7 @@ int vm_map_handle_fault(struct vm_map* map, uintptr_t addr)
 
         // addr inside the vm_area
         if (addr >= area->base && addr + PAGE4K <= area->end)
-            return area->obj->fault(area, addr);
+            return area->obj->cbs.fault(area, addr);
     }
 
     // Invalid memory access
