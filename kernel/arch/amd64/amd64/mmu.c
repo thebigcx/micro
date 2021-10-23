@@ -306,12 +306,9 @@ uintptr_t mmu_virt2phys(struct vm_map* map, uintptr_t virt)
         return 0; // Either kernel space or completely invalid
 }
 
-struct vm_map* mmu_create_vmmap()
+// Initialize arch-dependent paging structures
+void mmu_init_vmmap(struct vm_map* map)
 {
-    struct vm_map* map = kmalloc(sizeof(struct vm_map));
-
-    map->vm_areas = list_create();
-
     map->pml4 = (pml_t*)mmu_kalloc(1);
     map->pdpt = (pml_t*)mmu_kalloc(1);
     map->pds = (page_t**)kmalloc(PAGE4K);
@@ -340,13 +337,12 @@ struct vm_map* mmu_create_vmmap()
         map->pts[i] = (page_t**)kmalloc(4096); // FIXME: create the page tables as needed
 		memset(map->pts[i], 0, PAGE4K);
     }
-
-    return map;
 }
 
-struct vm_map* mmu_clone_vmmap(const struct vm_map* src)
+// Clone arch-dependent paging structures
+void mmu_clone_vmmap(const struct vm_map* src, struct vm_map* dst)
 {
-    struct vm_map* map = mmu_create_vmmap();
+    mmu_init_vmmap(dst);
 
     // Copy over the pages if marked as user, or reference them if they are kernel
     for (unsigned int i = 0; i < ENTCNT; i++)
@@ -356,7 +352,7 @@ struct vm_map* mmu_clone_vmmap(const struct vm_map* src)
 
         if (srcpt)
         {
-            mktable(map, i, j);
+            mktable(dst, i, j);
 
             for (unsigned int k = 0; k < ENTCNT; k++)
             {
@@ -378,7 +374,7 @@ struct vm_map* mmu_clone_vmmap(const struct vm_map* src)
                         mmu_kfree(virt1, 1);
                         mmu_kfree(virt2, 1);
 
-                        map->pts[i][j][k] = (~PAGE_FRAME & srcpt[k]) | phys2;
+                        dst->pts[i][j][k] = (~PAGE_FRAME & srcpt[k]) | phys2;
                     }
                     else
                     {
@@ -389,15 +385,14 @@ struct vm_map* mmu_clone_vmmap(const struct vm_map* src)
         }
         else
         {
-            map->pds[i][j] = 0;
-            map->pts[i][j] = NULL;
+            dst->pds[i][j] = 0;
+            dst->pts[i][j] = NULL;
         }
     }
-
-    return map;
 }
 
-void mmu_destroy_vmmap(struct vm_map* map)
+// Free arch-dependent paging structures
+void mmu_free_vmmap(struct vm_map* map)
 {
     for (unsigned int i = 0; i < ENTCNT; i++)
     {
@@ -432,8 +427,6 @@ void mmu_destroy_vmmap(struct vm_map* map)
 
     kfree(map->pds);
     kfree(map->pts);
-
-    kfree(map);
 }
 
 void mmu_set_kpml4()

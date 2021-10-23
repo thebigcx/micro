@@ -39,8 +39,11 @@ void mmu_free_phys(uintptr_t p, unsigned int cnt);
 uintptr_t mmu_virt2phys(struct vm_map* map, uintptr_t virt);
 uintptr_t mmu_kvirt2phys(uintptr_t virt);
 
-struct vm_map* mmu_create_vmmap();
-struct vm_map* mmu_clone_vmmap(const struct vm_map* src);
-void mmu_destroy_vmmap(struct vm_map* map);
+//struct vm_map* vm_alloc_map();
+//struct vm_map* vm_clone_map(const struct vm_map* src);
+//void vm_free_map(struct vm_map* map);
+void mmu_init_vmmap(struct vm_map* map);
+void mmu_clone_vmmap(const struct vm_map* src, struct vm_map* dst);
+void mmu_free_vmmap(struct vm_map* map);
 
 void mmu_set_kpml4();

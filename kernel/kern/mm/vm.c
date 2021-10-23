@@ -5,6 +5,36 @@
 // TODO: remove
 #include <micro/vfs.h>
 
+struct vm_map* vm_alloc_map()
+{
+    struct vm_map* map = kcalloc(sizeof(struct vm_map));
+    mmu_init_vmmap(map);
+
+    map->vm_areas = list_create();
+
+    return map;
+}
+
+struct vm_map* vm_clone_map(const struct vm_map* src)
+{
+    struct vm_map* map = kcalloc(sizeof(struct vm_map));
+    mmu_clone_vmmap(src, map);
+
+    map->vm_areas = list_create(); // TODO: clone them properly: copy-on-write, shared-memory, etc etc
+    
+    return map;
+}
+
+void vm_free_map(struct vm_map* map)
+{
+    mmu_free_vmmap(map);
+    
+    // TODO: free areas properly i.e. copy-on-write, shared-memory, etc
+
+    list_free(&map->vm_areas);
+    kfree(map);
+}
+
 static struct vm_area* vm_area_create(uintptr_t base, uintptr_t end, struct vm_object* obj)
 {
     struct vm_area* area = kmalloc(sizeof(struct vm_area));

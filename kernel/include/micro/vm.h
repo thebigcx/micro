@@ -42,6 +42,10 @@ struct vm_area
     struct vm_object* obj;
 };
 
+struct vm_map* vm_alloc_map();
+struct vm_map* vm_clone_map(const struct vm_map* src);
+void vm_free_map(struct vm_map* map);
+
 struct vm_area* vm_map_alloc(struct vm_map* map, size_t size);
 struct vm_area* vm_map_allocat(struct vm_map* map, uintptr_t base, size_t size);
 
